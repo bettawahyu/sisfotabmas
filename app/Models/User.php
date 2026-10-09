@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -54,5 +55,15 @@ class User extends Authenticatable
     {
         $this->roles()->syncWithoutDetaching(Role::whereIn('kode', $kode)->pluck('id'));
         $this->unsetRelation('roles');
+    }
+
+    /**
+     * The lecturer profile linked to this account, if any.
+     *
+     * @return HasOne<Dosen, $this>
+     */
+    public function dosen(): HasOne
+    {
+        return $this->hasOne(Dosen::class);
     }
 }
