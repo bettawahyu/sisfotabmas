@@ -14,7 +14,11 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-Seeder membuat tiga akun contoh dengan kata sandi `password`: `admin@example.com` (admin_lppm), `dosen@example.com` (dosen), dan `reviewer@example.com` (reviewer).
+Seeder membuat akun contoh dengan kata sandi `password`: `admin@example.com` (admin_lppm), `dosen@example.com` dan `dosen2@example.com` (dosen, sudah punya profil), `reviewer@example.com` (reviewer), dan `kaprodi@example.com` (pimpinan_unit). Seeder juga membuat satu periode hibah Penelitian Dosen Pemula yang sedang dibuka.
+
+## Alur pengajuan proposal
+
+Dosen membuat proposal di menu Proposal, mengisi tim, RAB, luaran, dan mengunggah substansi PDF, lalu mengirimnya untuk pengesahan. Kaprodi atau dekan mengesahkan di menu Pengesahan, lalu admin LPPM melakukan seleksi administrasi (lolos, dikembalikan dengan batas perbaikan, atau ditolak). Semua perpindahan status melewati `App\Services\AlurProposal` dan tercatat di `proposal_status_log`. Perintah terjadwal `proposal:tutup-lewat-batas` menutup proposal yang lewat batas perbaikan.
 
 ## Peran
 

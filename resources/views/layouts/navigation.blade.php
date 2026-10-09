@@ -15,6 +15,16 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
+                        <x-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
+                            Proposal
+                        </x-nav-link>
+                    @endif
+                    @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
+                        <x-nav-link :href="route('pengesahan.index')" :active="request()->routeIs('pengesahan.*')">
+                            Pengesahan
+                        </x-nav-link>
+                    @endif
                     @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_LPPM))
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                             {{ __('Admin') }}
@@ -42,6 +52,11 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
+                        @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
+                            <x-dropdown-link :href="route('profil-dosen.edit')">
+                                Profil Dosen
+                            </x-dropdown-link>
+                        @endif
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -75,6 +90,19 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
+                <x-responsive-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
+                    Proposal
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('profil-dosen.edit')" :active="request()->routeIs('profil-dosen.*')">
+                    Profil Dosen
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
+                <x-responsive-nav-link :href="route('pengesahan.index')" :active="request()->routeIs('pengesahan.*')">
+                    Pengesahan
+                </x-responsive-nav-link>
+            @endif
             @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_LPPM))
                 <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                     {{ __('Admin') }}
