@@ -176,4 +176,36 @@ class Proposal extends Model
     {
         return (int) $this->rab->sum('total');
     }
+
+    /**
+     * @return HasMany<PencairanDana, $this>
+     */
+    public function pencairan(): HasMany
+    {
+        return $this->hasMany(PencairanDana::class)->orderBy('termin_ke');
+    }
+
+    /**
+     * @return HasMany<Penilaian, $this>
+     */
+    public function penilaian(): HasMany
+    {
+        return $this->hasMany(Penilaian::class);
+    }
+
+    /**
+     * @return HasMany<Laporan, $this>
+     */
+    public function laporan(): HasMany
+    {
+        return $this->hasMany(Laporan::class);
+    }
+
+    /**
+     * @return HasMany<Logbook, $this>
+     */
+    public function logbook(): HasMany
+    {
+        return $this->hasMany(Logbook::class)->orderBy('tanggal');
+    }
 }
