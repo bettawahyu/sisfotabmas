@@ -13,7 +13,7 @@ test('every table in the design doc exists', function (string $tabel) {
     'skema_hibah', 'periode_hibah', 'kriteria_penilaian', 'berkas',
     'dosen', 'riwayat_pendidikan',
     'publikasi', 'publikasi_penulis',
-    'kekayaan_intelektual', 'ki_inventor',
+    'hki', 'hki_pencipta', 'paten', 'paten_inventor',
     'proposal', 'proposal_anggota', 'proposal_mitra', 'rab_item', 'proposal_status_log', 'pencairan_dana',
     'pengumuman',
     'luaran', 'penilaian', 'nilai_penilaian', 'laporan', 'logbook',
@@ -23,6 +23,18 @@ test('the lecturer profile carries the external identifiers', function () {
     expect(Schema::hasColumns('dosen', ['scopus_author_id', 'google_scholar_id', 'orcid', 'skor_sinta']))->toBeTrue()
         ->and(Schema::hasColumns('user_roles', ['unit_type', 'unit_id']))->toBeTrue();
 });
+
+test('outputs link to publications, HKI and patents separately', function () {
+    expect(Schema::hasColumns('luaran', ['publikasi_id', 'hki_id', 'paten_id']))->toBeTrue()
+        ->and(Schema::hasColumn('luaran', 'ki_id'))->toBeFalse()
+        ->and(Schema::hasColumns('proposal', ['is_pkpt', 'pt_mitra']))->toBeTrue();
+});
+
+test('publications, HKI and patents are verified by the kaprodi and LPPM', function (string $tabel) {
+    expect(Schema::hasColumns($tabel, [
+        'status_verifikasi', 'diverifikasi_kaprodi_oleh', 'diverifikasi_kaprodi_at', 'diverifikasi_lppm_oleh', 'diverifikasi_lppm_at',
+    ]))->toBeTrue();
+})->with(['publikasi', 'hki', 'paten']);
 
 test('an output links to a real publication only', function () {
     $proposal = Proposal::factory()->create();
