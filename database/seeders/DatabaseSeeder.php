@@ -6,7 +6,13 @@ use App\Enums\JenisKegiatan;
 use App\Enums\StatusPeriode;
 use App\Models\BidangFokus;
 use App\Models\Fakultas;
+use App\Models\Pengaturan;
+use App\Models\Pengumuman;
+use App\Models\Penilaian;
+use App\Models\PeriodeHibah;
+use App\Models\Publikasi;
 use App\Models\Role;
+use App\Models\RumpunIlmu;
 use App\Models\SkemaHibah;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -28,6 +34,8 @@ class DatabaseSeeder extends Seeder
             'reviewer@example.com' => ['Reviewer', Role::REVIEWER],
             'kaprodi@example.com' => ['Kaprodi', Role::PIMPINAN_UNIT],
             'dosen2@example.com' => ['Dosen Kedua', Role::DOSEN],
+            'operator@example.com' => ['Operator', Role::OPERATOR],
+            'sistem@example.com' => ['Admin Sistem', Role::ADMIN_SISTEM],
         ];
 
         foreach ($accounts as $email => [$name, $role]) {
@@ -35,6 +43,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->contohDataHibah();
+        $this->contohReferensi();
     }
 
     /**
@@ -72,5 +81,35 @@ class DatabaseSeeder extends Seeder
             'dana_maksimal' => 15_000_000, 'honor_diizinkan' => true, 'batas_honor_persen' => 10,
             'status' => StatusPeriode::Dibuka,
         ]);
+    }
+
+    /**
+     * Example science tree, rubric, settings, an announcement and one publication.
+     * The rumpun ilmu rows are placeholders; replace them with the campus list.
+     */
+    private function contohReferensi(): void
+    {
+        $teknik = RumpunIlmu::create(['kode' => 'CONTOH-R1', 'nama' => 'Ilmu Teknik', 'tingkat' => RumpunIlmu::RUMPUN]);
+        $elektro = $teknik->turunan()->create(['kode' => 'CONTOH-P1', 'nama' => 'Teknik Elektro dan Informatika', 'tingkat' => RumpunIlmu::POHON]);
+        $elektro->turunan()->create(['kode' => 'CONTOH-C1', 'nama' => 'Teknik Informatika', 'tingkat' => RumpunIlmu::CABANG]);
+        $elektro->turunan()->create(['kode' => 'CONTOH-C2', 'nama' => 'Sistem Informasi', 'tingkat' => RumpunIlmu::CABANG]);
+
+        $periode = PeriodeHibah::first();
+        foreach ([['Kebaruan dan urgensi', 30], ['Metode', 30], ['Luaran', 25], ['Kelayakan anggaran', 15]] as $i => [$nama, $bobot]) {
+            $periode->kriteria()->create(['tahap' => Penilaian::SELEKSI, 'nama' => $nama, 'bobot' => $bobot, 'urutan' => $i + 1]);
+        }
+
+        Pengaturan::simpan('nama_lembaga', 'LPPM');
+        Pengaturan::simpan('kontak_lppm', 'lppm@example.com');
+
+        $admin = User::where('email', 'admin@example.com')->first();
+        Pengumuman::create([
+            'judul' => 'Penerimaan proposal '.$periode->nama, 'slug' => 'penerimaan-proposal-'.$periode->id,
+            'isi' => 'Proposal diterima sampai '.$periode->tgl_tutup->translatedFormat('j F Y').'.',
+            'kategori' => 'hibah', 'periode_id' => $periode->id, 'is_pinned' => true,
+            'terbit_at' => now(), 'dibuat_oleh' => $admin->id,
+        ]);
+
+        Publikasi::factory()->olehDosen(User::where('email', 'dosen@example.com')->first()->dosen)->create();
     }
 }

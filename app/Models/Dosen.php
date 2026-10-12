@@ -7,16 +7,32 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['user_id', 'prodi_id', 'nidn', 'nuptk', 'nip', 'nama', 'gelar_depan', 'gelar_belakang', 'jabatan_fungsional', 'sinta_id'])]
+#[Fillable(['user_id', 'prodi_id', 'nidn', 'nuptk', 'nip', 'nama', 'gelar_depan', 'gelar_belakang', 'jabatan_fungsional', 'sinta_id',
+    'jenis_kelamin', 'tempat_lahir', 'tgl_lahir', 'pendidikan_terakhir', 'bidang_keahlian', 'no_hp', 'foto_berkas_id',
+    'scopus_author_id', 'google_scholar_id', 'orcid', 'skor_sinta', 'h_index_scopus', 'h_index_scholar',
+    'sitasi_scopus', 'sitasi_scholar', 'sinkron_terakhir_at'])]
 class Dosen extends Model
 {
     /** @use HasFactory<DosenFactory> */
     use HasFactory, SoftDeletes;
 
     protected $table = 'dosen';
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'tgl_lahir' => 'date',
+            'skor_sinta' => 'decimal:2',
+            'sinkron_terakhir_at' => 'datetime',
+        ];
+    }
 
     /**
      * @return BelongsTo<User, $this>
@@ -54,5 +70,37 @@ class Dosen extends Model
     public function identitasLengkap(): bool
     {
         return ($this->nidn || $this->nuptk) && $this->sinta_id;
+    }
+
+    /**
+     * @return HasMany<RiwayatPendidikan, $this>
+     */
+    public function riwayatPendidikan(): HasMany
+    {
+        return $this->hasMany(RiwayatPendidikan::class)->orderBy('tahun_lulus');
+    }
+
+    /**
+     * @return BelongsToMany<Publikasi, $this>
+     */
+    public function publikasi(): BelongsToMany
+    {
+        return $this->belongsToMany(Publikasi::class, 'publikasi_penulis');
+    }
+
+    /**
+     * @return BelongsToMany<Hki, $this>
+     */
+    public function hki(): BelongsToMany
+    {
+        return $this->belongsToMany(Hki::class, 'hki_pencipta');
+    }
+
+    /**
+     * @return BelongsToMany<Paten, $this>
+     */
+    public function paten(): BelongsToMany
+    {
+        return $this->belongsToMany(Paten::class, 'paten_inventor');
     }
 }

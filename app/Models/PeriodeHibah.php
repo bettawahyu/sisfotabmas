@@ -74,4 +74,20 @@ class PeriodeHibah extends Model
         return $this->status === StatusPeriode::Dibuka
             && today()->between($this->tgl_buka, $this->tgl_tutup);
     }
+
+    /**
+     * @return HasMany<KriteriaPenilaian, $this>
+     */
+    public function kriteria(): HasMany
+    {
+        return $this->hasMany(KriteriaPenilaian::class, 'periode_id')->orderBy('urutan');
+    }
+
+    /**
+     * @return HasMany<Pengumuman, $this>
+     */
+    public function pengumuman(): HasMany
+    {
+        return $this->hasMany(Pengumuman::class, 'periode_id');
+    }
 }
