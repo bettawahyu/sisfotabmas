@@ -5,6 +5,7 @@ use App\Enums\KategoriRab;
 use App\Enums\StatusProposal;
 use App\Enums\TipeAnggota;
 use App\Models\Dosen;
+use App\Models\PengesahanProposal;
 use App\Models\PeriodeHibah;
 use App\Models\Proposal;
 use App\Models\Role;
@@ -151,7 +152,9 @@ test('endorsement moves the proposal to LPPM', function () {
     $proposal->refresh();
     expect($proposal->status)->toBe(StatusProposal::Diajukan)
         ->and($proposal->disahkan_oleh)->toBe($kaprodi->id)
-        ->and($proposal->diajukan_at)->not->toBeNull();
+        ->and($proposal->diajukan_at)->not->toBeNull()
+        ->and($proposal->pengesahan()->sole()->only(['oleh', 'keputusan']))
+        ->toBe(['oleh' => $kaprodi->id, 'keputusan' => PengesahanProposal::DISETUJUI]);
 });
 
 test('a refused endorsement gives the draft back to the lead', function () {
@@ -160,7 +163,9 @@ test('a refused endorsement gives the draft back to the lead', function () {
 
     alur()->tolakPengesahan($proposal->fresh(), pengguna(Role::PIMPINAN_UNIT), 'Perbaiki judul');
 
-    expect($proposal->fresh()->bisaDiubah())->toBeTrue();
+    expect($proposal->fresh()->bisaDiubah())->toBeTrue()
+        ->and($proposal->pengesahan()->sole()->only(['keputusan', 'catatan']))
+        ->toBe(['keputusan' => PengesahanProposal::DITOLAK, 'catatan' => 'Perbaiki judul']);
 });
 
 test('LPPM returns a proposal and the lead sends the fix straight back', function () {

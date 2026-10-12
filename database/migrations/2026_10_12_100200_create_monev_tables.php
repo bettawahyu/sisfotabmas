@@ -67,7 +67,9 @@ return new class extends Migration
             $table->string('status', 20)->default('ditugaskan');
             $table->decimal('nilai_total', 6, 2)->nullable();
             $table->string('rekomendasi', 30)->nullable();
-            $table->text('komentar')->nullable();
+            // The lead sees the first; the second stays with LPPM.
+            $table->text('komentar_untuk_pengusul')->nullable();
+            $table->text('catatan_internal')->nullable();
             $table->unsignedBigInteger('rekomendasi_dana')->nullable();
             $table->timestamp('dinilai_at')->nullable();
             $table->timestamps();

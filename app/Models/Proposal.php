@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * A research or community service proposal. Status changes go through
  * App\Services\AlurProposal so every move is checked and logged.
  */
-#[Fillable(['periode_id', 'ketua_id', 'bidang_fokus_id', 'judul', 'ringkasan', 'kata_kunci', 'rumpun_ilmu', 'tkt_awal', 'tkt_target', 'lama_tahun', 'tahun_ke', 'proposal_induk_id'])]
+#[Fillable(['periode_id', 'ketua_id', 'bidang_fokus_id', 'judul', 'ringkasan', 'kata_kunci', 'cabang_ilmu_id', 'tkt_awal', 'tkt_target', 'lama_tahun', 'tahun_ke', 'proposal_induk_id'])]
 class Proposal extends Model
 {
     /** @use HasFactory<ProposalFactory> */
@@ -66,6 +66,22 @@ class Proposal extends Model
     public function bidangFokus(): BelongsTo
     {
         return $this->belongsTo(BidangFokus::class);
+    }
+
+    /**
+     * @return BelongsTo<RumpunIlmu, $this>
+     */
+    public function cabangIlmu(): BelongsTo
+    {
+        return $this->belongsTo(RumpunIlmu::class, 'cabang_ilmu_id');
+    }
+
+    /**
+     * @return HasMany<PengesahanProposal, $this>
+     */
+    public function pengesahan(): HasMany
+    {
+        return $this->hasMany(PengesahanProposal::class);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Enums\JenisKegiatan;
 use App\Enums\KategoriRab;
 use App\Enums\StatusProposal;
 use App\Enums\TipeAnggota;
+use App\Models\PengesahanProposal;
 use App\Models\Proposal;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -122,6 +123,7 @@ class AlurProposal
             $proposal->disahkan_oleh = $oleh->id;
             $proposal->disahkan_at = now();
             $proposal->diajukan_at = now();
+            $proposal->pengesahan()->create(['oleh' => $oleh->id, 'keputusan' => PengesahanProposal::DISETUJUI]);
             $this->pindahStatus($proposal, StatusProposal::Diajukan, $oleh, 'Disahkan.');
         });
     }
@@ -136,6 +138,7 @@ class AlurProposal
         DB::transaction(function () use ($proposal, $oleh, $catatan) {
             $proposal->dikirim_at = null;
             $proposal->save();
+            $proposal->pengesahan()->create(['oleh' => $oleh->id, 'keputusan' => PengesahanProposal::DITOLAK, 'catatan' => $catatan]);
             $this->catat($proposal, $proposal->status, $proposal->status, $oleh, 'Pengesahan ditolak: '.$catatan);
         });
     }

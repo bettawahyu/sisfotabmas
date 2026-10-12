@@ -114,6 +114,7 @@
                 @else
                     <dl class="grid gap-3 text-sm sm:grid-cols-2">
                         <div class="sm:col-span-2"><dt class="text-gray-500">Ringkasan</dt><dd class="whitespace-pre-line">{{ $proposal->ringkasan }}</dd></div>
+                        <div><dt class="text-gray-500">Rumpun ilmu</dt><dd>{{ $proposal->cabangIlmu?->jalur() ?? '-' }}</dd></div>
                         <div><dt class="text-gray-500">Bidang fokus</dt><dd>{{ $proposal->bidangFokus?->nama ?? '-' }}</dd></div>
                         <div><dt class="text-gray-500">Kata kunci</dt><dd>{{ $proposal->kata_kunci ?: '-' }}</dd></div>
                         <div><dt class="text-gray-500">TKT</dt><dd>{{ $proposal->tkt_awal ?? '-' }} ke {{ $proposal->tkt_target ?? '-' }}</dd></div>

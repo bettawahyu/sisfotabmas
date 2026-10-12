@@ -39,6 +39,8 @@ return new class extends Migration
             $table->decimal('skor_sinta', 10, 2)->nullable();
             $table->unsignedSmallInteger('h_index_scopus')->nullable();
             $table->unsignedSmallInteger('h_index_scholar')->nullable();
+            $table->unsignedInteger('sitasi_scopus')->nullable();
+            $table->unsignedInteger('sitasi_scholar')->nullable();
             $table->timestamp('sinkron_terakhir_at')->nullable();
         });
 
@@ -67,6 +69,7 @@ return new class extends Migration
             $table->dropColumn([
                 'jenis_kelamin', 'tempat_lahir', 'tgl_lahir', 'pendidikan_terakhir', 'bidang_keahlian', 'no_hp',
                 'scopus_author_id', 'google_scholar_id', 'orcid', 'skor_sinta', 'h_index_scopus', 'h_index_scholar',
+                'sitasi_scopus', 'sitasi_scholar',
                 'sinkron_terakhir_at',
             ]);
         });

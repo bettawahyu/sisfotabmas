@@ -21,6 +21,10 @@ class Role extends Model
 
     public const KEUANGAN = 'keuangan';
 
+    public const OPERATOR = 'operator';
+
+    public const ADMIN_SISTEM = 'admin_sistem';
+
     /**
      * Every role the application knows about, keyed by kode.
      *
@@ -33,6 +37,8 @@ class Role extends Model
         self::ADMIN_LPPM => 'Admin LPPM',
         self::PIMPINAN => 'Pimpinan',
         self::KEUANGAN => 'Keuangan',
+        self::OPERATOR => 'Operator',
+        self::ADMIN_SISTEM => 'Admin Sistem',
     ];
 
     /**
