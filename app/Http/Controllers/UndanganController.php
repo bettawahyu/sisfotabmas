@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProposalAnggota;
+use App\Services\Pemberitahu;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,7 +20,7 @@ class UndanganController extends Controller
         return view('proposal.undangan', ['anggota' => $anggota->load('proposal.ketua', 'proposal.periode.skema')]);
     }
 
-    public function jawab(Request $request, string $token): RedirectResponse
+    public function jawab(Request $request, string $token, Pemberitahu $pemberitahu): RedirectResponse
     {
         $anggota = $this->undanganMilik($request, $token);
         abort_unless($anggota->proposal->bisaDiubah(), 403);
@@ -29,6 +30,10 @@ class UndanganController extends Controller
             'dikonfirmasi_at' => $bersedia ? now() : null,
             'ditolak_at' => $bersedia ? null : now(),
         ])->save();
+
+        $pemberitahu->keKetua($anggota->proposal,
+            $bersedia ? 'Undangan anggota diterima' : 'Undangan anggota ditolak',
+            "{$anggota->nama} ".($bersedia ? 'bersedia menjadi' : 'menolak menjadi')." anggota proposal \"{$anggota->proposal->judul}\".");
 
         return redirect()->route('proposal.index')
             ->with('status', $bersedia ? 'Anda bergabung di tim proposal.' : 'Undangan ditolak.');

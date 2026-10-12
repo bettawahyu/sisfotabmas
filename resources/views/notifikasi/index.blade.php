@@ -18,7 +18,12 @@
                 <ul class="divide-y divide-gray-100">
                     @forelse ($notifikasi as $n)
                         <li class="py-3 flex items-baseline justify-between gap-4">
-                            <a href="{{ route('notifikasi.buka', $n->id) }}" class="text-sm {{ $n->read_at ? 'text-gray-600' : 'font-medium text-gray-900' }} hover:underline">{{ $n->data['judul'] ?? 'Notifikasi' }}</a>
+                            <div>
+                                <a href="{{ route('notifikasi.buka', $n->id) }}" class="text-sm {{ $n->read_at ? 'text-gray-600' : 'font-medium text-gray-900' }} hover:underline">{{ $n->data['judul'] ?? 'Notifikasi' }}</a>
+                                @if (! empty($n->data['pesan']))
+                                    <p class="mt-1 text-sm text-gray-600">{{ $n->data['pesan'] }}</p>
+                                @endif
+                            </div>
                             <span class="shrink-0 text-xs text-gray-500">{{ $n->created_at->diffForHumans() }}</span>
                         </li>
                     @empty
