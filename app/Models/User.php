@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -65,5 +66,15 @@ class User extends Authenticatable
     public function dosen(): HasOne
     {
         return $this->hasOne(Dosen::class);
+    }
+
+    /**
+     * Reviews assigned to this user as a reviewer.
+     *
+     * @return HasMany<Penilaian, $this>
+     */
+    public function penilaian(): HasMany
+    {
+        return $this->hasMany(Penilaian::class, 'reviewer_id');
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\KriteriaPenilaianController;
+use App\Http\Controllers\Admin\PenugasanReviewerController;
 use App\Http\Controllers\Admin\PeriodeHibahController;
 use App\Http\Controllers\Admin\SeleksiController;
 use App\Http\Controllers\Admin\SkemaHibahController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\ProfilDosenController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProposalBagianController;
 use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TemplateDokumenController;
 use App\Http\Controllers\UndanganController;
 use App\Models\Pengumuman;
@@ -84,6 +87,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/proposal/{proposal}/substansi', [ProposalBagianController::class, 'unduhSubstansi'])->name('proposal.substansi.show');
 });
 
+Route::middleware(['auth', 'role:'.Role::REVIEWER])->prefix('review')->name('review.')->group(function () {
+    Route::get('/', [ReviewController::class, 'index'])->name('index');
+    Route::get('/{penilaian}', [ReviewController::class, 'show'])->name('show');
+    Route::put('/{penilaian}', [ReviewController::class, 'update'])->name('update');
+    Route::get('/{penilaian}/substansi', [ReviewController::class, 'substansi'])->name('substansi');
+});
+
 Route::middleware(['auth', 'role:'.Role::PIMPINAN_UNIT])->prefix('pengesahan')->name('pengesahan.')->group(function () {
     Route::get('/', [PengesahanController::class, 'index'])->name('index');
     Route::post('/{proposal}/sahkan', [PengesahanController::class, 'sahkan'])->name('sahkan');
@@ -97,10 +107,21 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('ad
     Route::resource('periode', PeriodeHibahController::class)->except(['show', 'destroy']);
     Route::resource('template', KelolaTemplateController::class)->except(['show', 'destroy']);
 
+    Route::post('/periode/{periode}/kriteria', [KriteriaPenilaianController::class, 'store'])->name('periode.kriteria.store');
+    Route::delete('/periode/{periode}/kriteria/{kriteria}', [KriteriaPenilaianController::class, 'destroy'])->name('periode.kriteria.destroy');
+
     Route::get('/seleksi', [SeleksiController::class, 'index'])->name('seleksi.index');
     Route::post('/seleksi/{proposal}/lolos', [SeleksiController::class, 'lolos'])->name('seleksi.lolos');
     Route::post('/seleksi/{proposal}/kembalikan', [SeleksiController::class, 'kembalikan'])->name('seleksi.kembalikan');
     Route::post('/seleksi/{proposal}/tolak', [SeleksiController::class, 'tolak'])->name('seleksi.tolak');
+
+    Route::controller(PenugasanReviewerController::class)->prefix('review')->name('review.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{proposal}', 'show')->name('show');
+        Route::post('/{proposal}', 'store')->name('store');
+        Route::delete('/{proposal}/penilaian/{penilaian}', 'destroy')->name('destroy');
+        Route::post('/{proposal}/penilaian/{penilaian}/buka', 'bukaKembali')->name('buka');
+    });
 });
 
 require __DIR__.'/auth.php';

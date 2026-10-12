@@ -23,6 +23,11 @@
                             Proposal
                         </x-nav-link>
                     @endif
+                    @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
+                        <x-nav-link :href="route('review.index')" :active="request()->routeIs('review.*')">
+                            Review
+                        </x-nav-link>
+                    @endif
                     @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
                         <x-nav-link :href="route('pengesahan.index')" :active="request()->routeIs('pengesahan.*')">
                             Pengesahan
@@ -117,6 +122,11 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('profil-dosen.edit')" :active="request()->routeIs('profil-dosen.*')">
                     Profil Dosen
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
+                <x-responsive-nav-link :href="route('review.index')" :active="request()->routeIs('review.*')">
+                    Review
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))

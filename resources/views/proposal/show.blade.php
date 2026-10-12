@@ -80,6 +80,12 @@
                 </x-kartu>
             @endif
 
+            @if ($proposal->status === StatusProposal::Ditinjau && $user->hasRole(Role::ADMIN_LPPM))
+                <div class="rounded-md bg-indigo-50 p-4 text-sm text-indigo-800">
+                    Proposal ini sedang dinilai reviewer. <a href="{{ route('admin.review.show', $proposal) }}" class="font-medium underline">Atur reviewer dan lihat nilainya</a>.
+                </div>
+            @endif
+
             @if ($proposal->status === StatusProposal::Diajukan && $user->hasRole(Role::ADMIN_LPPM))
                 <x-kartu judul="Seleksi administrasi">
                     <div class="space-y-4">

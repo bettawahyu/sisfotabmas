@@ -100,6 +100,43 @@
                     <div class="sm:col-span-2"><x-primary-button>Simpan</x-primary-button></div>
                 </form>
             </x-kartu>
+
+            @if ($periode->exists)
+                @php($tahapKriteria = [\App\Models\Penilaian::SELEKSI => 'Seleksi proposal', \App\Models\Penilaian::MONEV => 'Monev', \App\Models\Penilaian::AKHIR => 'Laporan akhir'])
+                <x-kartu judul="Kriteria penilaian" class="mt-6">
+                    <p class="mb-4 text-sm text-gray-600">Nilai akhir reviewer dihitung dari skor setiap kriteria dibagi skala maksimal, dikali bobot, lalu dijadikan skala 0 sampai 100.</p>
+                    @foreach ($tahapKriteria as $tahap => $namaTahap)
+                        @php($daftar = $periode->kriteria->where('tahap', $tahap)->sortBy('urutan'))
+                        @if ($daftar->isNotEmpty())
+                            <h4 class="mt-4 font-medium text-gray-900">{{ $namaTahap }} <span class="text-sm font-normal text-gray-500">· total bobot {{ $daftar->sum('bobot') }}</span></h4>
+                            <ul class="mt-2 divide-y divide-gray-100 text-sm">
+                                @foreach ($daftar as $k)
+                                    <li class="py-2 flex items-center justify-between gap-4">
+                                        <span>{{ $k->nama }} <span class="text-gray-500">· bobot {{ $k->bobot }} · skala 1 sampai {{ $k->skala_maks }}</span></span>
+                                        <form method="POST" action="{{ route('admin.periode.kriteria.destroy', [$periode, $k]) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="text-red-700 hover:underline">Hapus</button>
+                                        </form>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    @endforeach
+                    <form method="POST" action="{{ route('admin.periode.kriteria.store', $periode) }}" class="mt-6 grid gap-3 sm:grid-cols-5">
+                        @csrf
+                        <x-select-input name="tahap" class="block w-full">
+                            @foreach ($tahapKriteria as $tahap => $namaTahap)
+                                <option value="{{ $tahap }}">{{ $namaTahap }}</option>
+                            @endforeach
+                        </x-select-input>
+                        <x-text-input name="nama" placeholder="Nama kriteria" class="block w-full sm:col-span-2" required />
+                        <x-text-input name="bobot" type="number" min="1" max="100" placeholder="Bobot" class="block w-full" required />
+                        <x-text-input name="skala_maks" type="number" min="2" max="10" value="7" title="Skala maksimal" class="block w-full" required />
+                        <div class="sm:col-span-5"><x-secondary-button type="submit">Tambah kriteria</x-secondary-button></div>
+                    </form>
+                </x-kartu>
+            @endif
         </div>
     </div>
 </x-app-layout>
