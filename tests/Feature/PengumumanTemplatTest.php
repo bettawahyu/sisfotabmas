@@ -180,3 +180,33 @@ test('only LPPM admins manage templates', function () {
     $this->actingAs(penggunaDengan(Role::OPERATOR))->get(route('admin.template.index'))->assertForbidden();
     $this->actingAs(penggunaDengan(Role::ADMIN_LPPM))->get(route('admin.template.index'))->assertOk();
 });
+
+test('two overlapping runs holding the same announcement send it once', function () {
+    Notification::fake();
+    $dosen = penggunaDengan(Role::DOSEN);
+    $pengumuman = Pengumuman::factory()->create();
+    $salinanLama = Pengumuman::find($pengumuman->id);
+
+    app(SiaranPengumuman::class)->kirim($pengumuman);
+    app(SiaranPengumuman::class)->kirim($salinanLama);
+
+    Notification::assertSentToTimes($dosen, PengumumanTerbit::class, 1);
+});
+
+test('only substance templates are offered on the proposal page', function () {
+    Storage::fake();
+    $admin = penggunaDengan(Role::ADMIN_LPPM);
+    $dosen = Dosen::factory()->create();
+    $proposal = Proposal::factory()->for($dosen, 'ketua')->create();
+
+    foreach ([TemplateDokumen::SUBSTANSI => 'Templat substansi', TemplateDokumen::LAPORAN_AKHIR => 'Templat laporan akhir'] as $jenis => $nama) {
+        $this->actingAs($admin)->post(route('admin.template.store'), [
+            'jenis' => $jenis, 'nama' => $nama, 'is_active' => '1',
+            'berkas' => UploadedFile::fake()->create('templat.docx', 50),
+        ])->assertRedirect();
+    }
+
+    $this->actingAs($dosen->user)->get(route('proposal.show', $proposal))
+        ->assertSee('Templat substansi')
+        ->assertDontSee('Templat laporan akhir');
+});

@@ -20,4 +20,4 @@ Artisan::command('pengumuman:kirim-notifikasi', function (SiaranPengumuman $siar
     $this->info($siaran->kirimYangTerbit().' pengumuman dikirim ke pembacanya.');
 })->purpose('Kirim notifikasi untuk pengumuman terjadwal yang sudah terbit');
 
-Schedule::command('pengumuman:kirim-notifikasi')->everyFiveMinutes();
+Schedule::command('pengumuman:kirim-notifikasi')->everyFiveMinutes()->withoutOverlapping();

@@ -34,8 +34,15 @@ class SiaranPengumuman
             return;
         }
 
-        // Mark first so a slow send cannot be picked up twice by the scheduler.
-        $pengumuman->forceFill(['notifikasi_terkirim_at' => now()])->save();
+        // Claim the row in one conditional update, so two overlapping runs can
+        // never both send it: only the run that flips it from null goes on.
+        $diklaim = Pengumuman::whereKey($pengumuman->id)
+            ->whereNull('notifikasi_terkirim_at')
+            ->update(['notifikasi_terkirim_at' => now()]);
+        if ($diklaim === 0) {
+            return;
+        }
+        $pengumuman->refresh();
 
         $pengumuman->penerima()->chunkById(200, function ($users) use ($pengumuman) {
             Notification::send($users, new PengumumanTerbit($pengumuman));

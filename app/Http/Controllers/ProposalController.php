@@ -77,7 +77,9 @@ class ProposalController extends Controller
             'kekurangan' => Gate::allows('update', $proposal) ? $alur->kekurangan($proposal) : [],
             'bidangFokus' => $this->bidangFokus($proposal->periode),
             'cabangIlmu' => $this->cabangIlmu(),
+            // Report templates belong on the report pages, not next to the substance upload.
             'templat' => TemplateDokumen::berlakuUntuk($proposal->periode->skema_id, $proposal->periode->tahun_anggaran)
+                ->where('jenis', TemplateDokumen::SUBSTANSI)
                 ->whereHas('berkasTerbaru')->get(),
         ]);
     }
