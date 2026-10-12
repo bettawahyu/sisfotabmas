@@ -12,8 +12,13 @@
         <x-text-input id="kata_kunci" name="kata_kunci" class="mt-1 block w-full" :value="old('kata_kunci', $proposal?->kata_kunci)" />
     </div>
     <div>
-        <x-input-label for="rumpun_ilmu" value="Rumpun ilmu" />
-        <x-text-input id="rumpun_ilmu" name="rumpun_ilmu" class="mt-1 block w-full" :value="old('rumpun_ilmu', $proposal?->rumpun_ilmu)" />
+        <x-input-label for="cabang_ilmu_id" value="Rumpun ilmu" />
+        <x-select-input id="cabang_ilmu_id" name="cabang_ilmu_id" class="mt-1 block w-full">
+            <option value="">-</option>
+            @foreach ($cabangIlmu as $cabang)
+                <option value="{{ $cabang->id }}" @selected(old('cabang_ilmu_id', $proposal?->cabang_ilmu_id) == $cabang->id)>{{ $cabang->jalur() }}</option>
+            @endforeach
+        </x-select-input>
     </div>
     <div class="sm:col-span-2">
         <x-input-label for="bidang_fokus_id" value="Bidang fokus (RIP / Renstra PkM)" />

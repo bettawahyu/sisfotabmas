@@ -1,0 +1,81 @@
+<?php
+
+use App\Models\Proposal;
+use App\Models\RumpunIlmu;
+use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+test('every table in the design doc exists', function (string $tabel) {
+    expect(Schema::hasTable($tabel))->toBeTrue();
+})->with([
+    'users', 'roles', 'user_roles', 'notifications', 'fakultas', 'program_studi', 'bidang_fokus',
+    'skema_hibah', 'periode_hibah', 'kriteria_penilaian', 'berkas',
+    'dosen', 'riwayat_pendidikan',
+    'publikasi', 'publikasi_penulis',
+    'hki', 'hki_pencipta', 'paten', 'paten_inventor',
+    'proposal', 'proposal_anggota', 'proposal_mitra', 'rab_item', 'proposal_status_log', 'pencairan_dana',
+    'pengumuman',
+    'luaran', 'penilaian', 'nilai_penilaian', 'laporan', 'logbook',
+    'rumpun_ilmu', 'template_dokumen', 'pengesahan_proposal', 'pengaturan',
+]);
+
+test('the lecturer profile carries the external identifiers', function () {
+    expect(Schema::hasColumns('dosen', ['scopus_author_id', 'google_scholar_id', 'orcid', 'skor_sinta']))->toBeTrue()
+        ->and(Schema::hasColumns('user_roles', ['unit_type', 'unit_id']))->toBeTrue();
+});
+
+test('outputs link to publications, HKI and patents separately', function () {
+    expect(Schema::hasColumns('luaran', ['publikasi_id', 'hki_id', 'paten_id']))->toBeTrue()
+        ->and(Schema::hasColumn('luaran', 'ki_id'))->toBeFalse()
+        ->and(Schema::hasColumns('proposal', ['is_pkpt', 'pt_mitra', 'cabang_ilmu_id']))->toBeTrue()
+        ->and(Schema::hasColumn('proposal', 'rumpun_ilmu'))->toBeFalse()
+        ->and(Schema::hasColumns('luaran', ['status_validasi', 'divalidasi_oleh', 'divalidasi_at']))->toBeTrue()
+        ->and(Schema::hasColumns('penilaian', ['komentar_untuk_pengusul', 'catatan_internal']))->toBeTrue();
+});
+
+test('publications, HKI and patents are verified by the kaprodi and LPPM', function (string $tabel) {
+    expect(Schema::hasColumns($tabel, [
+        'status_verifikasi', 'diverifikasi_kaprodi_oleh', 'diverifikasi_kaprodi_at', 'diverifikasi_lppm_oleh', 'diverifikasi_lppm_at',
+    ]))->toBeTrue();
+})->with(['publikasi', 'hki', 'paten']);
+
+test('an output links to a real publication only', function () {
+    $proposal = Proposal::factory()->create();
+
+    expect(fn () => DB::table('luaran')->insert([
+        'proposal_id' => $proposal->id,
+        'kategori' => 'wajib',
+        'jenis' => 'artikel_jurnal',
+        'status_capaian' => 'direncanakan',
+        'publikasi_id' => 999,
+    ]))->toThrow(QueryException::class);
+});
+
+test('a reviewer scores a proposal once per stage', function () {
+    $proposal = Proposal::factory()->create();
+    $baris = ['proposal_id' => $proposal->id, 'reviewer_id' => User::factory()->create()->id, 'tahap' => 'seleksi'];
+
+    DB::table('penilaian')->insert($baris);
+
+    expect(fn () => DB::table('penilaian')->insert($baris))->toThrow(QueryException::class);
+});
+
+test('a proposal is classified at the cabang ilmu level', function () {
+    $rumpun = RumpunIlmu::create(['kode' => '400', 'nama' => 'Ilmu Teknik', 'tingkat' => RumpunIlmu::RUMPUN]);
+    $pohon = RumpunIlmu::create(['kode' => '450', 'nama' => 'Teknik Elektro', 'tingkat' => RumpunIlmu::POHON, 'induk_id' => $rumpun->id]);
+    $cabang = RumpunIlmu::create(['kode' => '451', 'nama' => 'Teknik Telekomunikasi', 'tingkat' => RumpunIlmu::CABANG, 'induk_id' => $pohon->id]);
+    $proposal = Proposal::factory()->create();
+    $data = ['judul' => $proposal->judul, 'ringkasan' => $proposal->ringkasan];
+
+    $this->actingAs($proposal->ketua->user)
+        ->put(route('proposal.update', $proposal), $data + ['cabang_ilmu_id' => $pohon->id])
+        ->assertSessionHasErrors('cabang_ilmu_id');
+    $this->actingAs($proposal->ketua->user)
+        ->put(route('proposal.update', $proposal), $data + ['cabang_ilmu_id' => $cabang->id])
+        ->assertSessionHasNoErrors();
+
+    expect($proposal->fresh()->cabangIlmu->jalur())->toBe('Ilmu Teknik › Teknik Elektro › Teknik Telekomunikasi');
+    $this->get(route('proposal.show', $proposal))->assertSee('Teknik Telekomunikasi');
+});

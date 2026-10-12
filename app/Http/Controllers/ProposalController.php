@@ -6,10 +6,12 @@ use App\Enums\TipeAnggota;
 use App\Models\BidangFokus;
 use App\Models\PeriodeHibah;
 use App\Models\Proposal;
+use App\Models\RumpunIlmu;
 use App\Services\AlurProposal;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProposalController extends Controller
@@ -43,6 +45,7 @@ class ProposalController extends Controller
         return view('proposal.create', [
             'periode' => $periode->load('skema'),
             'bidangFokus' => $this->bidangFokus($periode),
+            'cabangIlmu' => $this->cabangIlmu(),
         ]);
     }
 
@@ -65,13 +68,14 @@ class ProposalController extends Controller
     {
         Gate::authorize('view', $proposal);
 
-        $proposal->load(['periode.skema', 'ketua', 'bidangFokus', 'anggota.dosen', 'mitra', 'rab', 'luaran', 'berkasSubstansi', 'riwayatStatus.pelaku']);
+        $proposal->load(['periode.skema', 'ketua', 'bidangFokus', 'cabangIlmu.induk.induk', 'anggota.dosen', 'mitra', 'rab', 'luaran', 'berkasSubstansi', 'riwayatStatus.pelaku']);
 
         return view('proposal.show', [
             'proposal' => $proposal,
             'bisaDiubah' => Gate::allows('update', $proposal),
             'kekurangan' => Gate::allows('update', $proposal) ? $alur->kekurangan($proposal) : [],
             'bidangFokus' => $this->bidangFokus($proposal->periode),
+            'cabangIlmu' => $this->cabangIlmu(),
         ]);
     }
 
@@ -113,7 +117,7 @@ class ProposalController extends Controller
             'judul' => ['required', 'string', 'max:500'],
             'ringkasan' => ['required', 'string', 'max:5000'],
             'kata_kunci' => ['nullable', 'string', 'max:255'],
-            'rumpun_ilmu' => ['nullable', 'string', 'max:255'],
+            'cabang_ilmu_id' => ['nullable', Rule::exists('rumpun_ilmu', 'id')->where('tingkat', RumpunIlmu::CABANG)],
             'bidang_fokus_id' => ['nullable', 'exists:bidang_fokus,id'],
             'tkt_awal' => ['nullable', 'integer', 'between:1,9'],
             'tkt_target' => ['nullable', 'integer', 'between:1,9', 'gte:tkt_awal'],
@@ -124,6 +128,11 @@ class ProposalController extends Controller
     private function bidangFokus(PeriodeHibah $periode)
     {
         return BidangFokus::where('jenis_kegiatan', $periode->skema->jenis_kegiatan)->where('is_active', true)->orderBy('nama')->get();
+    }
+
+    private function cabangIlmu()
+    {
+        return RumpunIlmu::cabangAktif()->with('induk.induk')->get()->sortBy(fn (RumpunIlmu $cabang) => $cabang->jalur())->values();
     }
 
     private function butuhProfil(Request $request): ?RedirectResponse

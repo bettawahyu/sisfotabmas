@@ -157,6 +157,8 @@ test('a faculty head endorses from the endorsement list', function () {
     $this->actingAs($kaprodi)->post(route('pengesahan.sahkan', $proposal))->assertRedirect(route('pengesahan.index'));
 
     expect($proposal->fresh()->status)->toBe(StatusProposal::Diajukan);
+    $this->actingAs($kaprodi)->get(route('pengesahan.index'))->assertOk()
+        ->assertSee('Riwayat pengesahan saya')->assertSee('Disahkan');
 
     $this->actingAs($proposal->ketua->user)->post(route('pengesahan.sahkan', $proposal))->assertForbidden();
 });
