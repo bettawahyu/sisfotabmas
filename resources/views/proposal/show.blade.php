@@ -139,6 +139,16 @@
                     </form>
                     <p class="mt-2 text-xs text-gray-500">Gunakan templat dari LPPM. PDF, maksimal 10 MB.</p>
                 @endif
+                @if ($templat->isNotEmpty())
+                    <div class="mt-4 text-sm">
+                        <p class="text-gray-500">Templat dari LPPM:</p>
+                        <ul class="mt-1 list-disc ps-5">
+                            @foreach ($templat as $t)
+                                <li><a class="text-indigo-700 underline" href="{{ route('templat.unduh', $t) }}">{{ $t->nama }}</a> <span class="text-gray-500">({{ $t->namaJenis() }})</span></li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </x-kartu>
 
             <x-kartu judul="Tim">

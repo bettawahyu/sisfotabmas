@@ -7,6 +7,7 @@ use App\Models\BidangFokus;
 use App\Models\PeriodeHibah;
 use App\Models\Proposal;
 use App\Models\RumpunIlmu;
+use App\Models\TemplateDokumen;
 use App\Services\AlurProposal;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,6 +77,8 @@ class ProposalController extends Controller
             'kekurangan' => Gate::allows('update', $proposal) ? $alur->kekurangan($proposal) : [],
             'bidangFokus' => $this->bidangFokus($proposal->periode),
             'cabangIlmu' => $this->cabangIlmu(),
+            'templat' => TemplateDokumen::berlakuUntuk($proposal->periode->skema_id, $proposal->periode->tahun_anggaran)
+                ->whereHas('berkasTerbaru')->get(),
         ]);
     }
 
