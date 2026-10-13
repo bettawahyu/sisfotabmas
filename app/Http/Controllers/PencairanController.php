@@ -28,6 +28,14 @@ class PencairanController extends Controller
                 ->oldest('tgl_kontrak')
                 ->get()
                 ->each(fn (Proposal $p) => $p->setAttribute('jumlah_termin_1', $alur->jumlahTermin($p, 1))),
+            'termin2' => Proposal::where('status', StatusProposal::Dimonev)
+                ->whereHas('pencairan', fn ($q) => $q->where('termin_ke', 1))
+                ->whereDoesntHave('pencairan', fn ($q) => $q->where('termin_ke', 2))
+                ->with('periode', 'ketua')
+                ->oldest('tgl_selesai')
+                ->get()
+                ->each(fn (Proposal $p) => $p->setAttribute('jumlah_termin_2', $alur->jumlahTermin($p, 2))
+                    ->setAttribute('syarat_termin_2', $alur->syaratTermin2($p))),
             'riwayat' => PencairanDana::with('proposal.ketua', 'pencair', 'bukti')->latest('tgl_cair')->latest('id')->paginate(30),
             'bisaCatat' => $request->user()->hasRole(Role::KEUANGAN),
         ]);
@@ -45,6 +53,20 @@ class PencairanController extends Controller
         $alur->cairkanTermin1($proposal, Carbon::parse($data['tgl_cair']), $request->boolean('pajak_lunas'), $request->file('bukti'), $request->user());
 
         return back()->with('status', 'Termin 1 dicatat. Proposal kini berjalan.');
+    }
+
+    public function storeTermin2(Request $request, Proposal $proposal, AlurPencairan $alur): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole(Role::KEUANGAN), 403);
+        $data = $request->validate([
+            'tgl_cair' => ['required', 'date'],
+            'pajak_lunas' => ['boolean'],
+            'bukti' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+        ]);
+
+        $alur->cairkanTermin2($proposal, Carbon::parse($data['tgl_cair']), $request->boolean('pajak_lunas'), $request->file('bukti'), $request->user());
+
+        return back()->with('status', 'Termin 2 dicatat. Proposal selesai.');
     }
 
     public function bukti(PencairanDana $pencairan): StreamedResponse

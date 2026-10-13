@@ -155,7 +155,11 @@
             @if (in_array($proposal->status, [StatusProposal::Berjalan, StatusProposal::Dimonev, StatusProposal::Selesai], true))
                 <x-kartu judul="Pelaksanaan">
                     <p class="text-sm text-gray-600">
-                        {{ $proposal->status === StatusProposal::Berjalan ? 'Isi logbook kegiatan dan kirim laporan kemajuan di halaman pelaksanaan.' : 'Logbook, laporan kemajuan, dan hasil monev ada di halaman pelaksanaan.' }}
+                        {{ match ($proposal->status) {
+                            StatusProposal::Berjalan => 'Isi logbook kegiatan, laporkan capaian luaran, dan kirim laporan kemajuan di halaman pelaksanaan.',
+                            StatusProposal::Dimonev => 'Hasil monev, capaian luaran, dan laporan akhir ada di halaman pelaksanaan.',
+                            default => 'Logbook, laporan, dan capaian luaran ada di halaman pelaksanaan.',
+                        } }}
                     </p>
                     <a href="{{ route('proposal.pelaksanaan.show', $proposal) }}" class="mt-3 inline-block text-sm font-medium text-indigo-700 hover:underline">Buka halaman pelaksanaan</a>
                 </x-kartu>

@@ -22,6 +22,8 @@ Dosen membuat proposal di menu Proposal, mengisi tim, RAB, luaran, dan mengungga
 
 Setelah termin 1 cair, tim mengisi logbook dan ketua mengirim laporan kemajuan beserta laporan keuangan termin 1 di halaman pelaksanaan proposal (`App\Services\AlurPelaksanaan`). Proposal lalu berstatus Dimonev, admin LPPM menugaskan satu reviewer monev di menu Admin > Monev, dan reviewer mengisi hasil monev dari menu Review. Operator memantau logbook yang sepi, laporan terlambat, dan monev tanpa hasil di menu Pemantauan.
 
+Setelah hasil monev keluar, ketua melaporkan capaian tiap luaran dan mengirim laporan akhir beserta laporan keuangan 100%. Operator memverifikasi laporan akhir dan memvalidasi luaran di menu Verifikasi. Keuangan mencairkan termin 2 bila laporan akhir terverifikasi, setiap luaran wajib tervalidasi minimal submitted, dan hasil monev tidak Bermasalah; proposal lalu Selesai. Perintah terjadwal `laporan:ingatkan` mengingatkan ketua 14, 7, dan 1 hari sebelum batas laporan, dan ketua yang menunggak laporan tidak bisa mengirim proposal baru.
+
 ## Peran
 
 Peran disimpan di tabel `roles` dan `user_roles`, sehingga satu akun bisa punya beberapa peran. Kode peran: `dosen`, `reviewer`, `pimpinan_unit`, `admin_lppm`, `pimpinan`, `keuangan`. Pendaftaran mandiri otomatis mendapat peran `dosen`; peran lain diberikan admin.

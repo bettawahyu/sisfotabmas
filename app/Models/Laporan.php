@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 /**
  * A progress, spending or final report.
  */
-#[Fillable(['jenis', 'ringkasan', 'persentase_capaian', 'persentase_anggaran_terpakai', 'status', 'diajukan_at', 'diverifikasi_oleh', 'diverifikasi_at'])]
+#[Fillable(['jenis', 'ringkasan', 'persentase_capaian', 'persentase_anggaran_terpakai', 'status', 'diajukan_at', 'diverifikasi_oleh', 'diverifikasi_at', 'catatan_verifikasi'])]
 class Laporan extends Model
 {
     /** @use HasFactory<LaporanFactory> */
@@ -28,6 +28,10 @@ class Laporan extends Model
     public const DRAFT = 'draft';
 
     public const DIAJUKAN = 'diajukan';
+
+    public const DIVERIFIKASI = 'diverifikasi';
+
+    public const DIKEMBALIKAN = 'dikembalikan';
 
     protected $table = 'laporan';
 

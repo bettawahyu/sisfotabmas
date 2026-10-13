@@ -53,6 +53,10 @@
                 <p class="font-medium text-gray-900">Pemantauan</p>
                 <p class="mt-1 text-sm text-gray-600">Logbook yang sepi, laporan terlambat, dan monev tanpa hasil.</p>
             </a>
+            <a href="{{ route('verifikasi.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Verifikasi</p>
+                <p class="mt-1 text-sm text-gray-600">Laporan akhir dan capaian luaran yang menunggu diperiksa.</p>
+            </a>
         </div>
     </div>
 </x-app-layout>

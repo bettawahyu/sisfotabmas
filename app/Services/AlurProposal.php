@@ -6,7 +6,10 @@ use App\Enums\JenisKegiatan;
 use App\Enums\KategoriRab;
 use App\Enums\StatusProposal;
 use App\Enums\TipeAnggota;
+use App\Models\Dosen;
+use App\Models\Laporan;
 use App\Models\PengesahanProposal;
+use App\Models\Penilaian;
 use App\Models\Proposal;
 use App\Models\Role;
 use App\Models\User;
@@ -83,9 +86,42 @@ class AlurProposal
 
         if ($proposal->status === StatusProposal::Draft) {
             array_push($masalah, ...$this->pelanggaranKuota($proposal));
+            foreach ($this->tunggakan($proposal->ketua) as $laporan) {
+                $masalah[] = "Kirim dulu {$laporan} yang sudah lewat batas.";
+            }
+        }
+
+        if ($proposal->proposal_induk_id !== null) {
+            $monevInduk = Penilaian::where('proposal_id', $proposal->proposal_induk_id)->where('tahap', Penilaian::MONEV)
+                ->where('status', Penilaian::SELESAI)->latest('dinilai_at')->first();
+            if ($monevInduk === null) {
+                $masalah[] = 'Usulan tahun berikutnya menunggu hasil monev tahun sebelumnya.';
+            } elseif ($monevInduk->rekomendasi === Penilaian::MONEV_BERMASALAH) {
+                $masalah[] = 'Hasil monev tahun sebelumnya Bermasalah, sehingga usulan tahun berikutnya tidak bisa dikirim.';
+            }
         }
 
         return $masalah;
+    }
+
+    /**
+     * Reports this lecturer, as lead, is late with: a progress report past its
+     * date while still running, or a final report past its date not yet sent.
+     *
+     * @return list<string>
+     */
+    public function tunggakan(Dosen $dosen): array
+    {
+        $hari = today();
+        $kemajuan = Proposal::where('ketua_id', $dosen->id)->where('status', StatusProposal::Berjalan)
+            ->whereHas('periode', fn ($q) => $q->whereDate('tgl_laporan_kemajuan', '<', $hari))
+            ->pluck('judul')->map(fn ($j) => "laporan kemajuan \"{$j}\"");
+        $akhir = Proposal::where('ketua_id', $dosen->id)->where('status', StatusProposal::Dimonev)
+            ->whereHas('periode', fn ($q) => $q->whereDate('tgl_laporan_akhir', '<', $hari))
+            ->whereDoesntHave('laporan', fn ($q) => $q->where('jenis', Laporan::AKHIR)->whereIn('status', [Laporan::DIAJUKAN, Laporan::DIVERIFIKASI]))
+            ->pluck('judul')->map(fn ($j) => "laporan akhir \"{$j}\"");
+
+        return $kemajuan->concat($akhir)->values()->all();
     }
 
     /**

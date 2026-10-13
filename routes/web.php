@@ -24,6 +24,7 @@ use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TemplateDokumenController;
 use App\Http\Controllers\UndanganController;
+use App\Http\Controllers\VerifikasiController;
 use App\Models\Pengumuman;
 use App\Models\Role;
 use Illuminate\Http\Request;
@@ -99,12 +100,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/logbook', 'storeLogbook')->name('logbook.store');
         Route::delete('/logbook/{logbook}', 'destroyLogbook')->name('logbook.destroy');
         Route::post('/laporan-kemajuan', 'storeLaporanKemajuan')->name('laporan-kemajuan.store');
+        Route::post('/laporan-akhir', 'storeLaporanAkhir')->name('laporan-akhir.store');
+        Route::put('/luaran/{luaran}', 'updateLuaran')->name('luaran.update');
         Route::get('/berkas/{berkas}', 'berkas')->name('berkas');
     });
 });
 
-Route::get('/pemantauan', [PemantauanController::class, 'index'])
-    ->middleware(['auth', 'role:'.Role::OPERATOR.','.Role::ADMIN_LPPM])->name('pemantauan.index');
+Route::middleware(['auth', 'role:'.Role::OPERATOR.','.Role::ADMIN_LPPM])->group(function () {
+    Route::get('/pemantauan', [PemantauanController::class, 'index'])->name('pemantauan.index');
+    Route::get('/verifikasi', [VerifikasiController::class, 'index'])->name('verifikasi.index');
+    Route::post('/verifikasi/laporan/{laporan}', [VerifikasiController::class, 'laporan'])->name('verifikasi.laporan');
+    Route::post('/verifikasi/luaran/{luaran}', [VerifikasiController::class, 'luaran'])->name('verifikasi.luaran');
+});
 
 Route::middleware(['auth', 'role:'.Role::REVIEWER])->prefix('review')->name('review.')->group(function () {
     Route::get('/', [ReviewController::class, 'index'])->name('index');
@@ -118,6 +125,7 @@ Route::middleware(['auth', 'role:'.Role::REVIEWER])->prefix('review')->name('rev
 Route::middleware(['auth', 'role:'.Role::KEUANGAN.','.Role::ADMIN_LPPM])->prefix('pencairan')->name('pencairan.')->group(function () {
     Route::get('/', [PencairanController::class, 'index'])->name('index');
     Route::post('/{proposal}/termin-1', [PencairanController::class, 'store'])->name('store');
+    Route::post('/{proposal}/termin-2', [PencairanController::class, 'storeTermin2'])->name('termin-2.store');
     Route::get('/bukti/{pencairan}', [PencairanController::class, 'bukti'])->name('bukti');
 });
 
