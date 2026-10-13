@@ -1,10 +1,11 @@
 @php
     use App\Enums\StatusProposal;
     use App\Models\Berkas;
+    use App\Models\Laporan;
+    use App\Models\Luaran;
 
     $periode = $proposal->periode;
-    $isKetua = $proposal->isKetua(auth()->user()->dosen);
-    $monev = $proposal->penilaian->first();
+    $bisaLaporLuaran = $isKetua && in_array($proposal->status, [StatusProposal::Berjalan, StatusProposal::Dimonev], true);
 @endphp
 <x-app-layout>
     <x-slot name="header">
@@ -67,6 +68,80 @@
                 @else
                     <p class="text-sm text-gray-600">Laporan kemajuan belum dikirim{{ $periode->tgl_laporan_kemajuan ? '. Batas '.$periode->tgl_laporan_kemajuan->translatedFormat('j F Y') : '' }}.</p>
                 @endif
+            </x-kartu>
+
+            @if ($laporanKemajuan)
+                <x-kartu judul="Laporan akhir">
+                    @if ($laporanAkhir && $laporanAkhir->status !== Laporan::DIKEMBALIKAN)
+                        <dl class="grid gap-3 text-sm sm:grid-cols-3">
+                            <div><dt class="text-gray-500">Dikirim</dt><dd>{{ $laporanAkhir->diajukan_at->translatedFormat('j F Y') }}</dd></div>
+                            <div><dt class="text-gray-500">Capaian kegiatan</dt><dd>{{ $laporanAkhir->persentase_capaian }}%</dd></div>
+                            <div><dt class="text-gray-500">Status</dt><dd class="font-medium">{{ $laporanAkhir->status === Laporan::DIVERIFIKASI ? 'Diverifikasi '.$laporanAkhir->diverifikasi_at->translatedFormat('j M Y') : 'Menunggu verifikasi operator' }}</dd></div>
+                            <div class="sm:col-span-3"><dt class="text-gray-500">Ringkasan</dt><dd class="whitespace-pre-line">{{ $laporanAkhir->ringkasan }}</dd></div>
+                        </dl>
+                        <ul class="mt-4 space-y-1 text-sm">
+                            @foreach ($laporanAkhir->berkas as $berkas)
+                                <li><a class="text-indigo-700 underline" href="{{ route('proposal.pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : 'Laporan akhir' }}</a> <span class="text-gray-500">· {{ $berkas->nama_asli }}</span></li>
+                            @endforeach
+                        </ul>
+                    @else
+                        @if ($laporanAkhir?->status === Laporan::DIKEMBALIKAN)
+                            <div class="mb-4 rounded-md bg-yellow-50 p-3 text-sm text-yellow-800">Laporan akhir dikembalikan {{ $laporanAkhir->diverifikasi_at->translatedFormat('j M Y') }}. Catatan: {{ $laporanAkhir->catatan_verifikasi }}</div>
+                        @endif
+                        @if ($bisaKirimAkhir)
+                            <p class="mb-4 text-sm text-gray-600">Unggah laporan akhir dan laporan penggunaan dana 100%{{ $periode->tgl_laporan_akhir ? ' paling lambat '.$periode->tgl_laporan_akhir->translatedFormat('j F Y') : '' }}. Operator memverifikasinya sebelum termin 2 dicairkan.</p>
+                            <form method="POST" action="{{ route('proposal.pelaksanaan.laporan-akhir.store', $proposal) }}" enctype="multipart/form-data" class="grid gap-4 sm:grid-cols-2">
+                                @csrf
+                                <div class="sm:col-span-2">
+                                    <x-input-label for="ringkasan_akhir" value="Ringkasan hasil" />
+                                    <textarea id="ringkasan_akhir" name="ringkasan" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>{{ old('ringkasan') }}</textarea>
+                                </div>
+                                <div><x-input-label for="capaian_akhir" value="Capaian kegiatan (%)" /><x-text-input id="capaian_akhir" name="persentase_capaian" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_capaian', 100)" required /></div>
+                                <div></div>
+                                <div><x-input-label for="laporan_akhir" value="Laporan akhir (PDF)" /><input id="laporan_akhir" name="laporan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
+                                <div><x-input-label for="keuangan_akhir" value="Laporan keuangan 100% (PDF)" /><input id="keuangan_akhir" name="keuangan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
+                                <div class="sm:col-span-2"><x-primary-button>Kirim laporan akhir</x-primary-button></div>
+                            </form>
+                        @else
+                            <p class="text-sm text-gray-600">{{ $monev ? 'Laporan akhir belum dikirim.' : 'Laporan akhir dikirim setelah hasil monev keluar.' }}{{ $periode->tgl_laporan_akhir ? ' Batas '.$periode->tgl_laporan_akhir->translatedFormat('j F Y').'.' : '' }}</p>
+                        @endif
+                    @endif
+                </x-kartu>
+            @endif
+
+            <x-kartu judul="Capaian luaran">
+                <p class="mb-4 text-sm text-gray-600">Termin 2 dicairkan setelah setiap luaran wajib divalidasi operator minimal berstatus sudah dikirim (submitted).</p>
+                <div class="space-y-4">
+                    @foreach ($proposal->luaran as $luaran)
+                        <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0 text-sm">
+                            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                                <p><span class="font-medium">{{ $luaran->jenis->label() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></p>
+                                <p class="{{ $luaran->status_validasi === Luaran::VALID ? 'text-green-700' : ($luaran->status_validasi === Luaran::DITOLAK ? 'text-red-700' : 'text-gray-600') }}">
+                                    {{ $luaran->namaCapaian() }}@if ($luaran->status_capaian !== Luaran::DIRENCANAKAN) · {{ Luaran::VALIDASI[$luaran->status_validasi] ?? $luaran->status_validasi }}@endif
+                                </p>
+                            </div>
+                            @if ($luaran->url_bukti)
+                                <a href="{{ $luaran->url_bukti }}" class="text-indigo-700 underline break-all" rel="noopener noreferrer" target="_blank">{{ $luaran->url_bukti }}</a>
+                            @endif
+                            @if ($luaran->status_validasi === Luaran::DITOLAK && $luaran->catatan_validasi)
+                                <p class="mt-1 text-red-700">Catatan operator: {{ $luaran->catatan_validasi }}</p>
+                            @endif
+                            @if ($bisaLaporLuaran)
+                                <form method="POST" action="{{ route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]) }}" class="mt-2 flex flex-wrap gap-3">
+                                    @csrf
+                                    @method('PUT')
+                                    <x-select-input name="status_capaian">
+                                        @foreach (Luaran::CAPAIAN as $kode => $nama)
+                                            <option value="{{ $kode }}" @selected($luaran->status_capaian === $kode)>{{ $nama }}</option>
+                                        @endforeach
+                                    </x-select-input>
+                                    <x-text-input name="url_bukti" type="url" placeholder="Tautan bukti (DOI, URL artikel, nomor permohonan)" class="flex-1" :value="$luaran->url_bukti" />
+                                    <x-secondary-button type="submit">Simpan</x-secondary-button>
+                                </form>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
             </x-kartu>
 
             <x-kartu judul="Logbook kegiatan">

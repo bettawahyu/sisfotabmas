@@ -42,6 +42,9 @@
                         <x-nav-link :href="route('pemantauan.index')" :active="request()->routeIs('pemantauan.*')">
                             Pemantauan
                         </x-nav-link>
+                        <x-nav-link :href="route('verifikasi.index')" :active="request()->routeIs('verifikasi.*')">
+                            Verifikasi
+                        </x-nav-link>
                     @endif
                     @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_LPPM))
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
@@ -152,6 +155,9 @@
             @if (Auth::user()->hasRole(\App\Models\Role::OPERATOR, \App\Models\Role::ADMIN_LPPM))
                 <x-responsive-nav-link :href="route('pemantauan.index')" :active="request()->routeIs('pemantauan.*')">
                     Pemantauan
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('verifikasi.index')" :active="request()->routeIs('verifikasi.*')">
+                    Verifikasi
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_LPPM))

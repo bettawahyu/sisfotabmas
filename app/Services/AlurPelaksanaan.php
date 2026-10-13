@@ -7,6 +7,8 @@ use App\Enums\TipeAnggota;
 use App\Models\Berkas;
 use App\Models\Laporan;
 use App\Models\Logbook;
+use App\Models\Luaran;
+use App\Models\Penilaian;
 use App\Models\Proposal;
 use App\Models\Role;
 use App\Models\User;
@@ -17,8 +19,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 /**
- * A funded grant at work: the team keeps a logbook, and the lead sends the
- * progress report that puts the proposal under monev.
+ * A funded grant at work: the team keeps a logbook, the lead sends the
+ * progress report that puts the proposal under monev, reports what became of
+ * each output, and sends the final report that the operator verifies.
  */
 class AlurPelaksanaan
 {
@@ -119,6 +122,147 @@ class AlurPelaksanaan
             "Ketua proposal \"{$proposal->judul}\" mengirim laporan kemajuan. Tugaskan reviewer monev.", route('admin.monev.index'));
 
         return $hasil;
+    }
+
+    /**
+     * The sent monev review of the proposal, if any.
+     */
+    public function hasilMonev(Proposal $proposal): ?Penilaian
+    {
+        return $proposal->penilaian()->where('tahap', Penilaian::MONEV)->where('status', Penilaian::SELESAI)->latest('dinilai_at')->first();
+    }
+
+    /**
+     * The newest final report, whatever its state.
+     */
+    public function laporanAkhir(Proposal $proposal): ?Laporan
+    {
+        return $proposal->laporan()->where('jenis', Laporan::AKHIR)->latest('diajukan_at')->latest('id')->first();
+    }
+
+    /**
+     * The lead reports how far an output has come; the operator then validates
+     * it again.
+     */
+    public function laporCapaianLuaran(Luaran $luaran, string $capaian, ?string $urlBukti, User $oleh): void
+    {
+        $proposal = $luaran->proposal;
+        $this->pastikan($proposal->isKetua($oleh->dosen), 'Capaian luaran dilaporkan oleh ketua.');
+        $this->pastikan($this->bisaMencatatLogbook($proposal), 'Capaian luaran dilaporkan selama kegiatan berjalan.');
+        $this->pastikan(array_key_exists($capaian, Luaran::CAPAIAN), 'Pilihan capaian tidak dikenal.');
+        $this->pastikan($capaian === Luaran::DIRENCANAKAN || filled($urlBukti), 'Isi tautan bukti capaian luaran.');
+
+        $luaran->fill(['status_capaian' => $capaian, 'url_bukti' => $urlBukti])
+            ->forceFill(['status_validasi' => Luaran::MENUNGGU, 'divalidasi_oleh' => null, 'divalidasi_at' => null, 'catatan_validasi' => null])
+            ->save();
+    }
+
+    /**
+     * The operator accepts or rejects what the lead reported for an output.
+     */
+    public function validasiLuaran(Luaran $luaran, bool $valid, ?string $catatan, User $oleh): void
+    {
+        $this->pastikan($luaran->status_capaian !== Luaran::DIRENCANAKAN, 'Ketua belum melaporkan capaian luaran ini.');
+        $this->pastikan($valid || filled($catatan), 'Tulis alasan luaran ditolak.');
+
+        $luaran->validasi($oleh, $valid, $catatan);
+
+        if (! $valid) {
+            $this->pemberitahu->keKetua($luaran->proposal, 'Capaian luaran ditolak',
+                "Capaian luaran {$luaran->jenis->label()} untuk proposal \"{$luaran->proposal->judul}\" ditolak. Alasan: {$catatan}");
+        }
+    }
+
+    /**
+     * After the monev result is out, the lead sends the final report with the
+     * full spending report. A returned report is replaced by a new one.
+     *
+     * @param  array{ringkasan: string, persentase_capaian: int|string}  $data
+     */
+    public function kirimLaporanAkhir(Proposal $proposal, array $data, UploadedFile $laporan, UploadedFile $keuangan, User $oleh): Laporan
+    {
+        $this->pastikan($proposal->isKetua($oleh->dosen), 'Laporan akhir dikirim oleh ketua.');
+        $this->pastikan($proposal->status === StatusProposal::Dimonev, 'Laporan akhir dikirim setelah laporan kemajuan.');
+        $this->pastikan($this->hasilMonev($proposal) !== null, 'Laporan akhir dikirim setelah hasil monev keluar.');
+        $terakhir = $this->laporanAkhir($proposal);
+        $this->pastikan($terakhir === null || $terakhir->status === Laporan::DIKEMBALIKAN, 'Laporan akhir sudah dikirim.');
+
+        $hasil = DB::transaction(function () use ($proposal, $data, $laporan, $keuangan, $oleh) {
+            $hasil = $proposal->laporan()->create([
+                'jenis' => Laporan::AKHIR,
+                'ringkasan' => $data['ringkasan'],
+                'persentase_capaian' => (int) $data['persentase_capaian'],
+                'persentase_anggaran_terpakai' => 100,
+                'status' => Laporan::DIAJUKAN,
+                'diajukan_at' => now(),
+            ]);
+            $this->simpanBerkas($hasil, Berkas::LAPORAN_AKHIR, $laporan, "laporan/{$proposal->id}", $oleh);
+            $this->simpanBerkas($hasil, Berkas::LAPORAN_KEUANGAN, $keuangan, "laporan/{$proposal->id}", $oleh);
+
+            return $hasil;
+        });
+
+        $this->pemberitahu->kePeran([Role::OPERATOR, Role::ADMIN_LPPM], 'Laporan akhir masuk',
+            "Ketua proposal \"{$proposal->judul}\" mengirim laporan akhir. Periksa dan verifikasi.", route('verifikasi.index'));
+
+        return $hasil;
+    }
+
+    /**
+     * The operator accepts the final report, or sends it back with a reason.
+     */
+    public function verifikasiLaporanAkhir(Laporan $laporan, bool $terima, ?string $catatan, User $oleh): void
+    {
+        $this->pastikan($laporan->jenis === Laporan::AKHIR && $laporan->status === Laporan::DIAJUKAN, 'Laporan ini tidak sedang menunggu verifikasi.');
+        $this->pastikan($terima || filled($catatan), 'Tulis apa yang harus diperbaiki.');
+
+        $laporan->fill([
+            'status' => $terima ? Laporan::DIVERIFIKASI : Laporan::DIKEMBALIKAN,
+            'diverifikasi_oleh' => $oleh->id,
+            'diverifikasi_at' => now(),
+            'catatan_verifikasi' => $catatan,
+        ])->save();
+
+        $proposal = $laporan->proposal;
+        if ($terima) {
+            $this->pemberitahu->keKetua($proposal, 'Laporan akhir diverifikasi',
+                "Laporan akhir proposal \"{$proposal->judul}\" sudah diverifikasi. Termin 2 dicairkan setelah luaran wajib tervalidasi.");
+            $this->pemberitahu->kePeran([Role::KEUANGAN], 'Laporan akhir diverifikasi',
+                "Laporan akhir proposal \"{$proposal->judul}\" sudah diverifikasi.", route('pencairan.index'));
+        } else {
+            $this->pemberitahu->keKetua($proposal, 'Laporan akhir dikembalikan',
+                "Laporan akhir proposal \"{$proposal->judul}\" dikembalikan untuk diperbaiki. Catatan: {$catatan}");
+        }
+    }
+
+    /**
+     * Remind leads 14, 7 and 1 days before a report is due. Returns how many.
+     */
+    public function ingatkanTenggat(): int
+    {
+        $tanggal = collect([14, 7, 1])->map(fn ($n) => today()->addDays($n)->toDateString())->all();
+        $jumlah = 0;
+
+        $kemajuan = Proposal::where('status', StatusProposal::Berjalan)
+            ->whereHas('periode', fn ($q) => $q->whereIn(DB::raw('date(tgl_laporan_kemajuan)'), $tanggal))
+            ->with('periode', 'ketua.user')->get();
+        foreach ($kemajuan as $proposal) {
+            $this->pemberitahu->keKetua($proposal, 'Pengingat laporan kemajuan',
+                "Laporan kemajuan proposal \"{$proposal->judul}\" ditunggu paling lambat {$proposal->periode->tgl_laporan_kemajuan->translatedFormat('j F Y')}.");
+            $jumlah++;
+        }
+
+        $akhir = Proposal::where('status', StatusProposal::Dimonev)
+            ->whereHas('periode', fn ($q) => $q->whereIn(DB::raw('date(tgl_laporan_akhir)'), $tanggal))
+            ->whereDoesntHave('laporan', fn ($q) => $q->where('jenis', Laporan::AKHIR)->whereIn('status', [Laporan::DIAJUKAN, Laporan::DIVERIFIKASI]))
+            ->with('periode', 'ketua.user')->get();
+        foreach ($akhir as $proposal) {
+            $this->pemberitahu->keKetua($proposal, 'Pengingat laporan akhir',
+                "Laporan akhir proposal \"{$proposal->judul}\" ditunggu paling lambat {$proposal->periode->tgl_laporan_akhir->translatedFormat('j F Y')}.");
+            $jumlah++;
+        }
+
+        return $jumlah;
     }
 
     private function simpanBerkas(Logbook|Laporan $pemilik, string $kategori, UploadedFile $file, string $folder, User $oleh): void

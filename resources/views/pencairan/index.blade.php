@@ -38,6 +38,42 @@
                 @endforelse
             </x-kartu>
 
+            <x-kartu judul="Menunggu termin 2">
+                @forelse ($termin2 as $p)
+                    <div class="border-b border-gray-100 py-4 first:pt-0 last:border-0 last:pb-0">
+                        <div class="flex flex-wrap items-baseline justify-between gap-2">
+                            <div>
+                                <p class="font-medium text-gray-900">{{ $p->judul }}</p>
+                                <p class="text-sm text-gray-500">{{ $p->ketua->namaLengkap() }} · Kontrak {{ $p->no_kontrak }}</p>
+                            </div>
+                            <p class="text-sm">Termin 2 ({{ 100 - $p->periode->termin_pertama_persen }}%): <span class="font-medium"><x-rupiah :nilai="$p->jumlah_termin_2" /></span></p>
+                        </div>
+                        @if ($p->syarat_termin_2 !== [])
+                            <ul class="mt-2 list-disc ps-5 text-sm text-amber-700">
+                                @foreach ($p->syarat_termin_2 as $syarat)
+                                    <li>{{ $syarat }}</li>
+                                @endforeach
+                            </ul>
+                        @elseif ($bisaCatat)
+                            <form method="POST" action="{{ route('pencairan.termin-2.store', $p) }}" enctype="multipart/form-data" class="mt-3 flex flex-wrap items-end gap-3">
+                                @csrf
+                                <div><x-input-label value="Tanggal cair" /><x-text-input type="date" name="tgl_cair" class="mt-1" :value="today()->toDateString()" required /></div>
+                                <div><x-input-label value="Bukti transfer (PDF atau gambar)" /><input type="file" name="bukti" accept="application/pdf,image/*" required class="mt-1 text-sm"></div>
+                                <label class="flex items-center gap-2 text-sm text-gray-700 pb-2">
+                                    <input type="hidden" name="pajak_lunas" value="0">
+                                    <input type="checkbox" name="pajak_lunas" value="1" class="rounded border-gray-300"> Pajak sudah dipotong
+                                </label>
+                                <x-primary-button>Catat termin 2</x-primary-button>
+                            </form>
+                        @else
+                            <p class="mt-2 text-sm text-green-700">Syarat lengkap, menunggu keuangan.</p>
+                        @endif
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-600">Tidak ada proposal yang menunggu termin 2.</p>
+                @endforelse
+            </x-kartu>
+
             <x-kartu judul="Riwayat pencairan">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">

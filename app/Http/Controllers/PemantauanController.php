@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StatusProposal;
+use App\Models\Laporan;
 use App\Models\Penilaian;
 use App\Models\Proposal;
 use Illuminate\View\View;
 
 /**
- * What the operator chases: quiet logbooks, late progress reports, and monev
- * still without a result.
+ * What the operator chases: quiet logbooks, late progress and final reports,
+ * and monev still without a result.
  */
 class PemantauanController extends Controller
 {
@@ -30,6 +31,12 @@ class PemantauanController extends Controller
                 ->get(),
             'laporanTerlambat' => Proposal::where('status', StatusProposal::Berjalan)
                 ->whereHas('periode', fn ($q) => $q->whereDate('tgl_laporan_kemajuan', '<', today()))
+                ->with('periode', 'ketua')
+                ->orderBy('periode_id')
+                ->get(),
+            'akhirTerlambat' => Proposal::where('status', StatusProposal::Dimonev)
+                ->whereHas('periode', fn ($q) => $q->whereDate('tgl_laporan_akhir', '<', today()))
+                ->whereDoesntHave('laporan', fn ($q) => $q->where('jenis', Laporan::AKHIR)->whereIn('status', [Laporan::DIAJUKAN, Laporan::DIVERIFIKASI]))
                 ->with('periode', 'ketua')
                 ->orderBy('periode_id')
                 ->get(),
