@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\StatusProposal;
 use App\Enums\TipeAnggota;
 use App\Models\KriteriaPenilaian;
+use App\Models\Laporan;
 use App\Models\Penilaian;
 use App\Models\Proposal;
 use App\Models\Role;
@@ -22,13 +23,59 @@ class AlurReview
     public function __construct(private Pemberitahu $pemberitahu) {}
 
     /**
-     * The selection rubric of the proposal's call, in display order.
+     * The rubric of the proposal's call for one stage, in display order.
      *
      * @return Collection<int, KriteriaPenilaian>
      */
-    public function kriteria(Proposal $proposal): Collection
+    public function kriteria(Proposal $proposal, string $tahap = Penilaian::SELEKSI): Collection
     {
-        return $proposal->periode->kriteria()->where('tahap', Penilaian::SELEKSI)->orderBy('urutan')->get();
+        return $proposal->periode->kriteria()->where('tahap', $tahap)->orderBy('urutan')->get();
+    }
+
+    /**
+     * The proposal status a review of this stage belongs to.
+     */
+    private function statusTahap(string $tahap): StatusProposal
+    {
+        return $tahap === Penilaian::MONEV ? StatusProposal::Dimonev : StatusProposal::Ditinjau;
+    }
+
+    /**
+     * Give a proposal under monev its desk reviewer. One reviewer per monev;
+     * an unsent assignment can be handed to someone else.
+     */
+    public function tugaskanMonev(Proposal $proposal, User $reviewer, User $oleh): Penilaian
+    {
+        $this->pastikan($proposal->status === StatusProposal::Dimonev, 'Reviewer monev ditugaskan setelah laporan kemajuan dikirim.');
+        $this->pastikan($reviewer->hasRole(Role::REVIEWER), 'Pengguna itu tidak berperan sebagai reviewer.');
+        $this->pastikan(! $this->anggotaTim($proposal, $reviewer), 'Reviewer tidak boleh ketua atau anggota proposal yang dinilainya.');
+        $this->pastikan($this->kriteria($proposal, Penilaian::MONEV)->isNotEmpty(), 'Isi kriteria penilaian monev di periode hibah ini terlebih dahulu.');
+
+        $laporan = $proposal->laporan()->where('jenis', Laporan::KEMAJUAN)->latest('diajukan_at')->first();
+        $slot = $proposal->penilaian()->where('tahap', Penilaian::MONEV)->first();
+        if ($slot?->reviewer_id === $reviewer->id) {
+            return $slot;
+        }
+        $this->pastikan(! $slot?->terkirim(), 'Penilaian monev sudah dikirim. Buka kembali dulu jika ingin mengganti reviewer.');
+
+        $penilaian = DB::transaction(function () use ($proposal, $reviewer, $slot, $laporan) {
+            $slot?->delete();
+
+            return $proposal->penilaian()->create([
+                'laporan_id' => $laporan?->id,
+                'reviewer_id' => $reviewer->id,
+                'tahap' => Penilaian::MONEV,
+                'urutan_reviewer' => 1,
+                'status' => Penilaian::DITUGASKAN,
+            ]);
+        });
+
+        $batas = $proposal->periode->tgl_monev;
+        $this->pemberitahu->keUser($reviewer, 'Tugas monev baru',
+            'Anda ditugaskan memonev proposal "'.$proposal->judul.'"'.($batas ? ' paling lambat '.$batas->translatedFormat('j F Y') : '').'.',
+            route('review.show', $penilaian));
+
+        return $penilaian;
     }
 
     /**
@@ -106,9 +153,9 @@ class AlurReview
     public function simpan(Penilaian $penilaian, array $skor, array $isian, bool $kirim): void
     {
         $this->pastikan(! $penilaian->terkirim(), 'Penilaian ini sudah dikirim dan terkunci.');
-        $this->pastikan($penilaian->proposal->status === StatusProposal::Ditinjau, 'Proposal ini sudah tidak dalam tahap penilaian.');
+        $this->pastikan($penilaian->proposal->status === $this->statusTahap($penilaian->tahap), 'Proposal ini sudah tidak dalam tahap penilaian.');
 
-        $kriteria = $this->kriteria($penilaian->proposal);
+        $kriteria = $this->kriteria($penilaian->proposal, $penilaian->tahap);
         $pesan = [];
         foreach ($kriteria as $k) {
             $nilai = $skor[$k->id] ?? null;
@@ -123,8 +170,11 @@ class AlurReview
                 $pesan[] = "Nilai {$k->nama} harus bilangan bulat 1 sampai {$k->skala_maks}.";
             }
         }
-        if ($kirim && blank($isian['rekomendasi'] ?? null)) {
-            $pesan[] = 'Pilih rekomendasi.';
+        $pilihan = $penilaian->tahap === Penilaian::MONEV ? Penilaian::HASIL_MONEV : Penilaian::REKOMENDASI;
+        if (filled($isian['rekomendasi'] ?? null) && ! array_key_exists($isian['rekomendasi'], $pilihan)) {
+            $pesan[] = 'Pilihan rekomendasi tidak dikenal.';
+        } elseif ($kirim && blank($isian['rekomendasi'] ?? null)) {
+            $pesan[] = $penilaian->tahap === Penilaian::MONEV ? 'Pilih hasil monev.' : 'Pilih rekomendasi.';
         }
         if ($kirim && blank($isian['komentar_untuk_pengusul'] ?? null)) {
             $pesan[] = 'Tulis komentar untuk pengusul.';
@@ -158,7 +208,13 @@ class AlurReview
             $penilaian->save();
         });
 
-        if ($kirim) {
+        if ($kirim && $penilaian->tahap === Penilaian::MONEV) {
+            $this->pemberitahu->kePeran([Role::ADMIN_LPPM], 'Hasil monev dikirim',
+                "Reviewer monev mengirim hasil monev proposal \"{$penilaian->proposal->judul}\": {$penilaian->namaRekomendasi()}.",
+                route('admin.monev.index'));
+            $this->pemberitahu->keKetua($penilaian->proposal, 'Hasil monev',
+                "Hasil monev proposal \"{$penilaian->proposal->judul}\": {$penilaian->namaRekomendasi()}. Komentar reviewer bisa dibaca di halaman proposal.");
+        } elseif ($kirim) {
             $this->pemberitahu->kePeran([Role::ADMIN_LPPM], 'Penilaian proposal dikirim',
                 "Reviewer {$penilaian->urutan_reviewer} mengirim penilaian proposal \"{$penilaian->proposal->judul}\".",
                 route('admin.review.show', $penilaian->proposal));
@@ -171,7 +227,7 @@ class AlurReview
     public function bukaKembali(Penilaian $penilaian, string $alasan): void
     {
         $this->pastikan($penilaian->terkirim(), 'Penilaian ini belum dikirim.');
-        $this->pastikan($penilaian->proposal->status === StatusProposal::Ditinjau, 'Proposal ini sudah tidak dalam tahap penilaian.');
+        $this->pastikan($penilaian->proposal->status === $this->statusTahap($penilaian->tahap), 'Proposal ini sudah tidak dalam tahap penilaian.');
 
         $penilaian->forceFill(['status' => Penilaian::DITUGASKAN, 'dinilai_at' => null])->save();
 

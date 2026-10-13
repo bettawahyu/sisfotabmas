@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\AlurPelaksanaan;
 use App\Services\AlurProposal;
 use App\Services\AlurReview;
 use App\Services\SiaranPengumuman;
@@ -28,3 +29,9 @@ Artisan::command('review:ingatkan', function (AlurReview $review) {
 })->purpose('Ingatkan reviewer yang belum mengirim penilaian tiga hari sebelum batas seleksi');
 
 Schedule::command('review:ingatkan')->dailyAt('07:00');
+
+Artisan::command('laporan:ingatkan', function (AlurPelaksanaan $pelaksanaan) {
+    $this->info($pelaksanaan->ingatkanTenggat().' ketua diingatkan.');
+})->purpose('Ingatkan ketua 14, 7, dan 1 hari sebelum batas laporan kemajuan dan laporan akhir');
+
+Schedule::command('laporan:ingatkan')->dailyAt('07:05');

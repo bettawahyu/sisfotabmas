@@ -16,6 +16,23 @@ class Luaran extends Model
 
     public const DITOLAK = 'ditolak';
 
+    public const DIRENCANAKAN = 'direncanakan';
+
+    /** How far the lead says the output has come; anything past the plan counts as in process. */
+    public const CAPAIAN = [
+        'direncanakan' => 'Direncanakan',
+        'draf' => 'Draf',
+        'submitted' => 'Sudah dikirim (submitted)',
+        'diterima' => 'Diterima (accepted)',
+        'terbit' => 'Terbit atau granted',
+    ];
+
+    public const VALIDASI = [
+        'menunggu' => 'Menunggu validasi',
+        'valid' => 'Valid',
+        'ditolak' => 'Ditolak',
+    ];
+
     protected $table = 'luaran';
 
     /**
@@ -67,6 +84,21 @@ class Luaran extends Model
     public function validator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'divalidasi_oleh');
+    }
+
+    public function namaCapaian(): string
+    {
+        return self::CAPAIAN[$this->status_capaian] ?? $this->status_capaian;
+    }
+
+    /**
+     * Validated by the operator and at least sent to a journal or office, which
+     * is what the second tranche asks of each required output.
+     */
+    public function memenuhiTermin2(): bool
+    {
+        return $this->status_validasi === self::VALID
+            && in_array($this->status_capaian, ['submitted', 'diterima', 'terbit'], true);
     }
 
     /**

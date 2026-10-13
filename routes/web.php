@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\KontrakController;
 use App\Http\Controllers\Admin\KriteriaPenilaianController;
+use App\Http\Controllers\Admin\MonevController;
 use App\Http\Controllers\Admin\PenetapanController;
 use App\Http\Controllers\Admin\PenugasanReviewerController;
 use App\Http\Controllers\Admin\PeriodeHibahController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\Admin\SkemaHibahController;
 use App\Http\Controllers\Admin\TemplateDokumenController as KelolaTemplateController;
 use App\Http\Controllers\Kelola\PengumumanController as KelolaPengumumanController;
 use App\Http\Controllers\NotifikasiController;
+use App\Http\Controllers\PelaksanaanController;
+use App\Http\Controllers\PemantauanController;
 use App\Http\Controllers\PencairanController;
 use App\Http\Controllers\PengesahanController;
 use App\Http\Controllers\PengumumanController;
@@ -21,6 +24,7 @@ use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TemplateDokumenController;
 use App\Http\Controllers\UndanganController;
+use App\Http\Controllers\VerifikasiController;
 use App\Models\Pengumuman;
 use App\Models\Role;
 use Illuminate\Http\Request;
@@ -89,6 +93,24 @@ Route::middleware(['auth', 'role:'.Role::DOSEN])->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/proposal/{proposal}', [ProposalController::class, 'show'])->name('proposal.show');
     Route::get('/proposal/{proposal}/substansi', [ProposalBagianController::class, 'unduhSubstansi'])->name('proposal.substansi.show');
+
+    // The team writes the logbook and reports; AlurPelaksanaan checks who.
+    Route::controller(PelaksanaanController::class)->prefix('/proposal/{proposal}/pelaksanaan')->name('proposal.pelaksanaan.')->group(function () {
+        Route::get('/', 'show')->name('show');
+        Route::post('/logbook', 'storeLogbook')->name('logbook.store');
+        Route::delete('/logbook/{logbook}', 'destroyLogbook')->name('logbook.destroy');
+        Route::post('/laporan-kemajuan', 'storeLaporanKemajuan')->name('laporan-kemajuan.store');
+        Route::post('/laporan-akhir', 'storeLaporanAkhir')->name('laporan-akhir.store');
+        Route::put('/luaran/{luaran}', 'updateLuaran')->name('luaran.update');
+        Route::get('/berkas/{berkas}', 'berkas')->name('berkas');
+    });
+});
+
+Route::middleware(['auth', 'role:'.Role::OPERATOR.','.Role::ADMIN_LPPM])->group(function () {
+    Route::get('/pemantauan', [PemantauanController::class, 'index'])->name('pemantauan.index');
+    Route::get('/verifikasi', [VerifikasiController::class, 'index'])->name('verifikasi.index');
+    Route::post('/verifikasi/laporan/{laporan}', [VerifikasiController::class, 'laporan'])->name('verifikasi.laporan');
+    Route::post('/verifikasi/luaran/{luaran}', [VerifikasiController::class, 'luaran'])->name('verifikasi.luaran');
 });
 
 Route::middleware(['auth', 'role:'.Role::REVIEWER])->prefix('review')->name('review.')->group(function () {
@@ -96,12 +118,14 @@ Route::middleware(['auth', 'role:'.Role::REVIEWER])->prefix('review')->name('rev
     Route::get('/{penilaian}', [ReviewController::class, 'show'])->name('show');
     Route::put('/{penilaian}', [ReviewController::class, 'update'])->name('update');
     Route::get('/{penilaian}/substansi', [ReviewController::class, 'substansi'])->name('substansi');
+    Route::get('/{penilaian}/laporan/{berkas}', [ReviewController::class, 'laporan'])->name('laporan');
 });
 
 // Finance records tranches; LPPM admins only look.
 Route::middleware(['auth', 'role:'.Role::KEUANGAN.','.Role::ADMIN_LPPM])->prefix('pencairan')->name('pencairan.')->group(function () {
     Route::get('/', [PencairanController::class, 'index'])->name('index');
     Route::post('/{proposal}/termin-1', [PencairanController::class, 'store'])->name('store');
+    Route::post('/{proposal}/termin-2', [PencairanController::class, 'storeTermin2'])->name('termin-2.store');
     Route::get('/bukti/{pencairan}', [PencairanController::class, 'bukti'])->name('bukti');
 });
 
@@ -138,6 +162,13 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('ad
 
     Route::get('/kontrak', [KontrakController::class, 'index'])->name('kontrak.index');
     Route::post('/kontrak/{proposal}', [KontrakController::class, 'store'])->name('kontrak.store');
+
+    Route::controller(MonevController::class)->prefix('monev')->name('monev.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/{proposal}', 'store')->name('store');
+        Route::delete('/{proposal}/penilaian/{penilaian}', 'destroy')->name('destroy');
+        Route::post('/{proposal}/penilaian/{penilaian}/buka', 'bukaKembali')->name('buka');
+    });
 
     Route::controller(PenugasanReviewerController::class)->prefix('review')->name('review.')->group(function () {
         Route::get('/', 'index')->name('index');
