@@ -28,7 +28,7 @@ Tabel publikasi, HKI, dan paten sudah tersedia dan bisa ditautkan ke luaran prop
 
 ## Menjalankan secara lokal
 
-Butuh PHP 8.3+, Composer, dan Node 22.
+Butuh PHP 8.4+, Composer, dan Node 22.
 
 ```sh
 composer install
