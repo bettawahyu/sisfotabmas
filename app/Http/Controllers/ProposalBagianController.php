@@ -13,6 +13,7 @@ use App\Models\Proposal;
 use App\Models\ProposalAnggota;
 use App\Models\ProposalMitra;
 use App\Models\RabItem;
+use App\Services\Pemberitahu;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -27,7 +28,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ProposalBagianController extends Controller
 {
-    public function tambahAnggota(Request $request, Proposal $proposal): RedirectResponse
+    public function tambahAnggota(Request $request, Proposal $proposal, Pemberitahu $pemberitahu): RedirectResponse
     {
         Gate::authorize('update', $proposal);
 
@@ -54,7 +55,13 @@ class ProposalBagianController extends Controller
             $data['token_undangan'] = Str::random(48);
         }
 
-        $proposal->anggota()->create($data);
+        $anggota = $proposal->anggota()->create($data);
+
+        if (isset($dosen)) {
+            $pemberitahu->keUser($dosen->user, 'Undangan anggota proposal',
+                "{$proposal->ketua->namaLengkap()} mengundang Anda menjadi anggota proposal \"{$proposal->judul}\".",
+                route('undangan.show', $anggota->token_undangan));
+        }
 
         return back()->with('status', 'Anggota ditambahkan.');
     }

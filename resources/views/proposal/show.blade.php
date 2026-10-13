@@ -80,6 +80,12 @@
                 </x-kartu>
             @endif
 
+            @if ($proposal->status === StatusProposal::Ditinjau && $user->hasRole(Role::ADMIN_LPPM))
+                <div class="rounded-md bg-indigo-50 p-4 text-sm text-indigo-800">
+                    Proposal ini sedang dinilai reviewer. <a href="{{ route('admin.review.show', $proposal) }}" class="font-medium underline">Atur reviewer dan lihat nilainya</a>.
+                </div>
+            @endif
+
             @if ($proposal->status === StatusProposal::Diajukan && $user->hasRole(Role::ADMIN_LPPM))
                 <x-kartu judul="Seleksi administrasi">
                     <div class="space-y-4">
@@ -100,6 +106,27 @@
                             <x-danger-button>Tolak</x-danger-button>
                         </form>
                     </div>
+                </x-kartu>
+            @endif
+
+            @if ($proposal->nilai_akhir !== null && in_array($proposal->status, [StatusProposal::Disetujui, StatusProposal::Didanai, StatusProposal::Berjalan, StatusProposal::Dimonev, StatusProposal::Selesai, StatusProposal::TidakDidanai], true))
+                <x-kartu judul="Hasil penilaian">
+                    <dl class="grid gap-3 text-sm sm:grid-cols-3">
+                        <div><dt class="text-gray-500">Nilai akhir</dt><dd class="text-lg font-semibold">{{ number_format($proposal->nilai_akhir, 2, ',', '.') }}</dd></div>
+                        <div><dt class="text-gray-500">Keputusan</dt><dd>{{ $proposal->status === StatusProposal::TidakDidanai ? 'Tidak didanai' : 'Didanai' }}</dd></div>
+                        @if ($proposal->dana_disetujui)
+                            <div><dt class="text-gray-500">Dana disetujui</dt><dd><x-rupiah :nilai="$proposal->dana_disetujui" /></dd></div>
+                        @endif
+                        @if ($proposal->no_sk)
+                            <div class="sm:col-span-3"><dt class="text-gray-500">SK</dt><dd>{{ $proposal->no_sk }} · {{ $proposal->tgl_sk->translatedFormat('j F Y') }}</dd></div>
+                        @endif
+                    </dl>
+                    @foreach ($proposal->penilaian as $pen)
+                        <div class="mt-4 border-t border-gray-100 pt-4 text-sm">
+                            <p class="font-medium text-gray-900">Komentar reviewer {{ $pen->urutan_reviewer }}</p>
+                            <p class="mt-1 whitespace-pre-line text-gray-700">{{ $pen->komentar_untuk_pengusul }}</p>
+                        </div>
+                    @endforeach
                 </x-kartu>
             @endif
 
@@ -138,6 +165,16 @@
                         <x-secondary-button type="submit">Unggah</x-secondary-button>
                     </form>
                     <p class="mt-2 text-xs text-gray-500">Gunakan templat dari LPPM. PDF, maksimal 10 MB.</p>
+                @endif
+                @if ($templat->isNotEmpty())
+                    <div class="mt-4 text-sm">
+                        <p class="text-gray-500">Templat dari LPPM:</p>
+                        <ul class="mt-1 list-disc ps-5">
+                            @foreach ($templat as $t)
+                                <li><a class="text-indigo-700 underline" href="{{ route('templat.unduh', $t) }}">{{ $t->nama }}</a> <span class="text-gray-500">({{ $t->namaJenis() }})</span></li>
+                            @endforeach
+                        </ul>
+                    </div>
                 @endif
             </x-kartu>
 

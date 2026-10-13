@@ -15,9 +15,17 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('pengumuman.index')" :active="request()->routeIs('pengumuman.*')">
+                        Pengumuman
+                    </x-nav-link>
                     @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
                         <x-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
                             Proposal
+                        </x-nav-link>
+                    @endif
+                    @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
+                        <x-nav-link :href="route('review.index')" :active="request()->routeIs('review.*')">
+                            Review
                         </x-nav-link>
                     @endif
                     @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
@@ -30,11 +38,23 @@
                             {{ __('Admin') }}
                         </x-nav-link>
                     @endif
+                    @can('kelola-pengumuman')
+                        <x-nav-link :href="route('kelola.pengumuman.index')" :active="request()->routeIs('kelola.pengumuman.*')">
+                            Kelola Pengumuman
+                        </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                @php($belumDibaca = Auth::user()->unreadNotifications()->count())
+                <a href="{{ route('notifikasi.index') }}" class="me-2 inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Notifikasi
+                    @if ($belumDibaca > 0)
+                        <span class="ms-1 rounded-full bg-red-600 px-2 text-xs text-white">{{ $belumDibaca }}</span>
+                    @endif
+                </a>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
@@ -90,12 +110,23 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('pengumuman.index')" :active="request()->routeIs('pengumuman.*')">
+                Pengumuman
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('notifikasi.index')" :active="request()->routeIs('notifikasi.*')">
+                Notifikasi
+            </x-responsive-nav-link>
             @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
                 <x-responsive-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
                     Proposal
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('profil-dosen.edit')" :active="request()->routeIs('profil-dosen.*')">
                     Profil Dosen
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
+                <x-responsive-nav-link :href="route('review.index')" :active="request()->routeIs('review.*')">
+                    Review
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
@@ -108,6 +139,11 @@
                     {{ __('Admin') }}
                 </x-responsive-nav-link>
             @endif
+            @can('kelola-pengumuman')
+                <x-responsive-nav-link :href="route('kelola.pengumuman.index')" :active="request()->routeIs('kelola.pengumuman.*')">
+                    Kelola Pengumuman
+                </x-responsive-nav-link>
+            @endcan
         </div>
 
         <!-- Responsive Settings Options -->

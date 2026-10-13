@@ -8,6 +8,7 @@ use App\Enums\StatusProposal;
 use App\Enums\TipeAnggota;
 use App\Models\PengesahanProposal;
 use App\Models\Proposal;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,8 @@ use Illuminate\Validation\ValidationException;
  */
 class AlurProposal
 {
+    public function __construct(private Pemberitahu $pemberitahu) {}
+
     /**
      * Everything that still stops the lead from sending the proposal, as messages
      * for the lead. An empty list means it can be sent.
@@ -110,6 +113,14 @@ class AlurProposal
             $proposal->save();
             $this->catat($proposal, $proposal->status, $proposal->status, $oleh, 'Dikirim untuk pengesahan.');
         });
+
+        if ($proposal->status === StatusProposal::Diajukan) {
+            $this->pemberitahu->kePeran([Role::ADMIN_LPPM], 'Perbaikan proposal dikirim ulang',
+                "Proposal \"{$proposal->judul}\" sudah diperbaiki dan menunggu seleksi administrasi.", route('admin.seleksi.index'));
+        } else {
+            $this->pemberitahu->kePeran([Role::PIMPINAN_UNIT], 'Proposal menunggu pengesahan',
+                "Proposal \"{$proposal->judul}\" dari {$proposal->ketua->namaLengkap()} menunggu pengesahan Anda.", route('pengesahan.index'));
+        }
     }
 
     /**
@@ -126,6 +137,11 @@ class AlurProposal
             $proposal->pengesahan()->create(['oleh' => $oleh->id, 'keputusan' => PengesahanProposal::DISETUJUI]);
             $this->pindahStatus($proposal, StatusProposal::Diajukan, $oleh, 'Disahkan.');
         });
+
+        $this->pemberitahu->keKetua($proposal, 'Proposal disahkan',
+            "Proposal \"{$proposal->judul}\" sudah disahkan dan diteruskan ke LPPM.");
+        $this->pemberitahu->kePeran([Role::ADMIN_LPPM], 'Proposal baru untuk seleksi administrasi',
+            "Proposal \"{$proposal->judul}\" sudah disahkan dan menunggu seleksi administrasi.", route('admin.seleksi.index'));
     }
 
     /**
@@ -141,6 +157,9 @@ class AlurProposal
             $proposal->pengesahan()->create(['oleh' => $oleh->id, 'keputusan' => PengesahanProposal::DITOLAK, 'catatan' => $catatan]);
             $this->catat($proposal, $proposal->status, $proposal->status, $oleh, 'Pengesahan ditolak: '.$catatan);
         });
+
+        $this->pemberitahu->keKetua($proposal, 'Pengesahan proposal ditolak',
+            "Proposal \"{$proposal->judul}\" dikembalikan tanpa pengesahan. Catatan: {$catatan}");
     }
 
     /**
@@ -149,6 +168,9 @@ class AlurProposal
     public function lolosAdministrasi(Proposal $proposal, User $oleh, ?string $catatan = null): void
     {
         $this->pindahStatus($proposal, StatusProposal::Ditinjau, $oleh, $catatan ?: 'Lolos seleksi administrasi.');
+
+        $this->pemberitahu->keKetua($proposal, 'Proposal lolos seleksi administrasi',
+            "Proposal \"{$proposal->judul}\" lolos seleksi administrasi dan masuk tahap penilaian.");
     }
 
     /**
@@ -162,6 +184,9 @@ class AlurProposal
             $proposal->batas_perbaikan_at = $batas;
             $this->pindahStatus($proposal, StatusProposal::Dikembalikan, $oleh, $catatan);
         });
+
+        $this->pemberitahu->keKetua($proposal, 'Proposal perlu diperbaiki',
+            "Perbaiki proposal \"{$proposal->judul}\" paling lambat {$batas->translatedFormat('j F Y')}. Catatan: {$catatan}");
     }
 
     /**
@@ -170,6 +195,18 @@ class AlurProposal
     public function tolak(Proposal $proposal, User $oleh, string $catatan): void
     {
         $this->pindahStatus($proposal, StatusProposal::TidakDidanai, $oleh, $catatan);
+
+        $this->pemberitahu->keKetua($proposal, 'Proposal tidak lolos seleksi',
+            "Proposal \"{$proposal->judul}\" tidak lolos seleksi administrasi. Catatan: {$catatan}");
+    }
+
+    /**
+     * Record the funding decision after review. Notifications are sent by
+     * AlurPenetapan, which decides for the whole call at once.
+     */
+    public function tetapkanHasil(Proposal $proposal, bool $didanai, User $oleh, string $catatan): void
+    {
+        $this->pindahStatus($proposal, $didanai ? StatusProposal::Disetujui : StatusProposal::TidakDidanai, $oleh, $catatan);
     }
 
     /**
@@ -183,6 +220,8 @@ class AlurProposal
 
         foreach ($lewat as $proposal) {
             $this->pindahStatus($proposal, StatusProposal::TidakDidanai, null, 'Batas waktu perbaikan lewat.');
+            $this->pemberitahu->keKetua($proposal, 'Proposal ditutup',
+                "Proposal \"{$proposal->judul}\" ditutup karena perbaikan tidak dikirim sebelum batas waktu.");
         }
 
         return $lewat->count();

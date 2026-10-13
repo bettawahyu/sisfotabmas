@@ -16,6 +16,10 @@ class Berkas extends Model
 
     public const SURAT_MITRA = 'surat_mitra';
 
+    public const LAMPIRAN = 'lampiran';
+
+    public const TEMPLAT = 'templat';
+
     protected $table = 'berkas';
 
     /**

@@ -26,6 +26,24 @@ class Penilaian extends Model
 
     public const AKHIR = 'akhir';
 
+    public const DITUGASKAN = 'ditugaskan';
+
+    public const SELESAI = 'selesai';
+
+    /**
+     * Each selection proposal gets exactly two reviewers; there is no third.
+     */
+    public const JUMLAH_REVIEWER = 2;
+
+    /**
+     * @var array<string, string>
+     */
+    public const REKOMENDASI = [
+        'didanai' => 'Layak didanai',
+        'didanai_perbaikan' => 'Layak didanai dengan perbaikan',
+        'tidak_didanai' => 'Tidak layak didanai',
+    ];
+
     protected $table = 'penilaian';
 
     /**
@@ -69,5 +87,18 @@ class Penilaian extends Model
     public function nilai(): HasMany
     {
         return $this->hasMany(NilaiPenilaian::class);
+    }
+
+    /**
+     * Sent by the reviewer, so locked until LPPM reopens it.
+     */
+    public function terkirim(): bool
+    {
+        return $this->status === self::SELESAI;
+    }
+
+    public function namaRekomendasi(): ?string
+    {
+        return $this->rekomendasi ? (self::REKOMENDASI[$this->rekomendasi] ?? $this->rekomendasi) : null;
     }
 }

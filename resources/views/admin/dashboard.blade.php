@@ -13,9 +13,25 @@
                 <p class="font-medium text-gray-900">Periode hibah</p>
                 <p class="mt-1 text-sm text-gray-600">Pengumuman tahunan: jadwal, plafon, kuota.</p>
             </a>
+            <a href="{{ route('admin.template.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Templat dokumen</p>
+                <p class="mt-1 text-sm text-gray-600">Templat proposal dan laporan yang diunduh dosen.</p>
+            </a>
+            <a href="{{ route('kelola.pengumuman.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Pengumuman</p>
+                <p class="mt-1 text-sm text-gray-600">Berita dan pengumuman untuk dosen dan reviewer.</p>
+            </a>
             <a href="{{ route('admin.seleksi.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
                 <p class="font-medium text-gray-900">Seleksi administrasi</p>
                 <p class="mt-1 text-sm text-gray-600">Proposal yang sudah disahkan dan menunggu diperiksa.</p>
+            </a>
+            <a href="{{ route('admin.review.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Penugasan reviewer</p>
+                <p class="mt-1 text-sm text-gray-600">Dua reviewer untuk setiap proposal yang lolos administrasi, beserta nilainya.</p>
+            </a>
+            <a href="{{ route('admin.penetapan.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Penetapan dan SK</p>
+                <p class="mt-1 text-sm text-gray-600">Peringkat nilai reviewer, proposal yang didanai, dan nomor SK.</p>
             </a>
         </div>
     </div>
