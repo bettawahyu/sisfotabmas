@@ -9,7 +9,7 @@ use App\Models\User;
 class ProposalPolicy
 {
     /**
-     * The team, LPPM and the heads of the lead's unit can open a proposal. Reviewers get their
+     * The team, LPPM, its operators and the heads of the lead's unit can open a proposal. Reviewers get their
      * own blind view in the review module, never this page.
      */
     public function view(User $user, Proposal $proposal): bool
@@ -17,6 +17,7 @@ class ProposalPolicy
         return $proposal->isKetua($user->dosen)
             || $proposal->isAnggotaDosen($user->dosen)
             || $user->hasRole(Role::ADMIN_LPPM)
+            || $user->hasRole(Role::OPERATOR)
             || $user->bolehMengesahkan($proposal);
     }
 
