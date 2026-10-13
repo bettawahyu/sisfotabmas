@@ -38,7 +38,7 @@ class User extends Authenticatable
      */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_roles')->withTimestamps();
+        return $this->belongsToMany(Role::class, 'user_roles')->withPivot('fakultas_id', 'prodi_id')->withTimestamps();
     }
 
     /**
@@ -76,5 +76,25 @@ class User extends Authenticatable
     public function penilaian(): HasMany
     {
         return $this->hasMany(Penilaian::class, 'reviewer_id');
+    }
+
+    /**
+     * Whether this user may endorse the proposal: a faculty or programme head
+     * whose unit is the lead's programme or its faculty, or who has no unit set.
+     */
+    public function bolehMengesahkan(Proposal $proposal): bool
+    {
+        $peran = $this->roles->firstWhere('kode', Role::PIMPINAN_UNIT);
+        if ($peran === null) {
+            return false;
+        }
+
+        $prodi = $proposal->ketua?->prodi;
+
+        return match (true) {
+            $peran->pivot->prodi_id !== null => $prodi?->id === $peran->pivot->prodi_id,
+            $peran->pivot->fakultas_id !== null => $prodi?->fakultas_id === $peran->pivot->fakultas_id,
+            default => true,
+        };
     }
 }

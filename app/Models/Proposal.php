@@ -6,6 +6,7 @@ use App\Enums\StatusProposal;
 use App\Enums\TipeAnggota;
 use Database\Factories\ProposalFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -208,5 +209,23 @@ class Proposal extends Model
     public function logbook(): HasMany
     {
         return $this->hasMany(Logbook::class)->orderBy('tanggal');
+    }
+
+    /**
+     * Proposals the given faculty or programme head is responsible for; see
+     * User::bolehMengesahkan().
+     *
+     * @param  Builder<Proposal>  $query
+     */
+    public function scopeDalamUnit(Builder $query, User $pimpinan): void
+    {
+        $peran = $pimpinan->roles->firstWhere('kode', Role::PIMPINAN_UNIT);
+        if ($peran === null) {
+            $query->whereRaw('1 = 0');
+        } elseif ($peran->pivot->prodi_id !== null) {
+            $query->whereHas('ketua', fn (Builder $q) => $q->where('prodi_id', $peran->pivot->prodi_id));
+        } elseif ($peran->pivot->fakultas_id !== null) {
+            $query->whereHas('ketua.prodi', fn (Builder $q) => $q->where('fakultas_id', $peran->pivot->fakultas_id));
+        }
     }
 }

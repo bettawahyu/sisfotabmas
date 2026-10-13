@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\KriteriaPenilaianController;
 use App\Http\Controllers\Admin\PenetapanController;
 use App\Http\Controllers\Admin\PenugasanReviewerController;
 use App\Http\Controllers\Admin\PeriodeHibahController;
+use App\Http\Controllers\Admin\PimpinanUnitController;
 use App\Http\Controllers\Admin\SeleksiController;
 use App\Http\Controllers\Admin\SkemaHibahController;
 use App\Http\Controllers\Admin\TemplateDokumenController as KelolaTemplateController;
@@ -131,6 +132,9 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('ad
         Route::post('/{periode}', 'store')->name('store');
         Route::post('/{periode}/sk', 'sk')->name('sk');
     });
+
+    Route::get('/pimpinan-unit', [PimpinanUnitController::class, 'index'])->name('pimpinan-unit.index');
+    Route::put('/pimpinan-unit/{user}', [PimpinanUnitController::class, 'update'])->name('pimpinan-unit.update');
 
     Route::get('/kontrak', [KontrakController::class, 'index'])->name('kontrak.index');
     Route::post('/kontrak/{proposal}', [KontrakController::class, 'store'])->name('kontrak.store');

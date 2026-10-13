@@ -21,6 +21,10 @@
                 <p class="font-medium text-gray-900">Pengumuman</p>
                 <p class="mt-1 text-sm text-gray-600">Berita dan pengumuman untuk dosen dan reviewer.</p>
             </a>
+            <a href="{{ route('admin.pimpinan-unit.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Unit pimpinan</p>
+                <p class="mt-1 text-sm text-gray-600">Prodi atau fakultas yang proposalnya disahkan tiap kaprodi dan dekan.</p>
+            </a>
             <a href="{{ route('admin.seleksi.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
                 <p class="font-medium text-gray-900">Seleksi administrasi</p>
                 <p class="mt-1 text-sm text-gray-600">Proposal yang sudah disahkan dan menunggu diperiksa.</p>

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Proposal;
+use App\Models\Role;
 use App\Models\User;
 use App\Notifications\Pemberitahuan;
 use Illuminate\Support\Facades\Notification;
@@ -23,6 +24,18 @@ class Pemberitahu
     public function kePeran(array $peran, string $judul, string $pesan, ?string $url = null): void
     {
         $penerima = User::whereHas('roles', fn ($q) => $q->whereIn('kode', $peran))->get();
+        Notification::send($penerima, new Pemberitahuan($judul, $pesan, $url));
+    }
+
+    /**
+     * The faculty or programme heads responsible for the proposal's unit.
+     */
+    public function kePimpinanUnit(Proposal $proposal, string $judul, string $pesan, ?string $url = null): void
+    {
+        $penerima = User::whereHas('roles', fn ($q) => $q->where('kode', Role::PIMPINAN_UNIT))
+            ->with('roles')
+            ->get()
+            ->filter(fn (User $u) => $u->bolehMengesahkan($proposal));
         Notification::send($penerima, new Pemberitahuan($judul, $pesan, $url));
     }
 

@@ -64,7 +64,7 @@
                 </x-kartu>
             @endif
 
-            @if ($proposal->menungguPengesahan() && $user->hasRole(Role::PIMPINAN_UNIT))
+            @if ($proposal->menungguPengesahan() && $user->bolehMengesahkan($proposal))
                 <x-kartu judul="Pengesahan">
                     <div class="flex flex-wrap items-start gap-6">
                         <form method="POST" action="{{ route('pengesahan.sahkan', $proposal) }}">
