@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\KontrakController;
 use App\Http\Controllers\Admin\KriteriaPenilaianController;
 use App\Http\Controllers\Admin\PenetapanController;
 use App\Http\Controllers\Admin\PenugasanReviewerController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Admin\SkemaHibahController;
 use App\Http\Controllers\Admin\TemplateDokumenController as KelolaTemplateController;
 use App\Http\Controllers\Kelola\PengumumanController as KelolaPengumumanController;
 use App\Http\Controllers\NotifikasiController;
+use App\Http\Controllers\PencairanController;
 use App\Http\Controllers\PengesahanController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ProfilDosenController;
@@ -95,6 +97,13 @@ Route::middleware(['auth', 'role:'.Role::REVIEWER])->prefix('review')->name('rev
     Route::get('/{penilaian}/substansi', [ReviewController::class, 'substansi'])->name('substansi');
 });
 
+// Finance records tranches; LPPM admins only look.
+Route::middleware(['auth', 'role:'.Role::KEUANGAN.','.Role::ADMIN_LPPM])->prefix('pencairan')->name('pencairan.')->group(function () {
+    Route::get('/', [PencairanController::class, 'index'])->name('index');
+    Route::post('/{proposal}/termin-1', [PencairanController::class, 'store'])->name('store');
+    Route::get('/bukti/{pencairan}', [PencairanController::class, 'bukti'])->name('bukti');
+});
+
 Route::middleware(['auth', 'role:'.Role::PIMPINAN_UNIT])->prefix('pengesahan')->name('pengesahan.')->group(function () {
     Route::get('/', [PengesahanController::class, 'index'])->name('index');
     Route::post('/{proposal}/sahkan', [PengesahanController::class, 'sahkan'])->name('sahkan');
@@ -122,6 +131,9 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('ad
         Route::post('/{periode}', 'store')->name('store');
         Route::post('/{periode}/sk', 'sk')->name('sk');
     });
+
+    Route::get('/kontrak', [KontrakController::class, 'index'])->name('kontrak.index');
+    Route::post('/kontrak/{proposal}', [KontrakController::class, 'store'])->name('kontrak.store');
 
     Route::controller(PenugasanReviewerController::class)->prefix('review')->name('review.')->group(function () {
         Route::get('/', 'index')->name('index');

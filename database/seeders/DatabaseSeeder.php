@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             'kaprodi@example.com' => ['Kaprodi', Role::PIMPINAN_UNIT],
             'dosen2@example.com' => ['Dosen Kedua', Role::DOSEN],
             'operator@example.com' => ['Operator', Role::OPERATOR],
+            'keuangan@example.com' => ['Keuangan', Role::KEUANGAN],
             'sistem@example.com' => ['Admin Sistem', Role::ADMIN_SISTEM],
         ];
 

@@ -130,6 +130,28 @@
                 </x-kartu>
             @endif
 
+            @if ($proposal->no_kontrak)
+                <x-kartu judul="Kontrak dan pencairan">
+                    <dl class="grid gap-3 text-sm sm:grid-cols-3">
+                        <div><dt class="text-gray-500">Nomor kontrak</dt><dd>{{ $proposal->no_kontrak }}</dd></div>
+                        <div><dt class="text-gray-500">Tanggal kontrak</dt><dd>{{ $proposal->tgl_kontrak->translatedFormat('j F Y') }}</dd></div>
+                        <div><dt class="text-gray-500">Masa kegiatan</dt><dd>{{ $proposal->tgl_mulai->translatedFormat('j M Y') }} sampai {{ $proposal->tgl_selesai->translatedFormat('j M Y') }}</dd></div>
+                    </dl>
+                    <ul class="mt-4 space-y-1 text-sm">
+                        @foreach ([1, 2] as $termin)
+                            @php($cair = $proposal->pencairan->firstWhere('termin_ke', $termin))
+                            <li>Termin {{ $termin }}:
+                                @if ($cair)
+                                    <x-rupiah :nilai="$cair->jumlah" /> dicairkan {{ $cair->tgl_cair->translatedFormat('j M Y') }}
+                                @else
+                                    <span class="text-gray-500">{{ $termin === 1 ? 'menunggu pencairan oleh keuangan' : 'dicairkan setelah laporan akhir dan luaran wajib diverifikasi' }}</span>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-kartu>
+            @endif
+
             <x-kartu judul="Identitas">
                 @if ($bisaDiubah)
                     <form method="POST" action="{{ route('proposal.update', $proposal) }}" class="space-y-6">

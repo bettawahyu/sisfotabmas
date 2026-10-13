@@ -210,6 +210,15 @@ class AlurProposal
     }
 
     /**
+     * Move a funded proposal on through its run (contract, disbursement, monev,
+     * closing). The caller checks the stage's own conditions and notifies.
+     */
+    public function lanjutkan(Proposal $proposal, StatusProposal $tujuan, User $oleh, string $catatan): void
+    {
+        $this->pindahStatus($proposal, $tujuan, $oleh, $catatan);
+    }
+
+    /**
      * Close returned proposals whose revision deadline has passed. Returns how many.
      */
     public function tutupYangLewatBatas(): int

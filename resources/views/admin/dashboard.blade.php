@@ -33,6 +33,14 @@
                 <p class="font-medium text-gray-900">Penetapan dan SK</p>
                 <p class="mt-1 text-sm text-gray-600">Peringkat nilai reviewer, proposal yang didanai, dan nomor SK.</p>
             </a>
+            <a href="{{ route('admin.kontrak.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Kontrak</p>
+                <p class="mt-1 text-sm text-gray-600">Nomor dan tanggal kontrak proposal yang disetujui.</p>
+            </a>
+            <a href="{{ route('pencairan.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Pencairan dana</p>
+                <p class="mt-1 text-sm text-gray-600">Termin yang dicatat bagian keuangan (hanya lihat).</p>
+            </a>
         </div>
     </div>
 </x-app-layout>
