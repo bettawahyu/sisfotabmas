@@ -20,6 +20,8 @@ Seeder membuat akun contoh dengan kata sandi `password`: `admin@example.com` (ad
 
 Dosen membuat proposal di menu Proposal, mengisi tim, RAB, luaran, dan mengunggah substansi PDF, lalu mengirimnya untuk pengesahan. Kaprodi atau dekan mengesahkan di menu Pengesahan, lalu admin LPPM melakukan seleksi administrasi (lolos, dikembalikan dengan batas perbaikan, atau ditolak). Semua perpindahan status melewati `App\Services\AlurProposal` dan tercatat di `proposal_status_log`. Perintah terjadwal `proposal:tutup-lewat-batas` menutup proposal yang lewat batas perbaikan.
 
+Setelah termin 1 cair, tim mengisi logbook dan ketua mengirim laporan kemajuan beserta laporan keuangan termin 1 di halaman pelaksanaan proposal (`App\Services\AlurPelaksanaan`). Proposal lalu berstatus Dimonev, admin LPPM menugaskan satu reviewer monev di menu Admin > Monev, dan reviewer mengisi hasil monev dari menu Review. Operator memantau logbook yang sepi, laporan terlambat, dan monev tanpa hasil di menu Pemantauan.
+
 ## Peran
 
 Peran disimpan di tabel `roles` dan `user_roles`, sehingga satu akun bisa punya beberapa peran. Kode peran: `dosen`, `reviewer`, `pimpinan_unit`, `admin_lppm`, `pimpinan`, `keuangan`. Pendaftaran mandiri otomatis mendapat peran `dosen`; peran lain diberikan admin.

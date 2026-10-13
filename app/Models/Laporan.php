@@ -25,6 +25,10 @@ class Laporan extends Model
 
     public const AKHIR = 'akhir';
 
+    public const DRAFT = 'draft';
+
+    public const DIAJUKAN = 'diajukan';
+
     protected $table = 'laporan';
 
     /**

@@ -17,9 +17,9 @@
                         <tbody>
                             @forelse ($tugas as $t)
                                 <tr class="border-b border-gray-100 last:border-0">
-                                    <td class="py-2 pe-4">{{ $t->proposal->judul }}@if ($tab === 'menunggu' && $t->nilai_total !== null)<div class="text-xs text-gray-500">Draf tersimpan</div>@endif</td>
+                                    <td class="py-2 pe-4">@if ($t->tahap === \App\Models\Penilaian::MONEV)<span class="me-1 rounded bg-indigo-50 px-1.5 py-0.5 text-xs text-indigo-700">Monev</span>@endif{{ $t->proposal->judul }}@if ($tab === 'menunggu' && $t->nilai_total !== null)<div class="text-xs text-gray-500">Draf tersimpan</div>@endif</td>
                                     <td class="py-2 pe-4">{{ $t->proposal->periode->nama }}</td>
-                                    <td class="py-2 pe-4 whitespace-nowrap">{{ $tab === 'selesai' ? $t->dinilai_at->translatedFormat('d M Y') : ($t->proposal->periode->tgl_seleksi_selesai?->translatedFormat('d M Y') ?? '-') }}</td>
+                                    <td class="py-2 pe-4 whitespace-nowrap">{{ $tab === 'selesai' ? $t->dinilai_at->translatedFormat('d M Y') : (($t->tahap === \App\Models\Penilaian::MONEV ? $t->proposal->periode->tgl_monev : $t->proposal->periode->tgl_seleksi_selesai)?->translatedFormat('d M Y') ?? '-') }}</td>
                                     @if ($tab === 'selesai')<td class="py-2 pe-4 text-end">{{ number_format($t->nilai_total, 2, ',', '.') }}</td>@endif
                                     <td class="py-2 text-end"><a href="{{ route('review.show', $t) }}" class="text-indigo-700 hover:underline">{{ $tab === 'selesai' ? 'Lihat' : 'Nilai' }}</a></td>
                                 </tr>

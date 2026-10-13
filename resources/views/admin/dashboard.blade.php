@@ -45,6 +45,14 @@
                 <p class="font-medium text-gray-900">Pencairan dana</p>
                 <p class="mt-1 text-sm text-gray-600">Termin yang dicatat bagian keuangan (hanya lihat).</p>
             </a>
+            <a href="{{ route('admin.monev.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Monev</p>
+                <p class="mt-1 text-sm text-gray-600">Laporan kemajuan yang masuk, reviewer monev, dan hasilnya.</p>
+            </a>
+            <a href="{{ route('pemantauan.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Pemantauan</p>
+                <p class="mt-1 text-sm text-gray-600">Logbook yang sepi, laporan terlambat, dan monev tanpa hasil.</p>
+            </a>
         </div>
     </div>
 </x-app-layout>

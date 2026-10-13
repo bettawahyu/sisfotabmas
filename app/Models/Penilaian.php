@@ -35,6 +35,19 @@ class Penilaian extends Model
      */
     public const JUMLAH_REVIEWER = 2;
 
+    public const MONEV_BERMASALAH = 'bermasalah';
+
+    /**
+     * Monev outcomes; a problem holds back the second tranche.
+     *
+     * @var array<string, string>
+     */
+    public const HASIL_MONEV = [
+        'sesuai' => 'Sesuai rencana',
+        'tindak_lanjut' => 'Perlu tindak lanjut',
+        self::MONEV_BERMASALAH => 'Bermasalah',
+    ];
+
     /**
      * @var array<string, string>
      */
@@ -99,6 +112,8 @@ class Penilaian extends Model
 
     public function namaRekomendasi(): ?string
     {
-        return $this->rekomendasi ? (self::REKOMENDASI[$this->rekomendasi] ?? $this->rekomendasi) : null;
+        $pilihan = $this->tahap === self::MONEV ? self::HASIL_MONEV : self::REKOMENDASI;
+
+        return $this->rekomendasi ? ($pilihan[$this->rekomendasi] ?? $this->rekomendasi) : null;
     }
 }

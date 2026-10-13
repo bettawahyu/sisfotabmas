@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Berkas;
+use App\Models\Laporan;
 use App\Models\Penilaian;
 use App\Services\AlurReview;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -36,12 +37,12 @@ class ReviewController extends Controller
     {
         $this->pastikanMilik($request, $penilaian);
         $penilaian->load('nilai', 'proposal.periode.skema', 'proposal.bidangFokus', 'proposal.cabangIlmu.induk.induk',
-            'proposal.rab', 'proposal.luaran', 'proposal.mitra', 'proposal.berkasSubstansi');
+            'proposal.rab', 'proposal.luaran', 'proposal.mitra', 'proposal.berkasSubstansi', 'laporan.berkas', 'proposal.logbook');
 
         return view('review.show', [
             'penilaian' => $penilaian,
             'proposal' => $penilaian->proposal,
-            'kriteria' => $review->kriteria($penilaian->proposal),
+            'kriteria' => $review->kriteria($penilaian->proposal, $penilaian->tahap),
         ]);
     }
 
@@ -50,7 +51,7 @@ class ReviewController extends Controller
         $this->pastikanMilik($request, $penilaian);
         $data = $request->validate([
             'skor' => ['array'],
-            'rekomendasi' => ['nullable', Rule::in(array_keys(Penilaian::REKOMENDASI))],
+            'rekomendasi' => ['nullable', 'string', 'max:30'],
             'komentar_untuk_pengusul' => ['nullable', 'string', 'max:5000'],
             'catatan_internal' => ['nullable', 'string', 'max:5000'],
             'rekomendasi_dana' => ['nullable', 'integer', 'min:0'],
@@ -71,6 +72,17 @@ class ReviewController extends Controller
         abort_if($berkas === null, 404);
 
         return Storage::download($berkas->path, 'substansi-proposal-'.$penilaian->proposal_id.'.pdf');
+    }
+
+    /**
+     * A file of the progress report under monev, renamed so it names no one.
+     */
+    public function laporan(Request $request, Penilaian $penilaian, Berkas $berkas): StreamedResponse
+    {
+        $this->pastikanMilik($request, $penilaian);
+        abort_unless($penilaian->laporan_id !== null && $berkas->pemilik_type === (new Laporan)->getMorphClass() && $berkas->pemilik_id === $penilaian->laporan_id, 404);
+
+        return Storage::download($berkas->path, $berkas->kategori.'-'.$penilaian->proposal_id.'.'.pathinfo($berkas->nama_asli, PATHINFO_EXTENSION));
     }
 
     private function pastikanMilik(Request $request, Penilaian $penilaian): void

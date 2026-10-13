@@ -22,6 +22,12 @@ class Berkas extends Model
 
     public const BUKTI_PENCAIRAN = 'bukti_pencairan';
 
+    public const LAPORAN_KEMAJUAN = 'laporan_kemajuan';
+
+    public const LAPORAN_KEUANGAN = 'laporan_keuangan';
+
+    public const BUKTI_LOGBOOK = 'bukti_logbook';
+
     protected $table = 'berkas';
 
     /**
