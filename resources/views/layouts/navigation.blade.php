@@ -28,6 +28,11 @@
                             Review
                         </x-nav-link>
                     @endif
+                    @if (Auth::user()->hasRole(\App\Models\Role::KEUANGAN))
+                        <x-nav-link :href="route('pencairan.index')" :active="request()->routeIs('pencairan.*')">
+                            Pencairan
+                        </x-nav-link>
+                    @endif
                     @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
                         <x-nav-link :href="route('pengesahan.index')" :active="request()->routeIs('pengesahan.*')">
                             Pengesahan
@@ -127,6 +132,11 @@
             @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
                 <x-responsive-nav-link :href="route('review.index')" :active="request()->routeIs('review.*')">
                     Review
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->hasRole(\App\Models\Role::KEUANGAN))
+                <x-responsive-nav-link :href="route('pencairan.index')" :active="request()->routeIs('pencairan.*')">
+                    Pencairan
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))

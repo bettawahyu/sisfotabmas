@@ -118,7 +118,7 @@ class AlurProposal
             $this->pemberitahu->kePeran([Role::ADMIN_LPPM], 'Perbaikan proposal dikirim ulang',
                 "Proposal \"{$proposal->judul}\" sudah diperbaiki dan menunggu seleksi administrasi.", route('admin.seleksi.index'));
         } else {
-            $this->pemberitahu->kePeran([Role::PIMPINAN_UNIT], 'Proposal menunggu pengesahan',
+            $this->pemberitahu->kePimpinanUnit($proposal, 'Proposal menunggu pengesahan',
                 "Proposal \"{$proposal->judul}\" dari {$proposal->ketua->namaLengkap()} menunggu pengesahan Anda.", route('pengesahan.index'));
         }
     }
@@ -129,6 +129,7 @@ class AlurProposal
     public function sahkan(Proposal $proposal, User $oleh): void
     {
         $this->pastikan($proposal->menungguPengesahan(), 'Proposal ini tidak sedang menunggu pengesahan.');
+        $this->pastikan($oleh->bolehMengesahkan($proposal), 'Proposal ini bukan dari unit yang Anda pimpin.');
 
         DB::transaction(function () use ($proposal, $oleh) {
             $proposal->disahkan_oleh = $oleh->id;
@@ -150,6 +151,7 @@ class AlurProposal
     public function tolakPengesahan(Proposal $proposal, User $oleh, string $catatan): void
     {
         $this->pastikan($proposal->menungguPengesahan(), 'Proposal ini tidak sedang menunggu pengesahan.');
+        $this->pastikan($oleh->bolehMengesahkan($proposal), 'Proposal ini bukan dari unit yang Anda pimpin.');
 
         DB::transaction(function () use ($proposal, $oleh, $catatan) {
             $proposal->dikirim_at = null;
@@ -207,6 +209,15 @@ class AlurProposal
     public function tetapkanHasil(Proposal $proposal, bool $didanai, User $oleh, string $catatan): void
     {
         $this->pindahStatus($proposal, $didanai ? StatusProposal::Disetujui : StatusProposal::TidakDidanai, $oleh, $catatan);
+    }
+
+    /**
+     * Move a funded proposal on through its run (contract, disbursement, monev,
+     * closing). The caller checks the stage's own conditions and notifies.
+     */
+    public function lanjutkan(Proposal $proposal, StatusProposal $tujuan, User $oleh, string $catatan): void
+    {
+        $this->pindahStatus($proposal, $tujuan, $oleh, $catatan);
     }
 
     /**

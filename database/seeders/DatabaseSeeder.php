@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             'kaprodi@example.com' => ['Kaprodi', Role::PIMPINAN_UNIT],
             'dosen2@example.com' => ['Dosen Kedua', Role::DOSEN],
             'operator@example.com' => ['Operator', Role::OPERATOR],
+            'keuangan@example.com' => ['Keuangan', Role::KEUANGAN],
             'sistem@example.com' => ['Admin Sistem', Role::ADMIN_SISTEM],
         ];
 
@@ -54,6 +55,10 @@ class DatabaseSeeder extends Seeder
     {
         $prodi = Fakultas::create(['kode' => 'FT', 'nama' => 'Fakultas Teknik'])
             ->programStudi()->create(['kode' => 'TI', 'nama' => 'Teknik Informatika', 'jenjang' => 'S1']);
+
+        // The sample kaprodi endorses Teknik Informatika proposals only.
+        User::where('email', 'kaprodi@example.com')->first()->roles()
+            ->updateExistingPivot(Role::where('kode', Role::PIMPINAN_UNIT)->value('id'), ['prodi_id' => $prodi->id]);
 
         User::where('email', 'dosen@example.com')->first()->dosen()->create([
             'prodi_id' => $prodi->id, 'nama' => 'Dosen', 'nidn' => '0011223344', 'sinta_id' => '6000001',

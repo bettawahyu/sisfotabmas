@@ -20,6 +20,7 @@ class PengesahanController extends Controller
         return view('pengesahan.index', [
             'menunggu' => Proposal::where('status', StatusProposal::Draft)
                 ->whereNotNull('dikirim_at')
+                ->dalamUnit($request->user())
                 ->with(['periode.skema', 'ketua.prodi'])
                 ->oldest('dikirim_at')
                 ->get(),

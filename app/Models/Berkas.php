@@ -20,6 +20,8 @@ class Berkas extends Model
 
     public const TEMPLAT = 'templat';
 
+    public const BUKTI_PENCAIRAN = 'bukti_pencairan';
+
     protected $table = 'berkas';
 
     /**

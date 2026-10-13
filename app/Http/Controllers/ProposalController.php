@@ -70,7 +70,7 @@ class ProposalController extends Controller
     {
         Gate::authorize('view', $proposal);
 
-        $proposal->load(['periode.skema', 'ketua', 'bidangFokus', 'cabangIlmu.induk.induk', 'anggota.dosen', 'mitra', 'rab', 'luaran', 'berkasSubstansi', 'riwayatStatus.pelaku',
+        $proposal->load(['periode.skema', 'ketua', 'bidangFokus', 'cabangIlmu.induk.induk', 'anggota.dosen', 'mitra', 'rab', 'luaran', 'berkasSubstansi', 'riwayatStatus.pelaku', 'pencairan',
             'penilaian' => fn ($q) => $q->where('tahap', Penilaian::SELEKSI)->where('status', Penilaian::SELESAI)->orderBy('urutan_reviewer')]);
 
         return view('proposal.show', [

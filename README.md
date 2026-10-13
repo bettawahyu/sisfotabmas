@@ -14,7 +14,7 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-Seeder membuat akun contoh dengan kata sandi `password`: `admin@example.com` (admin_lppm), `dosen@example.com` dan `dosen2@example.com` (dosen, sudah punya profil), `reviewer@example.com` (reviewer), dan `kaprodi@example.com` (pimpinan_unit). Seeder juga membuat satu periode hibah Penelitian Dosen Pemula yang sedang dibuka.
+Seeder membuat akun contoh dengan kata sandi `password`: `admin@example.com` (admin_lppm), `dosen@example.com` dan `dosen2@example.com` (dosen, sudah punya profil), `reviewer@example.com` (reviewer), `kaprodi@example.com` (pimpinan_unit), `operator@example.com` (operator), `keuangan@example.com` (keuangan), dan `sistem@example.com` (admin_sistem). Seeder juga membuat satu periode hibah Penelitian Dosen Pemula yang sedang dibuka.
 
 ## Alur pengajuan proposal
 
