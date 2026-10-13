@@ -37,6 +37,7 @@ class Proposal extends Model
             'diajukan_at' => 'datetime',
             'batas_perbaikan_at' => 'datetime',
             'disahkan_at' => 'datetime',
+            'nilai_akhir' => 'decimal:2',
             'tgl_sk' => 'date',
             'tgl_kontrak' => 'date',
             'tgl_mulai' => 'date',

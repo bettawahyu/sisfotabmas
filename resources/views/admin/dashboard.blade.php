@@ -29,6 +29,10 @@
                 <p class="font-medium text-gray-900">Penugasan reviewer</p>
                 <p class="mt-1 text-sm text-gray-600">Dua reviewer untuk setiap proposal yang lolos administrasi, beserta nilainya.</p>
             </a>
+            <a href="{{ route('admin.penetapan.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Penetapan dan SK</p>
+                <p class="mt-1 text-sm text-gray-600">Peringkat nilai reviewer, proposal yang didanai, dan nomor SK.</p>
+            </a>
         </div>
     </div>
 </x-app-layout>

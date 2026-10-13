@@ -201,6 +201,15 @@ class AlurProposal
     }
 
     /**
+     * Record the funding decision after review. Notifications are sent by
+     * AlurPenetapan, which decides for the whole call at once.
+     */
+    public function tetapkanHasil(Proposal $proposal, bool $didanai, User $oleh, string $catatan): void
+    {
+        $this->pindahStatus($proposal, $didanai ? StatusProposal::Disetujui : StatusProposal::TidakDidanai, $oleh, $catatan);
+    }
+
+    /**
      * Close returned proposals whose revision deadline has passed. Returns how many.
      */
     public function tutupYangLewatBatas(): int

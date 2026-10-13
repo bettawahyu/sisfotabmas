@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\KriteriaPenilaianController;
+use App\Http\Controllers\Admin\PenetapanController;
 use App\Http\Controllers\Admin\PenugasanReviewerController;
 use App\Http\Controllers\Admin\PeriodeHibahController;
 use App\Http\Controllers\Admin\SeleksiController;
@@ -114,6 +115,13 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('ad
     Route::post('/seleksi/{proposal}/lolos', [SeleksiController::class, 'lolos'])->name('seleksi.lolos');
     Route::post('/seleksi/{proposal}/kembalikan', [SeleksiController::class, 'kembalikan'])->name('seleksi.kembalikan');
     Route::post('/seleksi/{proposal}/tolak', [SeleksiController::class, 'tolak'])->name('seleksi.tolak');
+
+    Route::controller(PenetapanController::class)->prefix('penetapan')->name('penetapan.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{periode}', 'show')->name('show');
+        Route::post('/{periode}', 'store')->name('store');
+        Route::post('/{periode}/sk', 'sk')->name('sk');
+    });
 
     Route::controller(PenugasanReviewerController::class)->prefix('review')->name('review.')->group(function () {
         Route::get('/', 'index')->name('index');

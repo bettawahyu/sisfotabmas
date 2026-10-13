@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\TipeAnggota;
 use App\Models\BidangFokus;
+use App\Models\Penilaian;
 use App\Models\PeriodeHibah;
 use App\Models\Proposal;
 use App\Models\RumpunIlmu;
@@ -69,7 +70,8 @@ class ProposalController extends Controller
     {
         Gate::authorize('view', $proposal);
 
-        $proposal->load(['periode.skema', 'ketua', 'bidangFokus', 'cabangIlmu.induk.induk', 'anggota.dosen', 'mitra', 'rab', 'luaran', 'berkasSubstansi', 'riwayatStatus.pelaku']);
+        $proposal->load(['periode.skema', 'ketua', 'bidangFokus', 'cabangIlmu.induk.induk', 'anggota.dosen', 'mitra', 'rab', 'luaran', 'berkasSubstansi', 'riwayatStatus.pelaku',
+            'penilaian' => fn ($q) => $q->where('tahap', Penilaian::SELEKSI)->where('status', Penilaian::SELESAI)->orderBy('urutan_reviewer')]);
 
         return view('proposal.show', [
             'proposal' => $proposal,
