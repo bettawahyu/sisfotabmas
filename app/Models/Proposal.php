@@ -218,7 +218,7 @@ class Proposal extends Model
      * Whether the first tranche is paid, so the work belongs under Pelaksanaan
      * rather than with the proposal.
      */
-    public function dalamPelaksanaan(): bool
+    public function sudahDilaksanakan(): bool
     {
         return in_array($this->status, self::STATUS_PELAKSANAAN, true);
     }

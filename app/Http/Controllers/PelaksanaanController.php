@@ -43,7 +43,7 @@ class PelaksanaanController extends Controller
     public function show(Request $request, Proposal $proposal, AlurPelaksanaan $alur): View
     {
         Gate::authorize('view', $proposal);
-        abort_unless($proposal->dalamPelaksanaan(), 404);
+        abort_unless($proposal->sudahDilaksanakan(), 404);
         $proposal->load(['periode', 'logbook.pencatat', 'logbook.berkas', 'laporan.berkas', 'luaran.publikasi', 'luaran.hki', 'luaran.paten']);
         $isKetua = $proposal->isKetua($request->user()->dosen);
         // What the lead can link each output to, keyed by model class.
