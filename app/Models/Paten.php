@@ -19,6 +19,20 @@ class Paten extends Model
     /** @use HasFactory<PatenFactory> */
     use HasFactory, MemilikiVerifikasi, SoftDeletes;
 
+    public const JENIS = [
+        'paten' => 'Paten',
+        'paten_sederhana' => 'Paten sederhana',
+    ];
+
+    public const STATUS = [
+        'draft' => 'Draf',
+        'diajukan' => 'Diajukan',
+        'diumumkan' => 'Diumumkan',
+        'pemeriksaan_substantif' => 'Pemeriksaan substantif',
+        'diberi' => 'Diberi (granted)',
+        'ditolak' => 'Ditolak DJKI',
+    ];
+
     protected $table = 'paten';
 
     /**
@@ -40,5 +54,23 @@ class Paten extends Model
     public function inventor(): HasMany
     {
         return $this->hasMany(PatenInventor::class)->orderBy('urutan');
+    }
+
+    /**
+     * @return HasMany<PatenInventor, $this>
+     */
+    public function kontributor(): HasMany
+    {
+        return $this->inventor();
+    }
+
+    public function namaJenis(): string
+    {
+        return self::JENIS[$this->jenis] ?? $this->jenis;
+    }
+
+    public function namaStatus(): string
+    {
+        return self::STATUS[$this->status] ?? $this->status;
     }
 }

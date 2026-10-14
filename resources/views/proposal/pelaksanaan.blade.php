@@ -120,6 +120,9 @@
                                     {{ $luaran->namaCapaian() }}@if ($luaran->status_capaian !== Luaran::DIRENCANAKAN) · {{ Luaran::VALIDASI[$luaran->status_validasi] ?? $luaran->status_validasi }}@endif
                                 </p>
                             </div>
+                            @if ($luaran->karya())
+                                <x-karya-tertaut :karya="$luaran->karya()" />
+                            @endif
                             @if ($luaran->url_bukti)
                                 <a href="{{ $luaran->url_bukti }}" class="text-indigo-700 underline break-all" rel="noopener noreferrer" target="_blank">{{ $luaran->url_bukti }}</a>
                             @endif
@@ -136,6 +139,15 @@
                                         @endforeach
                                     </x-select-input>
                                     <x-text-input name="url_bukti" type="url" placeholder="Tautan bukti (DOI, URL artikel, nomor permohonan)" class="flex-1" :value="$luaran->url_bukti" />
+                                    @if ($model = $luaran->jenis->modelKarya())
+                                        <x-select-input name="karya_id" class="w-full" aria-label="Tautkan ke data publikasi, HKI, atau paten">
+                                            <option value="">Tidak ditautkan</option>
+                                            @foreach ($karyaKetua[$model] as $karya)
+                                                <option value="{{ $karya->id }}" @selected($luaran->karya()?->is($karya))>{{ Str::limit($karya->judul, 90) }} ({{ $karya->namaStatus() }})</option>
+                                            @endforeach
+                                        </x-select-input>
+                                        <p class="w-full -mt-2 text-xs text-gray-500">Belum ada di daftar? Tambahkan dulu di <a href="{{ route('karya.'.\App\Services\AlurKarya::slug(new $model).'.create') }}" class="text-indigo-700 hover:underline">halaman publikasi, HKI, dan paten</a>.</p>
+                                    @endif
                                     <x-secondary-button type="submit">Simpan</x-secondary-button>
                                 </form>
                             @endif

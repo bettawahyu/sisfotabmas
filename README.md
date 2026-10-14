@@ -22,11 +22,10 @@ Dibangun dengan Laravel 13, Blade (Breeze), Tailwind CSS, dan Pest.
 | Monev | Admin menugaskan satu reviewer monev. Reviewer menilai laporan kemajuan dan logbook tanpa identitas tim, dengan hasil Sesuai rencana, Perlu tindak lanjut, atau Bermasalah. |
 | Verifikasi | Operator memverifikasi atau mengembalikan laporan akhir, dan memvalidasi atau menolak capaian luaran. |
 | Pemantauan | Operator dan admin melihat logbook yang tidak diisi 14 hari, laporan kemajuan atau akhir yang terlambat, dan monev yang belum ada hasilnya. |
+| Publikasi, HKI, dan paten | Dosen mencatat publikasi, HKI, dan paten beserta penulis, pencipta, atau inventornya (termasuk pihak luar). Kaprodi atau dekan memeriksa data dosen di unitnya, lalu LPPM memvalidasinya. Ketua proposal bisa menautkan capaian luaran ke data ini di halaman pelaksanaan. |
 | Notifikasi | Setiap langkah alur mengirim notifikasi di aplikasi, dan juga lewat email bila `NOTIFIKASI_EMAIL=true`. |
 | Ringkasan pimpinan | Pimpinan LPPM atau institusi melihat jumlah usulan dan yang didanai, dana disetujui dan dicairkan, serta luaran per tahun anggaran, dirinci per status, periode, dan fakultas. Hanya lihat. |
 | Pengguna dan peran | Admin sistem membuat akun, mengubah nama, email, dan kata sandi, serta mengatur peran tiap akun. |
-
-Tabel publikasi, HKI, dan paten sudah tersedia dan bisa ditautkan ke luaran proposal; halaman pengelolaannya belum dibuat.
 
 ## Menjalankan secara lokal
 

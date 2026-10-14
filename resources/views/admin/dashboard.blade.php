@@ -25,6 +25,10 @@
                 <p class="font-medium text-gray-900">Unit pimpinan</p>
                 <p class="mt-1 text-sm text-gray-600">Prodi atau fakultas yang proposalnya disahkan tiap kaprodi dan dekan.</p>
             </a>
+            <a href="{{ route('verifikasi-karya.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                <p class="font-medium text-gray-900">Verifikasi publikasi, HKI, dan paten</p>
+                <p class="mt-1 text-sm text-gray-600">Data dosen yang sudah disetujui kaprodi dan menunggu validasi LPPM.</p>
+            </a>
             <a href="{{ route('admin.seleksi.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
                 <p class="font-medium text-gray-900">Seleksi administrasi</p>
                 <p class="mt-1 text-sm text-gray-600">Proposal yang sudah disahkan dan menunggu diperiksa.</p>

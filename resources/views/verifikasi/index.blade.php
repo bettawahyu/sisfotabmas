@@ -48,6 +48,9 @@
                                 <a href="{{ route('proposal.pelaksanaan.show', $l->proposal) }}" class="text-gray-500 hover:underline">{{ $l->proposal->judul }} · {{ $l->proposal->ketua->namaLengkap() }}</a>
                             </div>
                         </div>
+                        @if ($l->karya())
+                            <x-karya-tertaut :karya="$l->karya()" />
+                        @endif
                         @if ($l->url_bukti)
                             <a href="{{ $l->url_bukti }}" class="text-indigo-700 underline break-all" rel="noopener noreferrer" target="_blank">{{ $l->url_bukti }}</a>
                         @endif

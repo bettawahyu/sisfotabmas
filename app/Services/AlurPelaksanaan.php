@@ -144,15 +144,25 @@ class AlurPelaksanaan
      * The lead reports how far an output has come; the operator then validates
      * it again.
      */
-    public function laporCapaianLuaran(Luaran $luaran, string $capaian, ?string $urlBukti, User $oleh): void
+    public function laporCapaianLuaran(Luaran $luaran, string $capaian, ?string $urlBukti, User $oleh, ?int $karyaId = null): void
     {
         $proposal = $luaran->proposal;
         $this->pastikan($proposal->isKetua($oleh->dosen), 'Capaian luaran dilaporkan oleh ketua.');
         $this->pastikan($this->bisaMencatatLogbook($proposal), 'Capaian luaran dilaporkan selama kegiatan berjalan.');
         $this->pastikan(array_key_exists($capaian, Luaran::CAPAIAN), 'Pilihan capaian tidak dikenal.');
-        $this->pastikan($capaian === Luaran::DIRENCANAKAN || filled($urlBukti), 'Isi tautan bukti capaian luaran.');
 
-        $luaran->fill(['status_capaian' => $capaian, 'url_bukti' => $urlBukti])
+        // An output can point at one of the lead's own publications, HKI or patents.
+        $tautan = ['publikasi_id' => null, 'hki_id' => null, 'paten_id' => null];
+        if ($karyaId !== null) {
+            $model = $luaran->jenis->modelKarya();
+            $this->pastikan($model !== null, 'Luaran jenis ini tidak bisa ditautkan ke publikasi, HKI, atau paten.');
+            $karya = $model::milikDosen($oleh->dosen)->find($karyaId);
+            $this->pastikan($karya !== null, 'Pilih data yang mencantumkan nama Anda.');
+            $tautan[$karya->getForeignKey()] = $karya->id;
+        }
+        $this->pastikan($capaian === Luaran::DIRENCANAKAN || filled($urlBukti) || $karyaId !== null, 'Isi tautan bukti capaian luaran.');
+
+        $luaran->fill(['status_capaian' => $capaian, 'url_bukti' => $urlBukti, ...$tautan])
             ->forceFill(['status_validasi' => Luaran::MENUNGGU, 'divalidasi_oleh' => null, 'divalidasi_at' => null, 'catatan_validasi' => null])
             ->save();
     }
