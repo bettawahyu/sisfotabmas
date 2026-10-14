@@ -1,3 +1,8 @@
+@php
+    // The Pelaksanaan menu appears once one of the lecturer's activities has its first tranche paid.
+    $dosenNav = Auth::user()->hasRole(\App\Models\Role::DOSEN) ? Auth::user()->dosen : null;
+    $adaPelaksanaan = $dosenNav !== null && \App\Models\Proposal::dalamPelaksanaan()->timDosen($dosenNav)->exists();
+@endphp
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,6 +27,11 @@
                         <x-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
                             Proposal
                         </x-nav-link>
+                        @if ($adaPelaksanaan)
+                            <x-nav-link :href="route('pelaksanaan.index')" :active="request()->routeIs('pelaksanaan.*')">
+                                Pelaksanaan
+                            </x-nav-link>
+                        @endif
                         <x-nav-link :href="route('karya.publikasi.index')" :active="request()->routeIs('karya.*')">
                             Publikasi &amp; KI
                         </x-nav-link>
@@ -149,6 +159,11 @@
                 <x-responsive-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
                     Proposal
                 </x-responsive-nav-link>
+                @if ($adaPelaksanaan)
+                    <x-responsive-nav-link :href="route('pelaksanaan.index')" :active="request()->routeIs('pelaksanaan.*')">
+                        Pelaksanaan
+                    </x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('karya.publikasi.index')" :active="request()->routeIs('karya.*')">
                     Publikasi &amp; KI
                 </x-responsive-nav-link>

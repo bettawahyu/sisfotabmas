@@ -20,13 +20,30 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * The logbook and progress report of a funded proposal. Everyone who can open
- * the proposal can read them; the team writes.
+ * the proposal can read them; the team writes. A proposal only gets here once
+ * its first tranche is paid.
  */
 class PelaksanaanController extends Controller
 {
+    /**
+     * The lecturer's activities whose first tranche is paid.
+     */
+    public function index(Request $request): View
+    {
+        $dosen = $request->user()->dosen;
+
+        return view('pelaksanaan.index', [
+            'daftar' => $dosen
+                ? Proposal::dalamPelaksanaan()->timDosen($dosen)->with(['periode.skema', 'ketua'])->latest('updated_at')->get()
+                : collect(),
+            'dosen' => $dosen,
+        ]);
+    }
+
     public function show(Request $request, Proposal $proposal, AlurPelaksanaan $alur): View
     {
         Gate::authorize('view', $proposal);
+        abort_unless($proposal->dalamPelaksanaan(), 404);
         $proposal->load(['periode', 'logbook.pencatat', 'logbook.berkas', 'laporan.berkas', 'luaran.publikasi', 'luaran.hki', 'luaran.paten']);
         $isKetua = $proposal->isKetua($request->user()->dosen);
         // What the lead can link each output to, keyed by model class.
@@ -36,7 +53,7 @@ class PelaksanaanController extends Controller
         $laporanAkhir = $alur->laporanAkhir($proposal);
         $hasilMonev = $alur->hasilMonev($proposal);
 
-        return view('proposal.pelaksanaan', [
+        return view('pelaksanaan.show', [
             'proposal' => $proposal,
             'isKetua' => $isKetua,
             'karyaKetua' => $karyaKetua,

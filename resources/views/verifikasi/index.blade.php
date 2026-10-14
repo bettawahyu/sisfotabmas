@@ -16,7 +16,7 @@
                     <div class="border-b border-gray-100 py-4 first:pt-0 last:border-0 last:pb-0 text-sm">
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
                             <div>
-                                <a href="{{ route('proposal.pelaksanaan.show', $l->proposal) }}" class="font-medium text-indigo-700 hover:underline">{{ $l->proposal->judul }}</a>
+                                <a href="{{ route('pelaksanaan.show', $l->proposal) }}" class="font-medium text-indigo-700 hover:underline">{{ $l->proposal->judul }}</a>
                                 <p class="text-gray-500">{{ $l->proposal->ketua->namaLengkap() }} · {{ $l->proposal->periode->nama }} · dikirim {{ $l->diajukan_at->translatedFormat('j M Y') }}</p>
                             </div>
                             <p class="text-gray-600">Capaian {{ $l->persentase_capaian }}%</p>
@@ -24,7 +24,7 @@
                         <p class="mt-2 whitespace-pre-line text-gray-700">{{ $l->ringkasan }}</p>
                         <p class="mt-2">
                             @foreach ($l->berkas as $berkas)
-                                <a class="me-3 text-indigo-700 underline" href="{{ route('proposal.pelaksanaan.berkas', [$l->proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : 'Laporan akhir' }}</a>
+                                <a class="me-3 text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$l->proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : 'Laporan akhir' }}</a>
                             @endforeach
                         </p>
                         <form method="POST" action="{{ route('verifikasi.laporan', $l) }}" class="mt-3 flex flex-wrap gap-3">
@@ -45,7 +45,7 @@
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
                             <div>
                                 <p><span class="font-medium">{{ $l->jenis->label() }}</span> <span class="text-gray-500">· {{ $l->kategori }} · {{ $l->namaCapaian() }}</span></p>
-                                <a href="{{ route('proposal.pelaksanaan.show', $l->proposal) }}" class="text-gray-500 hover:underline">{{ $l->proposal->judul }} · {{ $l->proposal->ketua->namaLengkap() }}</a>
+                                <a href="{{ route('pelaksanaan.show', $l->proposal) }}" class="text-gray-500 hover:underline">{{ $l->proposal->judul }} · {{ $l->proposal->ketua->namaLengkap() }}</a>
                             </div>
                         </div>
                         @if ($l->karya())
