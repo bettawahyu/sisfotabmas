@@ -23,6 +23,8 @@ Dibangun dengan Laravel 13, Blade (Breeze), Tailwind CSS, dan Pest.
 | Verifikasi | Operator memverifikasi atau mengembalikan laporan akhir, dan memvalidasi atau menolak capaian luaran. |
 | Pemantauan | Operator dan admin melihat logbook yang tidak diisi 14 hari, laporan kemajuan atau akhir yang terlambat, dan monev yang belum ada hasilnya. |
 | Notifikasi | Setiap langkah alur mengirim notifikasi di aplikasi, dan juga lewat email bila `NOTIFIKASI_EMAIL=true`. |
+| Ringkasan pimpinan | Pimpinan LPPM atau institusi melihat jumlah usulan dan yang didanai, dana disetujui dan dicairkan, serta luaran per tahun anggaran, dirinci per status, periode, dan fakultas. Hanya lihat. |
+| Pengguna dan peran | Admin sistem membuat akun, mengubah nama, email, dan kata sandi, serta mengatur peran tiap akun. |
 
 Tabel publikasi, HKI, dan paten sudah tersedia dan bisa ditautkan ke luaran proposal; halaman pengelolaannya belum dibuat.
 
@@ -53,6 +55,7 @@ Semua akun memakai kata sandi `password`.
 | `kaprodi@example.com` | pimpinan_unit untuk prodi Teknik Informatika |
 | `operator@example.com` | operator |
 | `keuangan@example.com` | keuangan |
+| `pimpinan@example.com` | pimpinan |
 | `sistem@example.com` | admin_sistem |
 
 Seeder juga membuat satu periode hibah Penelitian Dosen Pemula yang sedang dibuka. Sebelum menugaskan reviewer, isi dulu rubrik seleksi dan monev di halaman periode hibah (Admin > Periode hibah).
@@ -96,7 +99,7 @@ Di server, tambahkan satu baris cron `* * * * * php /path/ke/artisan schedule:ru
 
 ## Peran
 
-Peran disimpan di tabel `roles` dan `user_roles`, sehingga satu akun bisa punya beberapa peran. Pendaftaran mandiri otomatis mendapat peran `dosen`; peran lain diberikan admin.
+Peran disimpan di tabel `roles` dan `user_roles`, sehingga satu akun bisa punya beberapa peran. Pendaftaran mandiri otomatis mendapat peran `dosen`; peran lain diberikan admin sistem.
 
 | Kode | Untuk |
 | --- | --- |
@@ -106,8 +109,8 @@ Peran disimpan di tabel `roles` dan `user_roles`, sehingga satu akun bisa punya 
 | `admin_lppm` | Mengelola skema, periode, seleksi, review, penetapan, kontrak, dan monev. |
 | `operator` | Mengelola pengumuman, memverifikasi laporan akhir dan luaran, memantau pelaksanaan. |
 | `keuangan` | Mencatat pencairan termin 1 dan termin 2. |
-| `pimpinan` | Pimpinan LPPM atau institusi. |
-| `admin_sistem` | Administrator aplikasi. |
+| `pimpinan` | Pimpinan LPPM atau institusi; membaca ringkasan di menu Ringkasan. |
+| `admin_sistem` | Administrator aplikasi; mengelola akun dan peran di menu Pengguna. |
 
 Batasi rute dengan middleware `role`, misalnya `->middleware('role:admin_lppm,reviewer')`. Di kode, gunakan `$user->hasRole(Role::REVIEWER)` dan `$user->assignRole(Role::DOSEN)`.
 
