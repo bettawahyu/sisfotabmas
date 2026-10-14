@@ -13,7 +13,12 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Pelaksanaan: {{ $proposal->judul }}</h2>
             <x-status-proposal :proposal="$proposal" />
         </div>
-        <p class="mt-1 text-sm text-gray-600"><a href="{{ route('proposal.show', $proposal) }}" class="text-indigo-700 hover:underline">Kembali ke proposal</a> · {{ $periode->nama }}</p>
+        <p class="mt-1 text-sm text-gray-600">
+            @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
+                <a href="{{ route('pelaksanaan.index') }}" class="text-indigo-700 hover:underline">Kembali ke daftar pelaksanaan</a> ·
+            @endif
+            <a href="{{ route('proposal.show', $proposal) }}" class="text-indigo-700 hover:underline">Lihat proposal</a> · {{ $periode->nama }}
+        </p>
     </x-slot>
 
     <div class="py-12">
@@ -40,7 +45,7 @@
                     </dl>
                     <ul class="mt-4 space-y-1 text-sm">
                         @foreach ($laporanKemajuan->berkas as $berkas)
-                            <li><a class="text-indigo-700 underline" href="{{ route('proposal.pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan' : 'Laporan kemajuan' }}</a> <span class="text-gray-500">· {{ $berkas->nama_asli }}</span></li>
+                            <li><a class="text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan' : 'Laporan kemajuan' }}</a> <span class="text-gray-500">· {{ $berkas->nama_asli }}</span></li>
                         @endforeach
                     </ul>
                     <div class="mt-4 border-t border-gray-100 pt-4 text-sm">
@@ -53,7 +58,7 @@
                     </div>
                 @elseif ($proposal->status === StatusProposal::Berjalan && $isKetua)
                     <p class="mb-4 text-sm text-gray-600">Unggah laporan kemajuan dan laporan penggunaan dana termin 1{{ $periode->tgl_laporan_kemajuan ? ' paling lambat '.$periode->tgl_laporan_kemajuan->translatedFormat('j F Y') : '' }}. Setelah dikirim, laporan tidak bisa diubah dan proposal masuk tahap monev.</p>
-                    <form method="POST" action="{{ route('proposal.pelaksanaan.laporan-kemajuan.store', $proposal) }}" enctype="multipart/form-data" class="grid gap-4 sm:grid-cols-2">
+                    <form method="POST" action="{{ route('pelaksanaan.laporan-kemajuan.store', $proposal) }}" enctype="multipart/form-data" class="grid gap-4 sm:grid-cols-2">
                         @csrf
                         <div class="sm:col-span-2">
                             <x-input-label for="ringkasan" value="Ringkasan kemajuan" />
@@ -81,7 +86,7 @@
                         </dl>
                         <ul class="mt-4 space-y-1 text-sm">
                             @foreach ($laporanAkhir->berkas as $berkas)
-                                <li><a class="text-indigo-700 underline" href="{{ route('proposal.pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : 'Laporan akhir' }}</a> <span class="text-gray-500">· {{ $berkas->nama_asli }}</span></li>
+                                <li><a class="text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : 'Laporan akhir' }}</a> <span class="text-gray-500">· {{ $berkas->nama_asli }}</span></li>
                             @endforeach
                         </ul>
                     @else
@@ -90,7 +95,7 @@
                         @endif
                         @if ($bisaKirimAkhir)
                             <p class="mb-4 text-sm text-gray-600">Unggah laporan akhir dan laporan penggunaan dana 100%{{ $periode->tgl_laporan_akhir ? ' paling lambat '.$periode->tgl_laporan_akhir->translatedFormat('j F Y') : '' }}. Operator memverifikasinya sebelum termin 2 dicairkan.</p>
-                            <form method="POST" action="{{ route('proposal.pelaksanaan.laporan-akhir.store', $proposal) }}" enctype="multipart/form-data" class="grid gap-4 sm:grid-cols-2">
+                            <form method="POST" action="{{ route('pelaksanaan.laporan-akhir.store', $proposal) }}" enctype="multipart/form-data" class="grid gap-4 sm:grid-cols-2">
                                 @csrf
                                 <div class="sm:col-span-2">
                                     <x-input-label for="ringkasan_akhir" value="Ringkasan hasil" />
@@ -130,7 +135,7 @@
                                 <p class="mt-1 text-red-700">Catatan operator: {{ $luaran->catatan_validasi }}</p>
                             @endif
                             @if ($bisaLaporLuaran)
-                                <form method="POST" action="{{ route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]) }}" class="mt-2 flex flex-wrap gap-3">
+                                <form method="POST" action="{{ route('pelaksanaan.luaran.update', [$proposal, $luaran]) }}" class="mt-2 flex flex-wrap gap-3">
                                     @csrf
                                     @method('PUT')
                                     <x-select-input name="status_capaian">
@@ -158,7 +163,7 @@
 
             <x-kartu judul="Logbook kegiatan">
                 @if ($bisaMencatat)
-                    <form method="POST" action="{{ route('proposal.pelaksanaan.logbook.store', $proposal) }}" enctype="multipart/form-data" class="mb-6 grid gap-4 sm:grid-cols-4">
+                    <form method="POST" action="{{ route('pelaksanaan.logbook.store', $proposal) }}" enctype="multipart/form-data" class="mb-6 grid gap-4 sm:grid-cols-4">
                         @csrf
                         <div><x-input-label for="tanggal" value="Tanggal" /><x-text-input id="tanggal" name="tanggal" type="date" class="mt-1 block w-full" :value="old('tanggal', today()->toDateString())" :max="today()->toDateString()" required /></div>
                         <div><x-input-label for="persentase_progres" value="Progres (%, opsional)" /><x-text-input id="persentase_progres" name="persentase_progres" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_progres')" /></div>
@@ -184,14 +189,14 @@
                                         <td class="py-2 pe-4">
                                             <p class="whitespace-pre-line">{{ $entri->kegiatan }}</p>
                                             @foreach ($entri->berkas as $berkas)
-                                                <a class="text-xs text-indigo-700 underline" href="{{ route('proposal.pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->nama_asli }}</a>
+                                                <a class="text-xs text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->nama_asli }}</a>
                                             @endforeach
                                         </td>
                                         <td class="py-2 pe-4 text-end">{{ $entri->persentase_progres !== null ? $entri->persentase_progres.'%' : '-' }}</td>
                                         <td class="py-2 pe-4">{{ $entri->pencatat?->namaLengkap() ?? '-' }}</td>
                                         <td class="py-2 text-end">
                                             @if ($bisaMencatat && $entri->dicatat_oleh === auth()->user()->dosen?->id)
-                                                <form method="POST" action="{{ route('proposal.pelaksanaan.logbook.destroy', [$proposal, $entri]) }}" onsubmit="return confirm('Hapus entri ini?')">
+                                                <form method="POST" action="{{ route('pelaksanaan.logbook.destroy', [$proposal, $entri]) }}" onsubmit="return confirm('Hapus entri ini?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button class="text-red-700 hover:underline">Hapus</button>

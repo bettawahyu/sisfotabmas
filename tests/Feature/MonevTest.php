@@ -62,8 +62,8 @@ function proposalDimonev(): Proposal
 {
     $proposal = proposalBerjalan();
     $ketua = $proposal->ketua->user;
-    test()->actingAs($ketua)->post(route('proposal.pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->toDateString(), 'kegiatan' => 'Survei lapangan.']);
-    test()->actingAs($ketua)->post(route('proposal.pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan());
+    test()->actingAs($ketua)->post(route('pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->toDateString(), 'kegiatan' => 'Survei lapangan.']);
+    test()->actingAs($ketua)->post(route('pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan());
 
     return $proposal->fresh();
 }
@@ -75,29 +75,29 @@ test('the lead and confirmed lecturers keep the logbook', function () {
     $anggota = anggotaDosen($proposal);
     $belum = anggotaDosen($proposal, konfirmasi: false);
 
-    $this->actingAs($proposal->ketua->user)->get(route('proposal.show', $proposal))->assertSee('Buka halaman pelaksanaan');
-    $this->actingAs($anggota)->post(route('proposal.pelaksanaan.logbook.store', $proposal), [
+    $this->actingAs($proposal->ketua->user)->get(route('proposal.show', $proposal))->assertSee('Buka di menu Pelaksanaan');
+    $this->actingAs($anggota)->post(route('pelaksanaan.logbook.store', $proposal), [
         'tanggal' => today()->toDateString(), 'kegiatan' => 'Wawancara responden.', 'persentase_progres' => 30,
         'bukti' => UploadedFile::fake()->image('foto.jpg'),
     ])->assertSessionHasNoErrors();
-    $this->actingAs($belum)->post(route('proposal.pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->toDateString(), 'kegiatan' => 'Coba.'])
+    $this->actingAs($belum)->post(route('pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->toDateString(), 'kegiatan' => 'Coba.'])
         ->assertSessionHasErrors('pelaksanaan');
 
     $entri = Logbook::sole();
     expect($entri->pencatat->id)->toBe($anggota->dosen->id)
         ->and($entri->persentase_progres)->toBe(30)
         ->and($entri->berkas()->sole()->kategori)->toBe(Berkas::BUKTI_LOGBOOK);
-    $this->actingAs($proposal->ketua->user)->get(route('proposal.pelaksanaan.show', $proposal))->assertOk()->assertSee('Wawancara responden.');
-    $this->actingAs($proposal->ketua->user)->get(route('proposal.pelaksanaan.berkas', [$proposal, $entri->berkas->first()]))->assertDownload('foto.jpg');
+    $this->actingAs($proposal->ketua->user)->get(route('pelaksanaan.show', $proposal))->assertOk()->assertSee('Wawancara responden.');
+    $this->actingAs($proposal->ketua->user)->get(route('pelaksanaan.berkas', [$proposal, $entri->berkas->first()]))->assertDownload('foto.jpg');
 });
 
 test('a logbook entry cannot be dated in the future or before the contract starts', function () {
     $proposal = proposalBerjalan();
     $ketua = $proposal->ketua->user;
 
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->addDay()->toDateString(), 'kegiatan' => 'Besok.'])
+    $this->actingAs($ketua)->post(route('pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->addDay()->toDateString(), 'kegiatan' => 'Besok.'])
         ->assertSessionHasErrors('pelaksanaan');
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->subYear()->toDateString(), 'kegiatan' => 'Dulu.'])
+    $this->actingAs($ketua)->post(route('pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->subYear()->toDateString(), 'kegiatan' => 'Dulu.'])
         ->assertSessionHasErrors('pelaksanaan');
     expect(Logbook::count())->toBe(0);
 });
@@ -105,11 +105,11 @@ test('a logbook entry cannot be dated in the future or before the contract start
 test('only the writer removes a logbook entry', function () {
     $proposal = proposalBerjalan();
     $anggota = anggotaDosen($proposal);
-    $this->actingAs($anggota)->post(route('proposal.pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->toDateString(), 'kegiatan' => 'Rapat tim.']);
+    $this->actingAs($anggota)->post(route('pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->toDateString(), 'kegiatan' => 'Rapat tim.']);
     $entri = Logbook::sole();
 
-    $this->actingAs($proposal->ketua->user)->delete(route('proposal.pelaksanaan.logbook.destroy', [$proposal, $entri]))->assertSessionHasErrors('pelaksanaan');
-    $this->actingAs($anggota)->delete(route('proposal.pelaksanaan.logbook.destroy', [$proposal, $entri]))->assertSessionHasNoErrors();
+    $this->actingAs($proposal->ketua->user)->delete(route('pelaksanaan.logbook.destroy', [$proposal, $entri]))->assertSessionHasErrors('pelaksanaan');
+    $this->actingAs($anggota)->delete(route('pelaksanaan.logbook.destroy', [$proposal, $entri]))->assertSessionHasNoErrors();
 
     expect(Logbook::count())->toBe(0);
 });
@@ -120,13 +120,13 @@ test('the lead sends the progress report and the proposal goes to monev', functi
     $proposal = proposalBerjalan();
     $ketua = $proposal->ketua->user;
 
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan())
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan())
         ->assertSessionHasErrors('pelaksanaan');
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->toDateString(), 'kegiatan' => 'Survei.']);
+    $this->actingAs($ketua)->post(route('pelaksanaan.logbook.store', $proposal), ['tanggal' => today()->toDateString(), 'kegiatan' => 'Survei.']);
     $anggota = anggotaDosen($proposal);
-    $this->actingAs($anggota)->post(route('proposal.pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan())
+    $this->actingAs($anggota)->post(route('pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan())
         ->assertSessionHasErrors('pelaksanaan');
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan())
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan())
         ->assertSessionHasNoErrors();
 
     $laporan = Laporan::sole();
@@ -137,7 +137,7 @@ test('the lead sends the progress report and the proposal goes to monev', functi
         ->and($laporan->berkas->pluck('kategori')->sort()->values()->all())->toBe([Berkas::LAPORAN_KEMAJUAN, Berkas::LAPORAN_KEUANGAN]);
     Notification::assertSentTo($admin, Pemberitahuan::class, fn ($n) => $n->judul === 'Laporan kemajuan masuk');
 
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan())
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-kemajuan.store', $proposal), isianLaporanKemajuan())
         ->assertSessionHasErrors('pelaksanaan');
     expect(Laporan::count())->toBe(1);
 });
@@ -176,7 +176,7 @@ test('LPPM assigns one monev reviewer who reads the report blind and sends a res
         ->and($penilaian->namaRekomendasi())->toBe('Perlu tindak lanjut');
     Notification::assertSentTo($admin, Pemberitahuan::class, fn ($n) => $n->judul === 'Hasil monev dikirim');
     Notification::assertSentTo($proposal->ketua->user, Pemberitahuan::class, fn ($n) => $n->judul === 'Hasil monev');
-    $this->actingAs($proposal->ketua->user)->get(route('proposal.pelaksanaan.show', $proposal))
+    $this->actingAs($proposal->ketua->user)->get(route('pelaksanaan.show', $proposal))
         ->assertSee('Perlu tindak lanjut')->assertSee('Percepat analisis.')->assertDontSee($reviewer->name);
 
     $this->actingAs($admin)->post(route('admin.monev.buka', [$proposal, $penilaian]), ['alasan' => 'Tambahkan nilai.'])->assertSessionHasNoErrors();
@@ -209,8 +209,8 @@ test('a reviewer cannot download files of a report that is not theirs', function
 test('outsiders cannot open the logbook page', function () {
     $proposal = proposalBerjalan();
 
-    $this->actingAs(pengguna(Role::DOSEN))->get(route('proposal.pelaksanaan.show', $proposal))->assertForbidden();
-    $this->actingAs(pengguna(Role::OPERATOR))->get(route('proposal.pelaksanaan.show', $proposal))->assertOk();
+    $this->actingAs(pengguna(Role::DOSEN))->get(route('pelaksanaan.show', $proposal))->assertForbidden();
+    $this->actingAs(pengguna(Role::OPERATOR))->get(route('pelaksanaan.show', $proposal))->assertOk();
 });
 
 test('the operator sees quiet logbooks, late progress reports and monev without a result', function () {
@@ -224,4 +224,24 @@ test('the operator sees quiet logbooks, late progress reports and monev without 
         ->assertSeeInOrder(['Laporan kemajuan terlambat (1)', $sepi->judul])
         ->assertSeeInOrder(['Monev belum ada hasil (1)', $dimonev->judul, 'Reviewer belum ditugaskan']);
     $this->actingAs(pengguna(Role::DOSEN))->get(route('pemantauan.index'))->assertForbidden();
+});
+
+test('the Pelaksanaan menu appears for the team once the first tranche is paid', function () {
+    $proposal = proposalDisetujui();
+    $ketua = $proposal->ketua->user;
+
+    $this->actingAs($ketua)->get(route('proposal.index'))->assertOk()->assertDontSee(route('pelaksanaan.index'));
+    $this->actingAs($ketua)->get(route('pelaksanaan.show', $proposal))->assertNotFound();
+
+    $proposal = proposalBerjalan();
+    $ketua = $proposal->ketua->user;
+    $anggota = anggotaDosen($proposal);
+    $belum = anggotaDosen($proposal, konfirmasi: false);
+
+    $this->actingAs($ketua)->get(route('proposal.index'))->assertSee(route('pelaksanaan.index'));
+    $this->actingAs($ketua)->get(route('pelaksanaan.index'))->assertOk()
+        ->assertSee($proposal->judul)->assertSee(route('pelaksanaan.show', $proposal));
+    $this->actingAs($anggota)->get(route('pelaksanaan.index'))->assertOk()->assertSee($proposal->judul);
+    $this->actingAs($belum)->get(route('pelaksanaan.index'))->assertOk()->assertDontSee($proposal->judul);
+    $this->actingAs($ketua)->get('/proposal/'.$proposal->id.'/pelaksanaan')->assertRedirect('/pelaksanaan/'.$proposal->id);
 });

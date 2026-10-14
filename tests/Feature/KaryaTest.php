@@ -139,12 +139,12 @@ test('the lead links an output to their own publication', function () {
     $milikKetua = Publikasi::factory()->olehDosen($ketua)->create(['judul' => 'Model prediksi debit irigasi']);
     $milikLain = Publikasi::factory()->olehDosen($this->dosen)->create(['judul' => 'Sistem pakar hama padi']);
 
-    $this->actingAs($ketua->user)->get(route('proposal.pelaksanaan.show', $proposal))->assertOk()
+    $this->actingAs($ketua->user)->get(route('pelaksanaan.show', $proposal))->assertOk()
         ->assertSee($milikKetua->judul)->assertDontSee($milikLain->judul);
 
-    $this->actingAs($ketua->user)->put(route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'terbit', 'karya_id' => $milikLain->id])
+    $this->actingAs($ketua->user)->put(route('pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'terbit', 'karya_id' => $milikLain->id])
         ->assertSessionHasErrors('pelaksanaan');
-    $this->actingAs($ketua->user)->put(route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'terbit', 'karya_id' => $milikKetua->id])
+    $this->actingAs($ketua->user)->put(route('pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'terbit', 'karya_id' => $milikKetua->id])
         ->assertSessionHasNoErrors();
 
     expect($luaran->fresh())->publikasi_id->toBe($milikKetua->id)->status_validasi->toBe(Luaran::MENUNGGU);

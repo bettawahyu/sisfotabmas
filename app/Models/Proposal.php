@@ -27,6 +27,9 @@ class Proposal extends Model
 
     protected $table = 'proposal';
 
+    /** Statuses from the first tranche onwards. */
+    public const STATUS_PELAKSANAAN = [StatusProposal::Berjalan, StatusProposal::Dimonev, StatusProposal::Selesai];
+
     /**
      * @return array<string, string>
      */
@@ -209,6 +212,35 @@ class Proposal extends Model
     public function logbook(): HasMany
     {
         return $this->hasMany(Logbook::class)->orderBy('tanggal');
+    }
+
+    /**
+     * Whether the first tranche is paid, so the work belongs under Pelaksanaan
+     * rather than with the proposal.
+     */
+    public function sudahDilaksanakan(): bool
+    {
+        return in_array($this->status, self::STATUS_PELAKSANAAN, true);
+    }
+
+    /**
+     * @param  Builder<Proposal>  $query
+     */
+    public function scopeDalamPelaksanaan(Builder $query): void
+    {
+        $query->whereIn('status', self::STATUS_PELAKSANAAN);
+    }
+
+    /**
+     * Proposals the lecturer leads or has joined as a confirmed member.
+     *
+     * @param  Builder<Proposal>  $query
+     */
+    public function scopeTimDosen(Builder $query, Dosen $dosen): void
+    {
+        $query->where(fn (Builder $q) => $q->where('ketua_id', $dosen->id)
+            ->orWhereHas('anggota', fn (Builder $a) => $a->where('tipe', TipeAnggota::Dosen)->where('dosen_id', $dosen->id)
+                ->whereNotNull('dikonfirmasi_at')->whereNull('ditolak_at')));
     }
 
     /**

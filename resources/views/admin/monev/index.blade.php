@@ -16,7 +16,7 @@
                 <x-kartu>
                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                         <div>
-                            <a href="{{ route('proposal.pelaksanaan.show', $p) }}" class="font-medium text-indigo-700 hover:underline">{{ $p->judul }}</a>
+                            <a href="{{ route('pelaksanaan.show', $p) }}" class="font-medium text-indigo-700 hover:underline">{{ $p->judul }}</a>
                             <p class="text-sm text-gray-500">{{ $p->ketua->namaLengkap() }} · {{ $p->periode->nama }}{{ $p->periode->tgl_monev ? ' · batas monev '.$p->periode->tgl_monev->translatedFormat('j M Y') : '' }}</p>
                         </div>
                         @if ($laporan)
@@ -26,7 +26,7 @@
                     @if ($laporan)
                         <p class="mt-2 text-sm">
                             @foreach ($laporan->berkas as $berkas)
-                                <a class="me-3 text-indigo-700 underline" href="{{ route('proposal.pelaksanaan.berkas', [$p, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan' : 'Laporan kemajuan' }}</a>
+                                <a class="me-3 text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$p, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan' : 'Laporan kemajuan' }}</a>
                             @endforeach
                         </p>
                     @endif

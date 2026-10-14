@@ -45,7 +45,7 @@ function isianLaporanAkhir(): array
 function luaranTervalidasi(Proposal $proposal): void
 {
     $luaran = $proposal->luaran()->where('kategori', 'wajib')->sole();
-    test()->actingAs($proposal->ketua->user)->put(route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]),
+    test()->actingAs($proposal->ketua->user)->put(route('pelaksanaan.luaran.update', [$proposal, $luaran]),
         ['status_capaian' => 'submitted', 'url_bukti' => 'https://jurnal.example.ac.id/artikel/12']);
     test()->actingAs(pengguna(Role::OPERATOR))->post(route('verifikasi.luaran', $luaran), ['aksi' => 'valid']);
 }
@@ -55,7 +55,7 @@ beforeEach(fn () => Storage::fake());
 test('the final report waits for the monev result', function () {
     $proposal = proposalDimonev();
 
-    $this->actingAs($proposal->ketua->user)->post(route('proposal.pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())
+    $this->actingAs($proposal->ketua->user)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())
         ->assertSessionHasErrors('pelaksanaan');
     expect($proposal->laporan()->where('jenis', Laporan::AKHIR)->count())->toBe(0);
 });
@@ -66,18 +66,18 @@ test('the operator sends a final report back and the lead sends a new one', func
     $proposal = proposalSudahDimonev();
     $ketua = $proposal->ketua->user;
 
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())->assertSessionHasNoErrors();
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())->assertSessionHasNoErrors();
     Notification::assertSentTo($operator, Pemberitahuan::class, fn ($n) => $n->judul === 'Laporan akhir masuk');
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())->assertSessionHasErrors('pelaksanaan');
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())->assertSessionHasErrors('pelaksanaan');
 
     $pertama = Laporan::where('jenis', Laporan::AKHIR)->sole();
     $this->actingAs($operator)->get(route('verifikasi.index'))->assertOk()->assertSee($proposal->judul);
     $this->actingAs($operator)->post(route('verifikasi.laporan', $pertama), ['aksi' => 'kembalikan'])->assertSessionHasErrors('pelaksanaan');
     $this->actingAs($operator)->post(route('verifikasi.laporan', $pertama), ['aksi' => 'kembalikan', 'catatan' => 'Lampirkan kuitansi.'])->assertSessionHasNoErrors();
     Notification::assertSentTo($ketua, Pemberitahuan::class, fn ($n) => $n->judul === 'Laporan akhir dikembalikan');
-    $this->actingAs($ketua)->get(route('proposal.pelaksanaan.show', $proposal))->assertSee('Lampirkan kuitansi.')->assertSee('Kirim laporan akhir');
+    $this->actingAs($ketua)->get(route('pelaksanaan.show', $proposal))->assertSee('Lampirkan kuitansi.')->assertSee('Kirim laporan akhir');
 
-    $this->actingAs($ketua)->post(route('proposal.pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())->assertSessionHasNoErrors();
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())->assertSessionHasNoErrors();
     $kedua = app(AlurPelaksanaan::class)->laporanAkhir($proposal);
     expect($kedua->id)->not->toBe($pertama->id)
         ->and($kedua->persentase_anggaran_terpakai)->toBe(100);
@@ -94,11 +94,11 @@ test('a reported output goes back to waiting and a rejection needs a reason', fu
     $operator = pengguna(Role::OPERATOR);
     $luaran = $proposal->luaran()->sole();
 
-    $this->actingAs($ketua)->put(route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'submitted'])
+    $this->actingAs($ketua)->put(route('pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'submitted'])
         ->assertSessionHasErrors('pelaksanaan');
-    $this->actingAs(anggotaDosen($proposal))->put(route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'submitted', 'url_bukti' => 'https://contoh.id/a'])
+    $this->actingAs(anggotaDosen($proposal))->put(route('pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'submitted', 'url_bukti' => 'https://contoh.id/a'])
         ->assertSessionHasErrors('pelaksanaan');
-    $this->actingAs($ketua)->put(route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'submitted', 'url_bukti' => 'https://contoh.id/a'])
+    $this->actingAs($ketua)->put(route('pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'submitted', 'url_bukti' => 'https://contoh.id/a'])
         ->assertSessionHasNoErrors();
 
     $this->actingAs($operator)->post(route('verifikasi.luaran', $luaran), ['aksi' => 'tolak'])->assertSessionHasErrors('pelaksanaan');
@@ -106,7 +106,7 @@ test('a reported output goes back to waiting and a rejection needs a reason', fu
     expect($luaran->fresh()->status_validasi)->toBe(Luaran::DITOLAK);
     Notification::assertSentTo($ketua, Pemberitahuan::class, fn ($n) => $n->judul === 'Capaian luaran ditolak');
 
-    $this->actingAs($ketua)->put(route('proposal.pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'diterima', 'url_bukti' => 'https://contoh.id/b']);
+    $this->actingAs($ketua)->put(route('pelaksanaan.luaran.update', [$proposal, $luaran]), ['status_capaian' => 'diterima', 'url_bukti' => 'https://contoh.id/b']);
     expect($luaran->fresh()->status_validasi)->toBe(Luaran::MENUNGGU)
         ->and($luaran->fresh()->catatan_validasi)->toBeNull();
 });
@@ -120,7 +120,7 @@ test('finance pays tranche two once the report and outputs are in, and the grant
     $this->actingAs($keuangan)->get(route('pencairan.index'))->assertSee('Laporan akhir belum diverifikasi.')->assertSee('Luaran wajib belum tervalidasi');
     $this->actingAs($keuangan)->post(route('pencairan.termin-2.store', $proposal), $bukti())->assertSessionHasErrors('pencairan');
 
-    $this->actingAs($proposal->ketua->user)->post(route('proposal.pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir());
+    $this->actingAs($proposal->ketua->user)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir());
     $this->actingAs(pengguna(Role::OPERATOR))->post(route('verifikasi.laporan', app(AlurPelaksanaan::class)->laporanAkhir($proposal)), ['aksi' => 'terima']);
     luaranTervalidasi($proposal);
 
@@ -139,7 +139,7 @@ test('finance pays tranche two once the report and outputs are in, and the grant
 
 test('a troubled monev holds tranche two back', function () {
     $proposal = proposalSudahDimonev('bermasalah');
-    $this->actingAs($proposal->ketua->user)->post(route('proposal.pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir());
+    $this->actingAs($proposal->ketua->user)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir());
     $this->actingAs(pengguna(Role::OPERATOR))->post(route('verifikasi.laporan', app(AlurPelaksanaan::class)->laporanAkhir($proposal)), ['aksi' => 'terima']);
     luaranTervalidasi($proposal);
 

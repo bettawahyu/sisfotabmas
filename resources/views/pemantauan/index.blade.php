@@ -10,7 +10,7 @@
                 @forelse ($logbookSepi as $p)
                     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 py-2 text-sm last:border-0">
                         <div>
-                            <a href="{{ route('proposal.pelaksanaan.show', $p) }}" class="text-indigo-700 hover:underline">{{ $p->judul }}</a>
+                            <a href="{{ route('pelaksanaan.show', $p) }}" class="text-indigo-700 hover:underline">{{ $p->judul }}</a>
                             <p class="text-gray-500">{{ $p->ketua->namaLengkap() }} · {{ $p->periode->nama }}</p>
                         </div>
                         <p class="text-gray-600">{{ $p->logbook_max_tanggal ? 'Terakhir '.\Illuminate\Support\Carbon::parse($p->logbook_max_tanggal)->translatedFormat('j M Y') : 'Belum pernah diisi' }}</p>
@@ -24,7 +24,7 @@
                 @forelse ($laporanTerlambat as $p)
                     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 py-2 text-sm last:border-0">
                         <div>
-                            <a href="{{ route('proposal.pelaksanaan.show', $p) }}" class="text-indigo-700 hover:underline">{{ $p->judul }}</a>
+                            <a href="{{ route('pelaksanaan.show', $p) }}" class="text-indigo-700 hover:underline">{{ $p->judul }}</a>
                             <p class="text-gray-500">{{ $p->ketua->namaLengkap() }} · {{ $p->periode->nama }}</p>
                         </div>
                         <p class="text-red-700">Batas {{ $p->periode->tgl_laporan_kemajuan->translatedFormat('j M Y') }}</p>
@@ -38,7 +38,7 @@
                 @forelse ($akhirTerlambat as $p)
                     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 py-2 text-sm last:border-0">
                         <div>
-                            <a href="{{ route('proposal.pelaksanaan.show', $p) }}" class="text-indigo-700 hover:underline">{{ $p->judul }}</a>
+                            <a href="{{ route('pelaksanaan.show', $p) }}" class="text-indigo-700 hover:underline">{{ $p->judul }}</a>
                             <p class="text-gray-500">{{ $p->ketua->namaLengkap() }} · {{ $p->periode->nama }}</p>
                         </div>
                         <p class="text-red-700">Batas {{ $p->periode->tgl_laporan_akhir->translatedFormat('j M Y') }}</p>
@@ -53,7 +53,7 @@
                     @php($pen = $p->penilaian->first())
                     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 py-2 text-sm last:border-0">
                         <div>
-                            <a href="{{ route('proposal.pelaksanaan.show', $p) }}" class="text-indigo-700 hover:underline">{{ $p->judul }}</a>
+                            <a href="{{ route('pelaksanaan.show', $p) }}" class="text-indigo-700 hover:underline">{{ $p->judul }}</a>
                             <p class="text-gray-500">{{ $p->ketua->namaLengkap() }} · {{ $p->periode->nama }}</p>
                         </div>
                         <p class="text-gray-600">{{ $pen ? 'Menunggu '.$pen->reviewer->name : 'Reviewer belum ditugaskan' }}</p>

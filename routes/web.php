@@ -87,6 +87,8 @@ Route::middleware(['auth', 'role:'.Role::DOSEN])->group(function () {
         Route::post('/substansi', 'unggahSubstansi')->name('substansi.store');
     });
 
+    Route::get('/pelaksanaan', [PelaksanaanController::class, 'index'])->name('pelaksanaan.index');
+
     Route::get('/undangan/{token}', [UndanganController::class, 'show'])->name('undangan.show');
     Route::post('/undangan/{token}', [UndanganController::class, 'jawab'])->name('undangan.jawab');
 });
@@ -97,7 +99,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/proposal/{proposal}/substansi', [ProposalBagianController::class, 'unduhSubstansi'])->name('proposal.substansi.show');
 
     // The team writes the logbook and reports; AlurPelaksanaan checks who.
-    Route::controller(PelaksanaanController::class)->prefix('/proposal/{proposal}/pelaksanaan')->name('proposal.pelaksanaan.')->group(function () {
+    Route::controller(PelaksanaanController::class)->prefix('/pelaksanaan/{proposal}')->name('pelaksanaan.')->group(function () {
         Route::get('/', 'show')->name('show');
         Route::post('/logbook', 'storeLogbook')->name('logbook.store');
         Route::delete('/logbook/{logbook}', 'destroyLogbook')->name('logbook.destroy');
@@ -106,6 +108,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/luaran/{luaran}', 'updateLuaran')->name('luaran.update');
         Route::get('/berkas/{berkas}', 'berkas')->name('berkas');
     });
+    Route::redirect('/proposal/{proposal}/pelaksanaan', '/pelaksanaan/{proposal}', 301);
 });
 
 Route::middleware(['auth', 'role:'.Role::OPERATOR.','.Role::ADMIN_LPPM])->group(function () {
