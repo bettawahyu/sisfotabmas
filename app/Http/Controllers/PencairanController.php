@@ -36,7 +36,7 @@ class PencairanController extends Controller
                 ->get()
                 ->each(fn (Proposal $p) => $p->setAttribute('jumlah_termin_2', $alur->jumlahTermin($p, 2))
                     ->setAttribute('syarat_termin_2', $alur->syaratTermin2($p))),
-            'riwayat' => PencairanDana::with('proposal.ketua', 'pencair', 'bukti')->latest('tgl_cair')->latest('id')->paginate(30),
+            'riwayat' => PencairanDana::with('proposal.ketua', 'pencair', 'bukti')->latest('tgl_cair')->latest('id')->get(),
             'bisaCatat' => $request->user()->hasRole(Role::KEUANGAN),
         ]);
     }

@@ -4,9 +4,9 @@
         <p class="mt-1 text-sm text-gray-600">Kegiatan yang perlu diingatkan.</p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <x-kartu :judul="'Logbook tidak diisi '.$hariLogbook.' hari ('.$logbookSepi->count().')'">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
+            <x-kartu ikon="alert-circle" :judul="'Logbook tidak diisi '.$hariLogbook.' hari ('.$logbookSepi->count().')'">
                 @forelse ($logbookSepi as $p)
                     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 py-2 text-sm last:border-0">
                         <div>
@@ -20,7 +20,7 @@
                 @endforelse
             </x-kartu>
 
-            <x-kartu :judul="'Laporan kemajuan terlambat ('.$laporanTerlambat->count().')'">
+            <x-kartu ikon="alert-triangle" :judul="'Laporan kemajuan terlambat ('.$laporanTerlambat->count().')'">
                 @forelse ($laporanTerlambat as $p)
                     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 py-2 text-sm last:border-0">
                         <div>
@@ -34,7 +34,7 @@
                 @endforelse
             </x-kartu>
 
-            <x-kartu :judul="'Laporan akhir terlambat ('.$akhirTerlambat->count().')'">
+            <x-kartu ikon="alert-triangle" :judul="'Laporan akhir terlambat ('.$akhirTerlambat->count().')'">
                 @forelse ($akhirTerlambat as $p)
                     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 py-2 text-sm last:border-0">
                         <div>
@@ -48,7 +48,7 @@
                 @endforelse
             </x-kartu>
 
-            <x-kartu :judul="'Monev belum ada hasil ('.$monevTertunda->count().')'">
+            <x-kartu ikon="alert-circle" :judul="'Monev belum ada hasil ('.$monevTertunda->count().')'">
                 @forelse ($monevTertunda as $p)
                     @php($pen = $p->penilaian->first())
                     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 py-2 text-sm last:border-0">

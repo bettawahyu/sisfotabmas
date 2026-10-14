@@ -113,6 +113,15 @@ Peran disimpan di tabel `roles` dan `user_roles`, sehingga satu akun bisa punya 
 
 Batasi rute dengan middleware `role`, misalnya `->middleware('role:admin_lppm,reviewer')`. Di kode, gunakan `$user->hasRole(Role::REVIEWER)` dan `$user->assignRole(Role::DOSEN)`.
 
+## Tampilan
+
+Tata letak meniru [Dash UI TailwindCSS](https://github.com/codescandy/dashui-tailwindcss) dari Codescandy (lisensi MIT): menu samping gelap, bilah atas dengan notifikasi dan foto profil, palet abu-abu dan indigo Dash UI, serta ikon [Feather](https://feathericons.com). Komponen Blade yang dipakai ulang:
+
+- `<x-ikon nama="calendar" />` menampilkan ikon Feather.
+- `<x-kartu judul="..." ikon="..." />`, `<x-input-label ... ikon="..." />`, `<x-primary-button ikon="save">`, dan `<x-tombol-tautan ikon="plus">` menerima ikon opsional.
+- `<x-avatar :user="$user" />` menampilkan foto profil, atau inisial nama bila belum ada foto. Foto diunggah di halaman Profil dan disimpan di disk bawaan (privat), lalu disajikan lewat rute `foto-profil.show` untuk pengguna yang masuk.
+- Tabel daftar diberi atribut `data-tabel-data` agar memakai [DataTables](https://datatables.net) (cari, urut, dan halaman di peramban). Kolom tanpa judul (aksi) tidak bisa diurutkan; baris "belum ada data" dari `@forelse` dipakai sebagai pesan tabel kosong.
+
 ## Riwayat penambahan fitur
 
 - **#10** Laporan akhir dengan laporan keuangan 100%, capaian dan validasi luaran, menu Verifikasi, pencairan termin 2, pengingat batas laporan, blokir pengusul yang menunggak laporan, dan syarat monev untuk usulan multitahun.

@@ -14,11 +14,11 @@
         <p class="mt-1 text-sm text-gray-600">{{ $proposal->periode->nama }} · {{ $proposal->periode->skema->jenis_kegiatan->label() }} · {{ $monev ? 'Monev' : 'Penilaian' }} tanpa identitas tim</p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
 
-            <x-kartu judul="Proposal">
+            <x-kartu ikon="file-text" judul="Proposal">
                 <dl class="grid gap-3 text-sm sm:grid-cols-2">
                     <div class="sm:col-span-2"><dt class="text-gray-500">Ringkasan</dt><dd class="whitespace-pre-line">{{ $proposal->ringkasan }}</dd></div>
                     <div><dt class="text-gray-500">Rumpun ilmu</dt><dd>{{ $proposal->cabangIlmu?->jalur() ?? '-' }}</dd></div>
@@ -38,7 +38,7 @@
             </x-kartu>
 
             @if ($monev)
-                <x-kartu judul="Laporan kemajuan">
+                <x-kartu ikon="trending-up" judul="Laporan kemajuan">
                     @if ($laporan)
                         <dl class="grid gap-3 text-sm sm:grid-cols-3">
                             <div><dt class="text-gray-500">Dikirim</dt><dd>{{ $laporan->diajukan_at->translatedFormat('j F Y') }}</dd></div>
@@ -56,7 +56,7 @@
                     @endif
                 </x-kartu>
 
-                <x-kartu judul="Logbook kegiatan">
+                <x-kartu ikon="book" judul="Logbook kegiatan">
                     @if ($proposal->logbook->isEmpty())
                         <p class="text-sm text-gray-600">Belum ada entri logbook.</p>
                     @else
@@ -72,7 +72,7 @@
                 </x-kartu>
             @endif
 
-            <x-kartu judul="Rencana anggaran">
+            <x-kartu ikon="dollar-sign" judul="Rencana anggaran">
                 <table class="min-w-full text-sm">
                     <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Kategori</th><th class="py-2 pe-4 font-medium">Uraian</th><th class="py-2 pe-4 font-medium text-end">Volume</th><th class="py-2 font-medium text-end">Total</th></tr></thead>
                     <tbody>
@@ -84,7 +84,7 @@
                 </table>
             </x-kartu>
 
-            <x-kartu judul="Target luaran">
+            <x-kartu ikon="target" judul="Target luaran">
                 <ul class="space-y-1 text-sm">
                     @foreach ($proposal->luaran as $luaran)
                         <li><span class="font-medium">{{ $luaran->jenis->label() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></li>
@@ -100,7 +100,7 @@
                 @endif
             </x-kartu>
 
-            <x-kartu :judul="$monev ? 'Hasil monev' : 'Penilaian'">
+            <x-kartu ikon="star" :judul="$monev ? 'Hasil monev' : 'Penilaian'">
                 @if ($terkunci)
                     <p class="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">Dikirim {{ $penilaian->dinilai_at->translatedFormat('d M Y H:i') }} dengan nilai {{ number_format($penilaian->nilai_total, 2, ',', '.') }}. Penilaian terkunci; hubungi LPPM jika perlu diubah.</p>
                 @endif
@@ -142,25 +142,25 @@
                                 </div>
                                 @unless ($monev)
                                     <div>
-                                        <x-input-label for="rekomendasi_dana" value="Rekomendasi dana (Rp, opsional)" />
+                                        <x-input-label for="rekomendasi_dana" value="Rekomendasi dana (Rp, opsional)" ikon="dollar-sign" />
                                         <x-text-input id="rekomendasi_dana" name="rekomendasi_dana" type="number" min="0" class="mt-1 block w-full" :value="old('rekomendasi_dana', $penilaian->rekomendasi_dana)" />
                                     </div>
                                 @endunless
                             </div>
                             <div>
-                                <x-input-label for="komentar_untuk_pengusul" value="Komentar untuk pengusul" />
+                                <x-input-label for="komentar_untuk_pengusul" value="Komentar untuk pengusul" ikon="align-left" />
                                 <textarea id="komentar_untuk_pengusul" name="komentar_untuk_pengusul" rows="5" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('komentar_untuk_pengusul', $penilaian->komentar_untuk_pengusul) }}</textarea>
                                 <p class="mt-1 text-xs text-gray-500">Dikirim ke ketua {{ $monev ? 'bersama hasil monev' : 'bersama hasil seleksi' }}, tanpa nama Anda.</p>
                             </div>
                             <div>
-                                <x-input-label for="catatan_internal" value="Catatan internal untuk LPPM (opsional)" />
+                                <x-input-label for="catatan_internal" value="Catatan internal untuk LPPM (opsional)" ikon="align-left" />
                                 <textarea id="catatan_internal" name="catatan_internal" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('catatan_internal', $penilaian->catatan_internal) }}</textarea>
                                 <p class="mt-1 text-xs text-gray-500">Hanya dibaca LPPM.</p>
                             </div>
                             @unless ($terkunci)
                                 <div class="flex flex-wrap gap-3">
-                                    <x-secondary-button type="submit" name="aksi" value="simpan">Simpan draf</x-secondary-button>
-                                    <x-primary-button name="aksi" value="kirim" onclick="return confirm('Kirim {{ $monev ? 'hasil monev' : 'penilaian' }}? Setelah dikirim, isian terkunci.')">{{ $monev ? 'Kirim hasil monev' : 'Kirim penilaian' }}</x-primary-button>
+                                    <x-secondary-button type="submit" name="aksi" value="simpan" ikon="save">Simpan draf</x-secondary-button>
+                                    <x-primary-button name="aksi" value="kirim" onclick="return confirm('Kirim {{ $monev ? 'hasil monev' : 'penilaian' }}? Setelah dikirim, isian terkunci.')" ikon="send">{{ $monev ? 'Kirim hasil monev' : 'Kirim penilaian' }}</x-primary-button>
                                 </div>
                             @endunless
                         </fieldset>

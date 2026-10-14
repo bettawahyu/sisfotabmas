@@ -3,8 +3,8 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Proposal Saya</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
 
             @unless ($dosen)
@@ -13,7 +13,7 @@
                 </x-kartu>
             @endunless
 
-            <x-kartu judul="Hibah yang sedang dibuka">
+            <x-kartu ikon="gift" judul="Hibah yang sedang dibuka">
                 @forelse ($periodeDibuka as $periode)
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 py-3 last:border-0">
                         <div>
@@ -21,7 +21,7 @@
                             <p class="text-sm text-gray-600">{{ $periode->skema->jenis_kegiatan->label() }} · plafon <x-rupiah :nilai="$periode->dana_maksimal" /> · ditutup {{ $periode->tgl_tutup->translatedFormat('d M Y') }}</p>
                         </div>
                         @if ($dosen)
-                            <a href="{{ route('proposal.create', $periode) }}" class="inline-flex items-center px-4 py-2 bg-gray-800 rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">Buat proposal</a>
+                            <x-tombol-tautan href="{{ route('proposal.create', $periode) }}" ikon="file-plus">Buat proposal</x-tombol-tautan>
                         @endif
                     </div>
                 @empty
@@ -29,11 +29,11 @@
                 @endforelse
             </x-kartu>
 
-            <x-kartu judul="Sebagai ketua">
+            <x-kartu ikon="user" judul="Sebagai ketua">
                 @include('proposal.partials.tabel', ['daftar' => $sebagaiKetua])
             </x-kartu>
 
-            <x-kartu judul="Sebagai anggota">
+            <x-kartu ikon="users" judul="Sebagai anggota">
                 @forelse ($sebagaiAnggota as $proposal)
                     @php($saya = $proposal->anggota->first())
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 py-3 last:border-0">

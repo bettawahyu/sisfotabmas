@@ -187,6 +187,7 @@ return [
         'email' => 'email',
         'password' => 'kata sandi',
         'current_password' => 'kata sandi saat ini',
+        'foto' => 'foto profil',
     ],
 
 ];

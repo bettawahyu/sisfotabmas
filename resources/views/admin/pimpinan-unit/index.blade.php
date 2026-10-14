@@ -3,12 +3,12 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Unit Pimpinan</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8">
             <x-pesan />
             <x-kartu>
                 <p class="mb-4 text-sm text-gray-600">Kaprodi hanya mengesahkan proposal dosen di prodinya, dan dekan untuk semua prodi di fakultasnya. Pimpinan yang belum ditautkan ke unit melihat semua proposal.</p>
-                <table class="min-w-full text-sm">
+                <table class="min-w-full text-sm" data-tabel-data>
                     <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Pimpinan</th><th class="py-2 font-medium">Unit</th></tr></thead>
                     <tbody>
                         @forelse ($pimpinan as $u)
@@ -32,7 +32,7 @@
                                                 </optgroup>
                                             @endforeach
                                         </x-select-input>
-                                        <x-secondary-button type="submit">Simpan</x-secondary-button>
+                                        <x-secondary-button type="submit" ikon="save">Simpan</x-secondary-button>
                                     </form>
                                 </td>
                             </tr>

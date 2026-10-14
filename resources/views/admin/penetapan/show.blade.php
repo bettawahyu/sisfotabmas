@@ -4,11 +4,11 @@
         <p class="mt-1 text-sm text-gray-600">Kuota {{ $periode->kuota ?? 'tidak dibatasi' }} · Plafon <x-rupiah :nilai="$periode->dana_maksimal" /></p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
 
-            <x-kartu judul="Peringkat">
+            <x-kartu ikon="bar-chart-2" judul="Peringkat">
                 @if ($peringkat->isEmpty())
                     <p class="text-sm text-gray-600">Tidak ada proposal yang menunggu penetapan.</p>
                 @else
@@ -46,7 +46,7 @@
                 @endif
             </x-kartu>
 
-            <x-kartu judul="Proposal disetujui dan SK">
+            <x-kartu ikon="award" judul="Proposal disetujui dan SK">
                 @if ($disetujui->isEmpty())
                     <p class="text-sm text-gray-600">Belum ada proposal yang disetujui.</p>
                 @else
@@ -68,7 +68,7 @@
                             @csrf
                             <x-text-input name="no_sk" placeholder="Nomor SK" class="block w-full sm:col-span-2" :value="old('no_sk')" required />
                             <x-text-input name="tgl_sk" type="date" class="block w-full" :value="old('tgl_sk')" required />
-                            <div class="sm:col-span-3"><x-secondary-button type="submit">Catat SK untuk semua yang belum punya</x-secondary-button></div>
+                            <div class="sm:col-span-3"><x-secondary-button type="submit" ikon="file-text">Catat SK untuk semua yang belum punya</x-secondary-button></div>
                         </form>
                     @endif
                 @endif

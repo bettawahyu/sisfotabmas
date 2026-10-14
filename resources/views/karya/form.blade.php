@@ -5,8 +5,8 @@
         <p class="mt-1 text-sm text-gray-600"><a href="{{ route("karya.{$jenis}.index") }}" class="text-indigo-700 hover:underline">Kembali ke daftar</a></p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-4xl px-4 sm:px-6 lg:px-8">
             <x-pesan />
             <form method="POST" action="{{ $karya->exists ? route("karya.{$jenis}.update", $karya) : route("karya.{$jenis}.store") }}" class="space-y-6">
                 @csrf
@@ -20,7 +20,7 @@
                     </div>
                 </x-kartu>
 
-                <x-kartu :judul="['publikasi' => 'Penulis', 'hki' => 'Pencipta', 'paten' => 'Inventor'][$jenis]">
+                <x-kartu ikon="book-open" :judul="['publikasi' => 'Penulis', 'hki' => 'Pencipta', 'paten' => 'Inventor'][$jenis]">
                     <p class="mb-4 text-sm text-gray-600">Isi sesuai urutan. Pilih dosen bila orangnya dosen di sini; untuk pihak luar cukup tulis nama dan afiliasinya. Nama Anda harus tercantum.</p>
                     <div class="space-y-3">
                         @foreach ($kontributor as $i => $k)
@@ -45,7 +45,7 @@
                     </div>
                 </x-kartu>
 
-                <x-primary-button>Simpan</x-primary-button>
+                <x-primary-button ikon="save">Simpan</x-primary-button>
             </form>
         </div>
     </div>

@@ -8,7 +8,7 @@
 
         <!-- Password -->
         <div>
-            <x-input-label for="password" :value="__('Password')" />
+            <x-input-label for="password" :value="__('Password')" ikon="lock" />
 
             <x-text-input id="password" class="block mt-1 w-full"
                             type="password"
@@ -19,7 +19,7 @@
         </div>
 
         <div class="flex justify-end mt-4">
-            <x-primary-button>
+            <x-primary-button ikon="check">
                 {{ __('Confirm') }}
             </x-primary-button>
         </div>

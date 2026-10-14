@@ -3,13 +3,13 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Penugasan Reviewer</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="px-4 sm:px-6 lg:px-8">
             <x-pesan />
-            <x-kartu judul="Proposal dalam penilaian">
+            <x-kartu ikon="check-square" judul="Proposal dalam penilaian">
                 <p class="mb-4 text-sm text-gray-600">Setiap proposal dinilai dua reviewer. Nilai akhir adalah rata-rata keduanya.</p>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
+                    <table class="min-w-full text-sm" data-tabel-data>
                         <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Proposal</th><th class="py-2 pe-4 font-medium">Periode</th><th class="py-2 pe-4 font-medium">Reviewer 1</th><th class="py-2 pe-4 font-medium">Reviewer 2</th><th class="py-2 pe-4 font-medium text-end">Rata-rata</th><th></th></tr></thead>
                         <tbody>
                             @forelse ($proposal as $p)

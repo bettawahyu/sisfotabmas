@@ -29,8 +29,7 @@ class PenggunaController extends Controller
                 ->when($cari !== '', fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', "%{$cari}%")->orWhere('email', 'like', "%{$cari}%")))
                 ->when($peran, fn ($q) => $q->whereHas('roles', fn ($q) => $q->where('kode', $peran)))
                 ->orderBy('name')
-                ->paginate(25)
-                ->withQueryString(),
+                ->get(),
         ]);
     }
 

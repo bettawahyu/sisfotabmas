@@ -7,8 +7,8 @@
         <p class="mt-1 text-sm text-gray-600">{{ $proposal->periode->nama }} · Ketua {{ $proposal->ketua->namaLengkap() }}{{ $proposal->ketua->prodi ? ' · '.$proposal->ketua->prodi->nama : '' }}</p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
 
             @if ($kriteria->isEmpty())
@@ -19,7 +19,7 @@
 
             @foreach (range(1, Penilaian::JUMLAH_REVIEWER) as $urutan)
                 @php($pen = $slot->get($urutan))
-                <x-kartu :judul="'Reviewer '.$urutan">
+                <x-kartu ikon="user-check" :judul="'Reviewer '.$urutan">
                     @if ($pen)
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
                             <p class="text-sm"><span class="font-medium">{{ $pen->reviewer->name }}</span>
@@ -49,7 +49,7 @@
                             <form method="POST" action="{{ route('admin.review.buka', [$proposal, $pen]) }}" class="mt-4 flex flex-wrap gap-3">
                                 @csrf
                                 <x-text-input name="alasan" placeholder="Alasan membuka kembali" class="flex-1" required />
-                                <x-secondary-button type="submit">Buka kembali</x-secondary-button>
+                                <x-secondary-button type="submit" ikon="unlock">Buka kembali</x-secondary-button>
                             </form>
                         @else
                             <form method="POST" action="{{ route('admin.review.destroy', [$proposal, $pen]) }}" class="mt-3">
@@ -70,7 +70,7 @@
                                     <option value="{{ $r->id }}" @selected($pen?->reviewer_id === $r->id)>{{ $r->name }}{{ $r->dosen?->prodi ? ' · '.$r->dosen->prodi->nama : '' }}{{ $peringatan->has($r->id) ? ' (prodi sama dengan ketua)' : '' }}</option>
                                 @endforeach
                             </x-select-input>
-                            <x-primary-button>{{ $pen ? 'Ganti reviewer' : 'Tugaskan' }}</x-primary-button>
+                            <x-primary-button ikon="user-check">{{ $pen ? 'Ganti reviewer' : 'Tugaskan' }}</x-primary-button>
                         </form>
                     @endif
                 </x-kartu>

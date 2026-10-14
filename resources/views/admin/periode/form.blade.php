@@ -7,21 +7,21 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $periode->exists ? 'Ubah Periode Hibah' : 'Periode Hibah Baru' }}</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-3xl px-4 sm:px-6 lg:px-8">
             <x-pesan />
             <x-kartu>
                 @unless ($periode->exists)
                     <form method="GET" action="{{ route('admin.periode.create') }}" class="mb-6 flex flex-wrap items-end gap-3 border-b pb-6">
                         <div class="flex-1">
-                            <x-input-label for="pilih_skema" value="Ambil nilai bawaan dari skema" />
+                            <x-input-label for="pilih_skema" value="Ambil nilai bawaan dari skema" ikon="tag" />
                             <x-select-input id="pilih_skema" name="skema_id" class="mt-1 block w-full">
                                 @foreach ($daftarSkema as $s)
                                     <option value="{{ $s->id }}" @selected($periode->skema_id == $s->id)>{{ $s->nama }}</option>
                                 @endforeach
                             </x-select-input>
                         </div>
-                        <x-secondary-button type="submit">Ambil</x-secondary-button>
+                        <x-secondary-button type="submit" ikon="download">Ambil</x-secondary-button>
                     </form>
                 @endunless
 
@@ -31,7 +31,7 @@
                         @method('PUT')
                     @endif
                     <div>
-                        <x-input-label for="skema_id" value="Skema" />
+                        <x-input-label for="skema_id" value="Skema" ikon="tag" />
                         <x-select-input id="skema_id" name="skema_id" class="mt-1 block w-full">
                             @foreach ($daftarSkema as $s)
                                 <option value="{{ $s->id }}" @selected(old('skema_id', $periode->skema_id) == $s->id)>{{ $s->nama }}</option>
@@ -39,11 +39,11 @@
                         </x-select-input>
                     </div>
                     <div>
-                        <x-input-label for="tahun_anggaran" value="Tahun anggaran" />
+                        <x-input-label for="tahun_anggaran" value="Tahun anggaran" ikon="calendar" />
                         <x-text-input id="tahun_anggaran" name="tahun_anggaran" type="number" class="mt-1 block w-full" :value="old('tahun_anggaran', $periode->tahun_anggaran)" required />
                     </div>
                     <div class="sm:col-span-2">
-                        <x-input-label for="nama" value="Nama pengumuman" />
+                        <x-input-label for="nama" value="Nama pengumuman" ikon="edit-3" />
                         <x-text-input id="nama" name="nama" class="mt-1 block w-full" :value="old('nama', $periode->nama)" required />
                     </div>
                     @foreach ([
@@ -61,11 +61,11 @@
                         </div>
                     @endforeach
                     <div>
-                        <x-input-label for="dana_maksimal" value="Plafon per proposal (Rp)" />
+                        <x-input-label for="dana_maksimal" value="Plafon per proposal (Rp)" ikon="dollar-sign" />
                         <x-text-input id="dana_maksimal" name="dana_maksimal" type="number" min="1" class="mt-1 block w-full" :value="old('dana_maksimal', $periode->dana_maksimal)" required />
                     </div>
                     <div>
-                        <x-input-label for="kuota" value="Kuota proposal didanai" />
+                        <x-input-label for="kuota" value="Kuota proposal didanai" ikon="list" />
                         <x-text-input id="kuota" name="kuota" type="number" min="1" class="mt-1 block w-full" :value="old('kuota', $periode->kuota)" />
                     </div>
                     <label class="flex items-center gap-2 text-sm text-gray-700">
@@ -74,36 +74,36 @@
                         Biaya honorarium diizinkan
                     </label>
                     <div>
-                        <x-input-label for="batas_honor_persen" value="Batas honorarium (%)" />
+                        <x-input-label for="batas_honor_persen" value="Batas honorarium (%)" ikon="dollar-sign" />
                         <x-text-input id="batas_honor_persen" name="batas_honor_persen" type="number" min="1" max="100" class="mt-1 block w-full" :value="old('batas_honor_persen', $periode->batas_honor_persen)" />
                     </div>
                     <div>
-                        <x-input-label for="termin_pertama_persen" value="Termin pertama (%)" />
+                        <x-input-label for="termin_pertama_persen" value="Termin pertama (%)" ikon="percent" />
                         <x-text-input id="termin_pertama_persen" name="termin_pertama_persen" type="number" min="1" max="100" class="mt-1 block w-full" :value="old('termin_pertama_persen', $periode->termin_pertama_persen)" required />
                     </div>
                     <div>
-                        <x-input-label for="maks_sebagai_ketua" value="Maks. proposal sebagai ketua" />
+                        <x-input-label for="maks_sebagai_ketua" value="Maks. proposal sebagai ketua" ikon="list" />
                         <x-text-input id="maks_sebagai_ketua" name="maks_sebagai_ketua" type="number" min="1" class="mt-1 block w-full" :value="old('maks_sebagai_ketua', $periode->maks_sebagai_ketua)" required />
                     </div>
                     <div>
-                        <x-input-label for="maks_sebagai_anggota" value="Maks. proposal sebagai anggota" />
+                        <x-input-label for="maks_sebagai_anggota" value="Maks. proposal sebagai anggota" ikon="list" />
                         <x-text-input id="maks_sebagai_anggota" name="maks_sebagai_anggota" type="number" min="0" class="mt-1 block w-full" :value="old('maks_sebagai_anggota', $periode->maks_sebagai_anggota)" required />
                     </div>
                     <div>
-                        <x-input-label for="status" value="Status" />
+                        <x-input-label for="status" value="Status" ikon="flag" />
                         <x-select-input id="status" name="status" class="mt-1 block w-full">
                             @foreach (StatusPeriode::cases() as $status)
                                 <option value="{{ $status->value }}" @selected(old('status', $periode->status?->value) === $status->value)>{{ $status->label() }}</option>
                             @endforeach
                         </x-select-input>
                     </div>
-                    <div class="sm:col-span-2"><x-primary-button>Simpan</x-primary-button></div>
+                    <div class="sm:col-span-2"><x-primary-button ikon="save">Simpan</x-primary-button></div>
                 </form>
             </x-kartu>
 
             @if ($periode->exists)
                 @php($tahapKriteria = [\App\Models\Penilaian::SELEKSI => 'Seleksi proposal', \App\Models\Penilaian::MONEV => 'Monev', \App\Models\Penilaian::AKHIR => 'Laporan akhir'])
-                <x-kartu judul="Kriteria penilaian" class="mt-6">
+                <x-kartu ikon="sliders" judul="Kriteria penilaian" class="mt-6">
                     <p class="mb-4 text-sm text-gray-600">Nilai akhir reviewer dihitung dari skor setiap kriteria dibagi skala maksimal, dikali bobot, lalu dijadikan skala 0 sampai 100.</p>
                     @foreach ($tahapKriteria as $tahap => $namaTahap)
                         @php($daftar = $periode->kriteria->where('tahap', $tahap)->sortBy('urutan'))
@@ -133,7 +133,7 @@
                         <x-text-input name="nama" placeholder="Nama kriteria" class="block w-full sm:col-span-2" required />
                         <x-text-input name="bobot" type="number" min="1" max="100" placeholder="Bobot" class="block w-full" required />
                         <x-text-input name="skala_maks" type="number" min="2" max="10" value="7" title="Skala maksimal" class="block w-full" required />
-                        <div class="sm:col-span-5"><x-secondary-button type="submit">Tambah kriteria</x-secondary-button></div>
+                        <div class="sm:col-span-5"><x-secondary-button type="submit" ikon="plus">Tambah kriteria</x-secondary-button></div>
                     </form>
                 </x-kartu>
             @endif

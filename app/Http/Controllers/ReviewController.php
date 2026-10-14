@@ -27,8 +27,7 @@ class ReviewController extends Controller
                 ->where('status', $selesai ? Penilaian::SELESAI : Penilaian::DITUGASKAN)
                 ->with('proposal.periode.skema')
                 ->when($selesai, fn ($q) => $q->latest('dinilai_at'), fn ($q) => $q->oldest())
-                ->paginate(20)
-                ->withQueryString(),
+                ->get(),
             'jumlahMenunggu' => $request->user()->penilaian()->where('status', Penilaian::DITUGASKAN)->count(),
         ]);
     }

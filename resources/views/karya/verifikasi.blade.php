@@ -8,12 +8,12 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Verifikasi Publikasi, HKI, dan Paten</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
             <p class="text-sm text-gray-600">Kaprodi atau dekan memeriksa data dosen di unitnya lebih dulu, lalu LPPM memvalidasinya. Hanya data yang valid yang dihitung dalam laporan.</p>
             @foreach ($menunggu as $jenis => $daftar)
-                <x-kartu :judul="AlurKarya::LABEL[$jenis]">
+                <x-kartu ikon="book-open" :judul="AlurKarya::LABEL[$jenis]">
                     <div class="space-y-4">
                         @forelse ($daftar as $k)
                             <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0 text-sm">
@@ -40,8 +40,8 @@
                                 <form method="POST" action="{{ route('verifikasi-karya.store', [$jenis, $k->id]) }}" class="mt-2 flex flex-wrap gap-3">
                                     @csrf
                                     <x-text-input name="catatan" placeholder="Alasan bila ditolak" class="flex-1" />
-                                    <x-secondary-button type="submit" name="aksi" value="tolak">Tolak</x-secondary-button>
-                                    <x-primary-button name="aksi" value="setujui">{{ $k->status_verifikasi === Hki::DISETUJUI_KAPRODI ? 'Validasi' : 'Setujui' }}</x-primary-button>
+                                    <x-secondary-button type="submit" name="aksi" value="tolak" ikon="x-circle">Tolak</x-secondary-button>
+                                    <x-primary-button name="aksi" value="setujui" ikon="check-circle">{{ $k->status_verifikasi === Hki::DISETUJUI_KAPRODI ? 'Validasi' : 'Setujui' }}</x-primary-button>
                                 </form>
                             </div>
                         @empty

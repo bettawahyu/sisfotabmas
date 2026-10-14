@@ -2,7 +2,7 @@
     <p class="text-sm text-gray-600">Belum ada.</p>
 @else
     <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
+        <table class="min-w-full text-sm" data-tabel-data>
             <thead>
                 <tr class="text-left text-gray-500 border-b">
                     <th class="py-2 pe-4 font-medium">Judul</th>

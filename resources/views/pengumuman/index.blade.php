@@ -3,8 +3,8 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Pengumuman</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
+    <div class="py-6">
+        <div class="max-w-4xl px-4 sm:px-6 lg:px-8 space-y-4">
             @forelse ($pengumuman as $p)
                 <x-kartu>
                     <div class="flex flex-wrap items-baseline gap-2 text-xs text-gray-500">

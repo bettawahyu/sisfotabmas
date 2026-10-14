@@ -3,8 +3,8 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Kontrak</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
             @forelse ($proposal as $p)
                 <x-kartu>
@@ -18,11 +18,11 @@
                     @if ($p->no_sk)
                         <form method="POST" action="{{ route('admin.kontrak.store', $p) }}" class="mt-4 grid gap-3 sm:grid-cols-4">
                             @csrf
-                            <div class="sm:col-span-4"><x-input-label value="Nomor kontrak" /><x-text-input name="no_kontrak" class="mt-1 block w-full" required /></div>
-                            <div><x-input-label value="Tanggal kontrak" /><x-text-input type="date" name="tgl_kontrak" class="mt-1 block w-full" required /></div>
-                            <div><x-input-label value="Mulai kegiatan" /><x-text-input type="date" name="tgl_mulai" class="mt-1 block w-full" required /></div>
-                            <div><x-input-label value="Selesai kegiatan" /><x-text-input type="date" name="tgl_selesai" class="mt-1 block w-full" required /></div>
-                            <div class="flex items-end"><x-primary-button>Catat kontrak</x-primary-button></div>
+                            <div class="sm:col-span-4"><x-input-label value="Nomor kontrak" ikon="hash" /><x-text-input name="no_kontrak" class="mt-1 block w-full" required /></div>
+                            <div><x-input-label value="Tanggal kontrak" ikon="calendar" /><x-text-input type="date" name="tgl_kontrak" class="mt-1 block w-full" required /></div>
+                            <div><x-input-label value="Mulai kegiatan" ikon="calendar" /><x-text-input type="date" name="tgl_mulai" class="mt-1 block w-full" required /></div>
+                            <div><x-input-label value="Selesai kegiatan" ikon="calendar" /><x-text-input type="date" name="tgl_selesai" class="mt-1 block w-full" required /></div>
+                            <div class="flex items-end"><x-primary-button ikon="edit-3">Catat kontrak</x-primary-button></div>
                         </form>
                     @else
                         <p class="mt-3 text-sm text-amber-700">Catat SK di <a href="{{ route('admin.penetapan.show', $p->periode) }}" class="underline">halaman penetapan</a> terlebih dahulu.</p>
