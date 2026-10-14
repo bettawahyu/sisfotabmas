@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Hki;
 use App\Models\Role;
 use App\Services\AlurKarya;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,10 +24,10 @@ class VerifikasiKaryaController extends Controller
         foreach (AlurKarya::JENIS as $jenis => $model) {
             $kaprodi = $user->hasRole(Role::PIMPINAN_UNIT)
                 ? $model::where('status_verifikasi', Hki::MENUNGGU)->dalamUnit($user)->get()
-                : collect();
+                : new Collection;
             $lppm = $user->hasRole(Role::ADMIN_LPPM)
                 ? $model::where('status_verifikasi', Hki::DISETUJUI_KAPRODI)->get()
-                : collect();
+                : new Collection;
             $menunggu[$jenis] = $kaprodi->concat($lppm)->load(['kontributor', 'penginput', 'verifikatorKaprodi'])->sortBy('updated_at');
         }
 

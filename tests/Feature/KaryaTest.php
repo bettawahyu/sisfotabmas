@@ -90,7 +90,7 @@ test('the kaprodi of the unit approves, then LPPM validates', function () {
     $this->actingAs($kaprodiTe)->get(route('verifikasi-karya.index'))->assertOk()->assertDontSee($publikasi->judul);
     $this->actingAs($kaprodiTe)->post(route('verifikasi-karya.store', ['publikasi', $publikasi->id]), ['aksi' => 'setujui'])
         ->assertSessionHasErrors('karya');
-    $this->actingAs($admin)->get(route('verifikasi-karya.index'))->assertDontSee($publikasi->judul);
+    $this->actingAs($admin)->get(route('verifikasi-karya.index'))->assertOk()->assertDontSee($publikasi->judul);
 
     $this->actingAs($kaprodiTi)->get(route('verifikasi-karya.index'))->assertSee($publikasi->judul);
     $this->actingAs($kaprodiTi)->post(route('verifikasi-karya.store', ['publikasi', $publikasi->id]), ['aksi' => 'setujui'])
