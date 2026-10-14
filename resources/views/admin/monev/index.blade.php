@@ -7,8 +7,8 @@
         <p class="mt-1 text-sm text-gray-600">Proposal yang sudah mengirim laporan kemajuan. Satu reviewer menilai laporan dari meja (desk review).</p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
             @forelse ($proposal as $p)
                 @php($laporan = $p->laporan->first())
@@ -42,7 +42,7 @@
                         <form method="POST" action="{{ route('admin.monev.buka', [$p, $pen]) }}" class="mt-4 flex flex-wrap gap-3">
                             @csrf
                             <x-text-input name="alasan" placeholder="Alasan membuka kembali" class="flex-1" required />
-                            <x-secondary-button type="submit">Buka kembali</x-secondary-button>
+                            <x-secondary-button type="submit" ikon="unlock">Buka kembali</x-secondary-button>
                         </form>
                     @else
                         @if ($pen)
@@ -63,7 +63,7 @@
                                     <option value="{{ $r->id }}" @selected($pen?->reviewer_id === $r->id)>{{ $r->name }}</option>
                                 @endforeach
                             </x-select-input>
-                            <x-primary-button>{{ $pen ? 'Ganti reviewer' : 'Tugaskan' }}</x-primary-button>
+                            <x-primary-button ikon="user-check">{{ $pen ? 'Ganti reviewer' : 'Tugaskan' }}</x-primary-button>
                         </form>
                     @endif
                 </x-kartu>

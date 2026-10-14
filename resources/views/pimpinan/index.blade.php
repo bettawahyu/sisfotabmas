@@ -12,14 +12,14 @@
                             <option value="{{ $t }}" @selected((int) $t === $tahun)>{{ $t }}</option>
                         @endforeach
                     </x-select-input>
-                    <noscript><x-secondary-button type="submit">Tampilkan</x-secondary-button></noscript>
+                    <noscript><x-secondary-button type="submit" ikon="filter">Tampilkan</x-secondary-button></noscript>
                 </form>
             @endif
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="grid gap-6 sm:grid-cols-4">
                 <x-kartu>
                     <p class="text-sm text-gray-600">Usulan masuk</p>
@@ -40,7 +40,7 @@
             </div>
 
             <div class="grid gap-6 lg:grid-cols-2">
-                <x-kartu judul="Usulan per status">
+                <x-kartu ikon="pie-chart" judul="Usulan per status">
                     <table class="min-w-full text-sm">
                         <tbody>
                             @foreach ($perStatus as $s)
@@ -53,7 +53,7 @@
                     </table>
                 </x-kartu>
 
-                <x-kartu judul="Usulan per fakultas">
+                <x-kartu ikon="home" judul="Usulan per fakultas">
                     <table class="min-w-full text-sm">
                         <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Fakultas</th><th class="py-2 pe-4 font-medium text-end">Usulan</th><th class="py-2 font-medium text-end">Didanai</th></tr></thead>
                         <tbody>
@@ -71,7 +71,7 @@
                 </x-kartu>
             </div>
 
-            <x-kartu judul="Usulan per periode hibah">
+            <x-kartu ikon="calendar" judul="Usulan per periode hibah">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Periode</th><th class="py-2 pe-4 font-medium">Skema</th><th class="py-2 pe-4 font-medium text-end">Usulan</th><th class="py-2 pe-4 font-medium text-end">Didanai</th><th class="py-2 font-medium text-end">Dana disetujui</th></tr></thead>
@@ -92,7 +92,7 @@
                 </div>
             </x-kartu>
 
-            <x-kartu judul="Luaran kegiatan yang didanai">
+            <x-kartu ikon="target" judul="Luaran kegiatan yang didanai">
                 <table class="min-w-full text-sm">
                     <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Jenis luaran</th><th class="py-2 pe-4 font-medium text-end">Dijanjikan</th><th class="py-2 font-medium text-end">Terbit atau granted</th></tr></thead>
                     <tbody>

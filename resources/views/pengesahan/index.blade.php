@@ -3,18 +3,18 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Pengesahan Proposal</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="px-4 sm:px-6 lg:px-8">
             <x-pesan />
-            <x-kartu judul="Menunggu pengesahan">
+            <x-kartu ikon="clock" judul="Menunggu pengesahan">
                 @include('proposal.partials.tabel', ['daftar' => $menunggu, 'tampilKetua' => true])
             </x-kartu>
-            <x-kartu judul="Riwayat pengesahan saya" class="mt-6">
+            <x-kartu ikon="clock" judul="Riwayat pengesahan saya" class="mt-6">
                 @if ($riwayat->isEmpty())
                     <p class="text-sm text-gray-600">Belum ada.</p>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm">
+                        <table class="min-w-full text-sm" data-tabel-data>
                             <thead>
                                 <tr class="text-left text-gray-500 border-b">
                                     <th class="py-2 pe-4 font-medium">Tanggal</th>

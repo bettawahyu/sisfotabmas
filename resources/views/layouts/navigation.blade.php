@@ -1,247 +1,94 @@
 @php
+    use App\Models\Role;
+
+    $pengguna = Auth::user();
     // The Pelaksanaan menu appears once one of the lecturer's activities has its first tranche paid.
-    $dosenNav = Auth::user()->hasRole(\App\Models\Role::DOSEN) ? Auth::user()->dosen : null;
+    $dosenNav = $pengguna->hasRole(Role::DOSEN) ? $pengguna->dosen : null;
     $adaPelaksanaan = $dosenNav !== null && \App\Models\Proposal::dalamPelaksanaan()->timDosen($dosenNav)->exists();
+    $adminLppm = $pengguna->hasRole(Role::ADMIN_LPPM);
+
+    // Sidebar sections: heading => [[label, route, active route patterns, feather icon], ...]
+    $menu = array_filter([
+        'Umum' => [
+            ['Dashboard', 'dashboard', ['dashboard'], 'home'],
+            ['Pengumuman', 'pengumuman.index', ['pengumuman.*'], 'volume-2'],
+            ['Notifikasi', 'notifikasi.index', ['notifikasi.*'], 'bell'],
+        ],
+        'Dosen' => ! $pengguna->hasRole(Role::DOSEN) ? [] : array_values(array_filter([
+            ['Proposal', 'proposal.index', ['proposal.*', 'undangan.*'], 'file-text'],
+            $adaPelaksanaan ? ['Pelaksanaan', 'pelaksanaan.index', ['pelaksanaan.*'], 'activity'] : null,
+            ['Publikasi & KI', 'karya.publikasi.index', ['karya.*'], 'book-open'],
+            ['Kualifikasi Dosen', 'profil-dosen.edit', ['profil-dosen.*'], 'award'],
+        ])),
+        'Reviewer' => $pengguna->hasRole(Role::REVIEWER) ? [
+            ['Review', 'review.index', ['review.*'], 'check-square'],
+        ] : [],
+        'Pimpinan Unit' => $pengguna->hasRole(Role::PIMPINAN_UNIT) ? [
+            ['Pengesahan', 'pengesahan.index', ['pengesahan.*'], 'pen-tool'],
+            ['Verifikasi Karya', 'verifikasi-karya.index', ['verifikasi-karya.*'], 'shield'],
+        ] : [],
+        'Keuangan' => $pengguna->hasRole(Role::KEUANGAN) && ! $adminLppm ? [
+            ['Pencairan', 'pencairan.index', ['pencairan.*'], 'dollar-sign'],
+        ] : [],
+        'Operator' => $pengguna->hasRole(Role::OPERATOR) && ! $adminLppm ? [
+            ['Pemantauan', 'pemantauan.index', ['pemantauan.*'], 'monitor'],
+            ['Verifikasi', 'verifikasi.index', ['verifikasi.*'], 'clipboard'],
+        ] : [],
+        'Admin LPPM' => $adminLppm ? [
+            ['Ringkasan Admin', 'admin.dashboard', ['admin.dashboard'], 'grid'],
+            ['Skema Hibah', 'admin.skema.index', ['admin.skema.*'], 'layers'],
+            ['Periode Hibah', 'admin.periode.index', ['admin.periode.*'], 'calendar'],
+            ['Templat Dokumen', 'admin.template.index', ['admin.template.*'], 'file'],
+            ['Unit Pimpinan', 'admin.pimpinan-unit.index', ['admin.pimpinan-unit.*'], 'briefcase'],
+            ['Seleksi Administrasi', 'admin.seleksi.index', ['admin.seleksi.*'], 'filter'],
+            ['Penugasan Reviewer', 'admin.review.index', ['admin.review.*'], 'user-check'],
+            ['Penetapan & SK', 'admin.penetapan.index', ['admin.penetapan.*'], 'award'],
+            ['Kontrak', 'admin.kontrak.index', ['admin.kontrak.*'], 'file-plus'],
+            ['Pencairan', 'pencairan.index', ['pencairan.*'], 'dollar-sign'],
+            ['Monev', 'admin.monev.index', ['admin.monev.*'], 'trending-up'],
+            ['Pemantauan', 'pemantauan.index', ['pemantauan.*'], 'monitor'],
+            ['Verifikasi', 'verifikasi.index', ['verifikasi.*'], 'clipboard'],
+            $pengguna->hasRole(Role::PIMPINAN_UNIT) ? null : ['Verifikasi Karya', 'verifikasi-karya.index', ['verifikasi-karya.*'], 'shield'],
+        ] : [],
+        'Pimpinan' => $pengguna->hasRole(Role::PIMPINAN) ? [
+            ['Ringkasan', 'pimpinan.index', ['pimpinan.*'], 'bar-chart-2'],
+        ] : [],
+        'Sistem' => array_values(array_filter([
+            $pengguna->hasRole(Role::ADMIN_SISTEM) ? ['Pengguna', 'sistem.pengguna.index', ['sistem.*'], 'users'] : null,
+            $pengguna->can('kelola-pengumuman') ? ['Kelola Pengumuman', 'kelola.pengumuman.index', ['kelola.pengumuman.*'], 'edit'] : null,
+        ])),
+    ]);
 @endphp
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                    </a>
-                </div>
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('pengumuman.index')" :active="request()->routeIs('pengumuman.*')">
-                        Pengumuman
-                    </x-nav-link>
-                    @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
-                        <x-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
-                            Proposal
-                        </x-nav-link>
-                        @if ($adaPelaksanaan)
-                            <x-nav-link :href="route('pelaksanaan.index')" :active="request()->routeIs('pelaksanaan.*')">
-                                Pelaksanaan
-                            </x-nav-link>
-                        @endif
-                        <x-nav-link :href="route('karya.publikasi.index')" :active="request()->routeIs('karya.*')">
-                            Publikasi &amp; KI
-                        </x-nav-link>
-                    @endif
-                    @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
-                        <x-nav-link :href="route('review.index')" :active="request()->routeIs('review.*')">
-                            Review
-                        </x-nav-link>
-                    @endif
-                    @if (Auth::user()->hasRole(\App\Models\Role::KEUANGAN))
-                        <x-nav-link :href="route('pencairan.index')" :active="request()->routeIs('pencairan.*')">
-                            Pencairan
-                        </x-nav-link>
-                    @endif
-                    @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
-                        <x-nav-link :href="route('pengesahan.index')" :active="request()->routeIs('pengesahan.*')">
-                            Pengesahan
-                        </x-nav-link>
-                        <x-nav-link :href="route('verifikasi-karya.index')" :active="request()->routeIs('verifikasi-karya.*')">
-                            Verifikasi Karya
-                        </x-nav-link>
-                    @endif
-                    @if (Auth::user()->hasRole(\App\Models\Role::OPERATOR, \App\Models\Role::ADMIN_LPPM))
-                        <x-nav-link :href="route('pemantauan.index')" :active="request()->routeIs('pemantauan.*')">
-                            Pemantauan
-                        </x-nav-link>
-                        <x-nav-link :href="route('verifikasi.index')" :active="request()->routeIs('verifikasi.*')">
-                            Verifikasi
-                        </x-nav-link>
-                    @endif
-                    @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN))
-                        <x-nav-link :href="route('pimpinan.index')" :active="request()->routeIs('pimpinan.*')">
-                            Ringkasan
-                        </x-nav-link>
-                    @endif
-                    @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_SISTEM))
-                        <x-nav-link :href="route('sistem.pengguna.index')" :active="request()->routeIs('sistem.*')">
-                            Pengguna
-                        </x-nav-link>
-                    @endif
-                    @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_LPPM))
-                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
-                            {{ __('Admin') }}
-                        </x-nav-link>
-                    @endif
-                    @can('kelola-pengumuman')
-                        <x-nav-link :href="route('kelola.pengumuman.index')" :active="request()->routeIs('kelola.pengumuman.*')">
-                            Kelola Pengumuman
-                        </x-nav-link>
-                    @endcan
-                </div>
-            </div>
+{{-- Backdrop for the off-canvas sidebar on small screens --}}
+<div x-show="menu" x-transition.opacity @click="menu = false" class="fixed inset-0 z-30 bg-gray-900/50 md:hidden" style="display: none;"></div>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                @php($belumDibaca = Auth::user()->unreadNotifications()->count())
-                <a href="{{ route('notifikasi.index') }}" class="me-2 inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
-                    Notifikasi
-                    @if ($belumDibaca > 0)
-                        <span class="ms-1 rounded-full bg-red-600 px-2 text-xs text-white">{{ $belumDibaca }}</span>
-                    @endif
-                </a>
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+<aside class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-gray-800 transition-transform duration-200 md:translate-x-0"
+       :class="{ '!translate-x-0': menu }" aria-label="Menu utama">
+    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-6 py-5">
+        <x-application-logo class="h-8 w-8 fill-current text-indigo-500" />
+        <span class="text-lg font-bold tracking-tight text-white">{{ config('app.name', 'Sisfotabmas') }}</span>
+    </a>
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-                        @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
-                            <x-dropdown-link :href="route('profil-dosen.edit')">
-                                Kualifikasi Dosen
-                            </x-dropdown-link>
-                        @endif
-
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+    <div class="mx-4 mb-2 flex items-center gap-3 rounded-md bg-gray-900/40 p-3">
+        <x-avatar :user="$pengguna" />
+        <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-white">{{ $pengguna->name }}</p>
+            <p class="truncate text-xs text-gray-500">{{ $pengguna->roles->map(fn ($r) => Role::ALL[$r->kode] ?? $r->nama)->implode(', ') ?: 'Tanpa peran' }}</p>
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('pengumuman.index')" :active="request()->routeIs('pengumuman.*')">
-                Pengumuman
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('notifikasi.index')" :active="request()->routeIs('notifikasi.*')">
-                Notifikasi
-            </x-responsive-nav-link>
-            @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
-                <x-responsive-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
-                    Proposal
-                </x-responsive-nav-link>
-                @if ($adaPelaksanaan)
-                    <x-responsive-nav-link :href="route('pelaksanaan.index')" :active="request()->routeIs('pelaksanaan.*')">
-                        Pelaksanaan
-                    </x-responsive-nav-link>
-                @endif
-                <x-responsive-nav-link :href="route('karya.publikasi.index')" :active="request()->routeIs('karya.*')">
-                    Publikasi &amp; KI
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('profil-dosen.edit')" :active="request()->routeIs('profil-dosen.*')">
-                    Kualifikasi Dosen
-                </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
-                <x-responsive-nav-link :href="route('review.index')" :active="request()->routeIs('review.*')">
-                    Review
-                </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->hasRole(\App\Models\Role::KEUANGAN))
-                <x-responsive-nav-link :href="route('pencairan.index')" :active="request()->routeIs('pencairan.*')">
-                    Pencairan
-                </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
-                <x-responsive-nav-link :href="route('pengesahan.index')" :active="request()->routeIs('pengesahan.*')">
-                    Pengesahan
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('verifikasi-karya.index')" :active="request()->routeIs('verifikasi-karya.*')">
-                    Verifikasi Karya
-                </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->hasRole(\App\Models\Role::OPERATOR, \App\Models\Role::ADMIN_LPPM))
-                <x-responsive-nav-link :href="route('pemantauan.index')" :active="request()->routeIs('pemantauan.*')">
-                    Pemantauan
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('verifikasi.index')" :active="request()->routeIs('verifikasi.*')">
-                    Verifikasi
-                </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN))
-                <x-responsive-nav-link :href="route('pimpinan.index')" :active="request()->routeIs('pimpinan.*')">
-                    Ringkasan
-                </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_SISTEM))
-                <x-responsive-nav-link :href="route('sistem.pengguna.index')" :active="request()->routeIs('sistem.*')">
-                    Pengguna
-                </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_LPPM))
-                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
-                    {{ __('Admin') }}
-                </x-responsive-nav-link>
-            @endif
-            @can('kelola-pengumuman')
-                <x-responsive-nav-link :href="route('kelola.pengumuman.index')" :active="request()->routeIs('kelola.pengumuman.*')">
-                    Kelola Pengumuman
-                </x-responsive-nav-link>
-            @endcan
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
-    </div>
-</nav>
+    <nav class="flex-1 overflow-y-auto pb-6">
+        @foreach ($menu as $judul => $daftar)
+            @continue(empty($daftar))
+            <p class="sidebar-heading">{{ $judul }}</p>
+            <ul class="space-y-1">
+                @foreach (array_filter($daftar) as [$label, $rute, $pola, $ikon])
+                    <li>
+                        <x-nav-link :href="route($rute)" :active="request()->routeIs(...$pola)" :ikon="$ikon">{{ $label }}</x-nav-link>
+                    </li>
+                @endforeach
+            </ul>
+        @endforeach
+    </nav>
+</aside>

@@ -5,14 +5,14 @@
             @if (Auth::user()->unreadNotifications()->exists())
                 <form method="POST" action="{{ route('notifikasi.baca-semua') }}">
                     @csrf
-                    <x-secondary-button type="submit">Tandai semua sudah dibaca</x-secondary-button>
+                    <x-secondary-button type="submit" ikon="check-square">Tandai semua sudah dibaca</x-secondary-button>
                 </form>
             @endif
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-4xl px-4 sm:px-6 lg:px-8">
             <x-pesan />
             <x-kartu>
                 <ul class="divide-y divide-gray-100">

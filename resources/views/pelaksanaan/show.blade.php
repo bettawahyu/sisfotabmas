@@ -21,12 +21,12 @@
         </p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
 
             @if ($templat->isNotEmpty())
-                <x-kartu judul="Templat">
+                <x-kartu ikon="file" judul="Templat">
                     <ul class="space-y-1 text-sm">
                         @foreach ($templat as $t)
                             <li><a class="text-indigo-700 underline" href="{{ route('templat.unduh', $t) }}">{{ $t->nama }}</a> <span class="text-gray-500">· {{ $t->namaJenis() }}</span></li>
@@ -35,7 +35,7 @@
                 </x-kartu>
             @endif
 
-            <x-kartu judul="Laporan kemajuan">
+            <x-kartu ikon="trending-up" judul="Laporan kemajuan">
                 @if ($laporanKemajuan)
                     <dl class="grid gap-3 text-sm sm:grid-cols-3">
                         <div><dt class="text-gray-500">Dikirim</dt><dd>{{ $laporanKemajuan->diajukan_at->translatedFormat('j F Y') }}</dd></div>
@@ -61,14 +61,14 @@
                     <form method="POST" action="{{ route('pelaksanaan.laporan-kemajuan.store', $proposal) }}" enctype="multipart/form-data" class="grid gap-4 sm:grid-cols-2">
                         @csrf
                         <div class="sm:col-span-2">
-                            <x-input-label for="ringkasan" value="Ringkasan kemajuan" />
+                            <x-input-label for="ringkasan" value="Ringkasan kemajuan" ikon="align-left" />
                             <textarea id="ringkasan" name="ringkasan" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>{{ old('ringkasan') }}</textarea>
                         </div>
-                        <div><x-input-label for="persentase_capaian" value="Capaian kegiatan (%)" /><x-text-input id="persentase_capaian" name="persentase_capaian" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_capaian')" required /></div>
-                        <div><x-input-label for="persentase_anggaran_terpakai" value="Anggaran terpakai (%)" /><x-text-input id="persentase_anggaran_terpakai" name="persentase_anggaran_terpakai" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_anggaran_terpakai')" required /></div>
-                        <div><x-input-label for="laporan" value="Laporan kemajuan (PDF)" /><input id="laporan" name="laporan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
-                        <div><x-input-label for="keuangan" value="Laporan keuangan termin 1 (PDF)" /><input id="keuangan" name="keuangan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
-                        <div class="sm:col-span-2"><x-primary-button onclick="return confirm('Kirim laporan kemajuan? Setelah dikirim, laporan tidak bisa diubah.')">Kirim laporan kemajuan</x-primary-button></div>
+                        <div><x-input-label for="persentase_capaian" value="Capaian kegiatan (%)" ikon="percent" /><x-text-input id="persentase_capaian" name="persentase_capaian" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_capaian')" required /></div>
+                        <div><x-input-label for="persentase_anggaran_terpakai" value="Anggaran terpakai (%)" ikon="dollar-sign" /><x-text-input id="persentase_anggaran_terpakai" name="persentase_anggaran_terpakai" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_anggaran_terpakai')" required /></div>
+                        <div><x-input-label for="laporan" value="Laporan kemajuan (PDF)" ikon="paperclip" /><input id="laporan" name="laporan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
+                        <div><x-input-label for="keuangan" value="Laporan keuangan termin 1 (PDF)" ikon="paperclip" /><input id="keuangan" name="keuangan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
+                        <div class="sm:col-span-2"><x-primary-button onclick="return confirm('Kirim laporan kemajuan? Setelah dikirim, laporan tidak bisa diubah.')" ikon="send">Kirim laporan kemajuan</x-primary-button></div>
                     </form>
                 @else
                     <p class="text-sm text-gray-600">Laporan kemajuan belum dikirim{{ $periode->tgl_laporan_kemajuan ? '. Batas '.$periode->tgl_laporan_kemajuan->translatedFormat('j F Y') : '' }}.</p>
@@ -76,7 +76,7 @@
             </x-kartu>
 
             @if ($laporanKemajuan)
-                <x-kartu judul="Laporan akhir">
+                <x-kartu ikon="flag" judul="Laporan akhir">
                     @if ($laporanAkhir && $laporanAkhir->status !== Laporan::DIKEMBALIKAN)
                         <dl class="grid gap-3 text-sm sm:grid-cols-3">
                             <div><dt class="text-gray-500">Dikirim</dt><dd>{{ $laporanAkhir->diajukan_at->translatedFormat('j F Y') }}</dd></div>
@@ -98,14 +98,14 @@
                             <form method="POST" action="{{ route('pelaksanaan.laporan-akhir.store', $proposal) }}" enctype="multipart/form-data" class="grid gap-4 sm:grid-cols-2">
                                 @csrf
                                 <div class="sm:col-span-2">
-                                    <x-input-label for="ringkasan_akhir" value="Ringkasan hasil" />
+                                    <x-input-label for="ringkasan_akhir" value="Ringkasan hasil" ikon="align-left" />
                                     <textarea id="ringkasan_akhir" name="ringkasan" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>{{ old('ringkasan') }}</textarea>
                                 </div>
-                                <div><x-input-label for="capaian_akhir" value="Capaian kegiatan (%)" /><x-text-input id="capaian_akhir" name="persentase_capaian" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_capaian', 100)" required /></div>
+                                <div><x-input-label for="capaian_akhir" value="Capaian kegiatan (%)" ikon="percent" /><x-text-input id="capaian_akhir" name="persentase_capaian" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_capaian', 100)" required /></div>
                                 <div></div>
-                                <div><x-input-label for="laporan_akhir" value="Laporan akhir (PDF)" /><input id="laporan_akhir" name="laporan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
-                                <div><x-input-label for="keuangan_akhir" value="Laporan keuangan 100% (PDF)" /><input id="keuangan_akhir" name="keuangan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
-                                <div class="sm:col-span-2"><x-primary-button>Kirim laporan akhir</x-primary-button></div>
+                                <div><x-input-label for="laporan_akhir" value="Laporan akhir (PDF)" ikon="paperclip" /><input id="laporan_akhir" name="laporan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
+                                <div><x-input-label for="keuangan_akhir" value="Laporan keuangan 100% (PDF)" ikon="paperclip" /><input id="keuangan_akhir" name="keuangan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
+                                <div class="sm:col-span-2"><x-primary-button ikon="send">Kirim laporan akhir</x-primary-button></div>
                             </form>
                         @else
                             <p class="text-sm text-gray-600">{{ $monev ? 'Laporan akhir belum dikirim.' : 'Laporan akhir dikirim setelah hasil monev keluar.' }}{{ $periode->tgl_laporan_akhir ? ' Batas '.$periode->tgl_laporan_akhir->translatedFormat('j F Y').'.' : '' }}</p>
@@ -114,7 +114,7 @@
                 </x-kartu>
             @endif
 
-            <x-kartu judul="Capaian luaran">
+            <x-kartu ikon="target" judul="Capaian luaran">
                 <p class="mb-4 text-sm text-gray-600">Termin 2 dicairkan setelah setiap luaran wajib divalidasi operator minimal berstatus sudah dikirim (submitted).</p>
                 <div class="space-y-4">
                     @foreach ($proposal->luaran as $luaran)
@@ -153,7 +153,7 @@
                                         </x-select-input>
                                         <p class="w-full -mt-2 text-xs text-gray-500">Belum ada di daftar? Tambahkan dulu di <a href="{{ route('karya.'.\App\Services\AlurKarya::slug(new $model).'.create') }}" class="text-indigo-700 hover:underline">halaman publikasi, HKI, dan paten</a>.</p>
                                     @endif
-                                    <x-secondary-button type="submit">Simpan</x-secondary-button>
+                                    <x-secondary-button type="submit" ikon="save">Simpan</x-secondary-button>
                                 </form>
                             @endif
                         </div>
@@ -161,18 +161,18 @@
                 </div>
             </x-kartu>
 
-            <x-kartu judul="Logbook kegiatan">
+            <x-kartu ikon="book" judul="Logbook kegiatan">
                 @if ($bisaMencatat)
                     <form method="POST" action="{{ route('pelaksanaan.logbook.store', $proposal) }}" enctype="multipart/form-data" class="mb-6 grid gap-4 sm:grid-cols-4">
                         @csrf
-                        <div><x-input-label for="tanggal" value="Tanggal" /><x-text-input id="tanggal" name="tanggal" type="date" class="mt-1 block w-full" :value="old('tanggal', today()->toDateString())" :max="today()->toDateString()" required /></div>
-                        <div><x-input-label for="persentase_progres" value="Progres (%, opsional)" /><x-text-input id="persentase_progres" name="persentase_progres" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_progres')" /></div>
-                        <div class="sm:col-span-2"><x-input-label for="bukti" value="Bukti (PDF/JPG/PNG, opsional)" /><input id="bukti" name="bukti" type="file" accept="application/pdf,image/jpeg,image/png" class="mt-1 block w-full text-sm"></div>
+                        <div><x-input-label for="tanggal" value="Tanggal" ikon="calendar" /><x-text-input id="tanggal" name="tanggal" type="date" class="mt-1 block w-full" :value="old('tanggal', today()->toDateString())" :max="today()->toDateString()" required /></div>
+                        <div><x-input-label for="persentase_progres" value="Progres (%, opsional)" ikon="percent" /><x-text-input id="persentase_progres" name="persentase_progres" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_progres')" /></div>
+                        <div class="sm:col-span-2"><x-input-label for="bukti" value="Bukti (PDF/JPG/PNG, opsional)" ikon="paperclip" /><input id="bukti" name="bukti" type="file" accept="application/pdf,image/jpeg,image/png" class="mt-1 block w-full text-sm"></div>
                         <div class="sm:col-span-4">
-                            <x-input-label for="kegiatan" value="Kegiatan" />
+                            <x-input-label for="kegiatan" value="Kegiatan" ikon="activity" />
                             <textarea id="kegiatan" name="kegiatan" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>{{ old('kegiatan') }}</textarea>
                         </div>
-                        <div class="sm:col-span-4"><x-primary-button>Simpan entri</x-primary-button></div>
+                        <div class="sm:col-span-4"><x-primary-button ikon="save">Simpan entri</x-primary-button></div>
                     </form>
                 @endif
 

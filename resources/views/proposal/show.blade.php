@@ -22,8 +22,8 @@
         <p class="mt-1 text-sm text-gray-600">{{ $periode->nama }} · {{ $periode->skema->jenis_kegiatan->label() }} · Ketua {{ $proposal->ketua->namaLengkap() }}</p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
 
             @if ($proposal->status === StatusProposal::Dikembalikan)
@@ -36,7 +36,7 @@
             @endif
 
             @if ($bisaDiubah)
-                <x-kartu judul="Kelengkapan sebelum dikirim">
+                <x-kartu ikon="check-square" judul="Kelengkapan sebelum dikirim">
                     @if ($kekurangan === [])
                         <p class="text-sm text-green-700">Semua syarat terpenuhi.</p>
                     @else
@@ -49,7 +49,7 @@
                     <div class="mt-4 flex flex-wrap gap-3">
                         <form method="POST" action="{{ route('proposal.kirim', $proposal) }}">
                             @csrf
-                            <x-primary-button :disabled="$kekurangan !== []" class="disabled:opacity-50">
+                            <x-primary-button :disabled="$kekurangan !== []" class="disabled:opacity-50" ikon="send">
                                 {{ $proposal->status === StatusProposal::Dikembalikan ? 'Kirim perbaikan ke LPPM' : 'Kirim untuk pengesahan' }}
                             </x-primary-button>
                         </form>
@@ -57,7 +57,7 @@
                             <form method="POST" action="{{ route('proposal.destroy', $proposal) }}" onsubmit="return confirm('Hapus draf ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <x-danger-button>Hapus draf</x-danger-button>
+                                <x-danger-button ikon="trash-2">Hapus draf</x-danger-button>
                             </form>
                         @endcan
                     </div>
@@ -65,16 +65,16 @@
             @endif
 
             @if ($proposal->menungguPengesahan() && $user->bolehMengesahkan($proposal))
-                <x-kartu judul="Pengesahan">
+                <x-kartu ikon="pen-tool" judul="Pengesahan">
                     <div class="flex flex-wrap items-start gap-6">
                         <form method="POST" action="{{ route('pengesahan.sahkan', $proposal) }}">
                             @csrf
-                            <x-primary-button>Sahkan</x-primary-button>
+                            <x-primary-button ikon="check-circle">Sahkan</x-primary-button>
                         </form>
                         <form method="POST" action="{{ route('pengesahan.tolak', $proposal) }}" class="flex flex-1 flex-wrap gap-3">
                             @csrf
                             <x-text-input name="catatan" placeholder="Alasan dikembalikan ke ketua" class="flex-1" required />
-                            <x-danger-button>Kembalikan ke ketua</x-danger-button>
+                            <x-danger-button ikon="corner-up-left">Kembalikan ke ketua</x-danger-button>
                         </form>
                     </div>
                 </x-kartu>
@@ -87,30 +87,30 @@
             @endif
 
             @if ($proposal->status === StatusProposal::Diajukan && $user->hasRole(Role::ADMIN_LPPM))
-                <x-kartu judul="Seleksi administrasi">
+                <x-kartu ikon="filter" judul="Seleksi administrasi">
                     <div class="space-y-4">
                         <form method="POST" action="{{ route('admin.seleksi.lolos', $proposal) }}" class="flex flex-wrap gap-3">
                             @csrf
                             <x-text-input name="catatan" placeholder="Catatan (opsional)" class="flex-1" />
-                            <x-primary-button>Lolos administrasi</x-primary-button>
+                            <x-primary-button ikon="check-circle">Lolos administrasi</x-primary-button>
                         </form>
                         <form method="POST" action="{{ route('admin.seleksi.kembalikan', $proposal) }}" class="flex flex-wrap gap-3">
                             @csrf
                             <x-text-input name="catatan" placeholder="Yang harus diperbaiki" class="flex-1" required />
                             <x-text-input name="batas_perbaikan" type="date" required />
-                            <x-secondary-button type="submit">Kembalikan</x-secondary-button>
+                            <x-secondary-button type="submit" ikon="corner-up-left">Kembalikan</x-secondary-button>
                         </form>
                         <form method="POST" action="{{ route('admin.seleksi.tolak', $proposal) }}" class="flex flex-wrap gap-3">
                             @csrf
                             <x-text-input name="catatan" placeholder="Alasan ditolak" class="flex-1" required />
-                            <x-danger-button>Tolak</x-danger-button>
+                            <x-danger-button ikon="x-circle">Tolak</x-danger-button>
                         </form>
                     </div>
                 </x-kartu>
             @endif
 
             @if ($proposal->nilai_akhir !== null && in_array($proposal->status, [StatusProposal::Disetujui, StatusProposal::Didanai, StatusProposal::Berjalan, StatusProposal::Dimonev, StatusProposal::Selesai, StatusProposal::TidakDidanai], true))
-                <x-kartu judul="Hasil penilaian">
+                <x-kartu ikon="star" judul="Hasil penilaian">
                     <dl class="grid gap-3 text-sm sm:grid-cols-3">
                         <div><dt class="text-gray-500">Nilai akhir</dt><dd class="text-lg font-semibold">{{ number_format($proposal->nilai_akhir, 2, ',', '.') }}</dd></div>
                         <div><dt class="text-gray-500">Keputusan</dt><dd>{{ $proposal->status === StatusProposal::TidakDidanai ? 'Tidak didanai' : 'Didanai' }}</dd></div>
@@ -131,7 +131,7 @@
             @endif
 
             @if ($proposal->no_kontrak)
-                <x-kartu judul="Kontrak dan pencairan">
+                <x-kartu ikon="file-plus" judul="Kontrak dan pencairan">
                     <dl class="grid gap-3 text-sm sm:grid-cols-3">
                         <div><dt class="text-gray-500">Nomor kontrak</dt><dd>{{ $proposal->no_kontrak }}</dd></div>
                         <div><dt class="text-gray-500">Tanggal kontrak</dt><dd>{{ $proposal->tgl_kontrak->translatedFormat('j F Y') }}</dd></div>
@@ -153,19 +153,19 @@
             @endif
 
             @if (in_array($proposal->status, [StatusProposal::Berjalan, StatusProposal::Dimonev, StatusProposal::Selesai], true))
-                <x-kartu judul="Pelaksanaan">
+                <x-kartu ikon="activity" judul="Pelaksanaan">
                     <p class="text-sm text-gray-600">Termin 1 sudah dicairkan, jadi logbook, laporan, dan capaian luaran kegiatan ini dikelola di menu Pelaksanaan.</p>
                     <a href="{{ route('pelaksanaan.show', $proposal) }}" class="mt-3 inline-block text-sm font-medium text-indigo-700 hover:underline">Buka di menu Pelaksanaan</a>
                 </x-kartu>
             @endif
 
-            <x-kartu judul="Identitas">
+            <x-kartu ikon="info" judul="Identitas">
                 @if ($bisaDiubah)
                     <form method="POST" action="{{ route('proposal.update', $proposal) }}" class="space-y-6">
                         @csrf
                         @method('PUT')
                         @include('proposal.partials.identitas-form', ['periode' => $periode])
-                        <x-primary-button>Simpan identitas</x-primary-button>
+                        <x-primary-button ikon="save">Simpan identitas</x-primary-button>
                     </form>
                 @else
                     <dl class="grid gap-3 text-sm sm:grid-cols-2">
@@ -180,7 +180,7 @@
                 @endif
             </x-kartu>
 
-            <x-kartu judul="Substansi proposal (PDF)">
+            <x-kartu ikon="file-text" judul="Substansi proposal (PDF)">
                 @if ($proposal->berkasSubstansi)
                     <p class="text-sm"><a class="text-indigo-700 underline" href="{{ route('proposal.substansi.show', $proposal) }}">{{ $proposal->berkasSubstansi->nama_asli }}</a>
                         <span class="text-gray-500">· diunggah {{ $proposal->berkasSubstansi->created_at->translatedFormat('d M Y H:i') }}</span></p>
@@ -191,7 +191,7 @@
                     <form method="POST" action="{{ route('proposal.substansi.store', $proposal) }}" enctype="multipart/form-data" class="mt-4 flex flex-wrap items-center gap-3">
                         @csrf
                         <input type="file" name="berkas" accept="application/pdf" required class="text-sm">
-                        <x-secondary-button type="submit">Unggah</x-secondary-button>
+                        <x-secondary-button type="submit" ikon="upload">Unggah</x-secondary-button>
                     </form>
                     <p class="mt-2 text-xs text-gray-500">Gunakan templat dari LPPM. PDF, maksimal 10 MB.</p>
                 @endif
@@ -207,7 +207,7 @@
                 @endif
             </x-kartu>
 
-            <x-kartu judul="Tim">
+            <x-kartu ikon="users" judul="Tim">
                 <table class="min-w-full text-sm">
                     <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Nama</th><th class="py-2 pe-4 font-medium">Jenis</th><th class="py-2 pe-4 font-medium">Peran</th><th class="py-2 pe-4 font-medium">Konfirmasi</th><th></th></tr></thead>
                     <tbody>
@@ -245,14 +245,14 @@
                         <x-text-input name="institusi" placeholder="Institusi" x-show="tipe === 'eksternal'" :value="old('institusi')" />
                         <x-text-input name="peran" placeholder="Peran" :value="old('peran')" />
                         <x-text-input name="uraian_tugas" placeholder="Uraian tugas" class="sm:col-span-2" :value="old('uraian_tugas')" />
-                        <div><x-secondary-button type="submit">Tambah anggota</x-secondary-button></div>
+                        <div><x-secondary-button type="submit" ikon="plus">Tambah anggota</x-secondary-button></div>
                     </form>
                     <p class="mt-2 text-xs text-gray-500">Anggota dosen menerima undangan di halaman Proposal Saya dan harus menyatakan bersedia sebelum proposal dikirim.</p>
                 @endif
             </x-kartu>
 
             @if ($isPkm)
-                <x-kartu judul="Mitra">
+                <x-kartu ikon="briefcase" judul="Mitra">
                     @forelse ($proposal->mitra as $mitra)
                         <div class="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
                             <div><span class="font-medium">{{ $mitra->nama_mitra }}</span> <span class="text-gray-500">· {{ $mitra->jenis_mitra }} · {{ $mitra->alamat }}</span></div>
@@ -279,13 +279,13 @@
                             <x-text-input name="alamat" placeholder="Alamat" />
                             <x-text-input name="kontak" placeholder="Kontak" />
                             <x-text-input name="dana_pendamping" type="number" min="0" placeholder="Dana pendamping (Rp)" />
-                            <div><x-secondary-button type="submit">Tambah mitra</x-secondary-button></div>
+                            <div><x-secondary-button type="submit" ikon="plus">Tambah mitra</x-secondary-button></div>
                         </form>
                     @endif
                 </x-kartu>
             @endif
 
-            <x-kartu judul="Rencana anggaran belanja (RAB)">
+            <x-kartu ikon="dollar-sign" judul="Rencana anggaran belanja (RAB)">
                 <p class="mb-4 text-sm text-gray-600">Plafon <x-rupiah :nilai="$periode->dana_maksimal" />.
                     @if ($periode->honor_diizinkan)
                         Honorarium diizinkan{{ $periode->batas_honor_persen ? ', maksimal '.$periode->batas_honor_persen.'% dari total' : '' }}.
@@ -342,12 +342,12 @@
                         @if ($proposal->lama_tahun > 1)
                             <x-text-input name="tahun_ke" type="number" min="1" :max="$proposal->lama_tahun" placeholder="Tahun ke-" :value="old('tahun_ke', 1)" />
                         @endif
-                        <div><x-secondary-button type="submit">Tambah item</x-secondary-button></div>
+                        <div><x-secondary-button type="submit" ikon="plus">Tambah item</x-secondary-button></div>
                     </form>
                 @endif
             </x-kartu>
 
-            <x-kartu judul="Target luaran">
+            <x-kartu ikon="target" judul="Target luaran">
                 @forelse ($proposal->luaran as $luaran)
                     <div class="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
                         <div><span class="font-medium">{{ $luaran->jenis->label() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></div>
@@ -378,12 +378,12 @@
                             @endforeach
                         </x-select-input>
                         <x-text-input name="target_keterangan" placeholder="Target, misalnya jurnal Sinta 2" />
-                        <div><x-secondary-button type="submit">Tambah luaran</x-secondary-button></div>
+                        <div><x-secondary-button type="submit" ikon="plus">Tambah luaran</x-secondary-button></div>
                     </form>
                 @endif
             </x-kartu>
 
-            <x-kartu judul="Riwayat status">
+            <x-kartu ikon="clock" judul="Riwayat status">
                 @forelse ($proposal->riwayatStatus as $log)
                     <div class="border-b border-gray-100 py-2 text-sm last:border-0">
                         <span class="text-gray-500">{{ $log->created_at->translatedFormat('d M Y H:i') }}</span>

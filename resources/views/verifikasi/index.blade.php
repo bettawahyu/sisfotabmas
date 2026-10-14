@@ -7,11 +7,11 @@
         <p class="mt-1 text-sm text-gray-600">Laporan akhir dan capaian luaran yang menunggu diperiksa.</p>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
 
-            <x-kartu :judul="'Laporan akhir ('.$laporan->count().')'">
+            <x-kartu ikon="flag" :judul="'Laporan akhir ('.$laporan->count().')'">
                 @forelse ($laporan as $l)
                     <div class="border-b border-gray-100 py-4 first:pt-0 last:border-0 last:pb-0 text-sm">
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -30,8 +30,8 @@
                         <form method="POST" action="{{ route('verifikasi.laporan', $l) }}" class="mt-3 flex flex-wrap gap-3">
                             @csrf
                             <x-text-input name="catatan" placeholder="Catatan (wajib jika dikembalikan)" class="flex-1" />
-                            <x-secondary-button type="submit" name="aksi" value="kembalikan">Kembalikan</x-secondary-button>
-                            <x-primary-button name="aksi" value="terima">Verifikasi</x-primary-button>
+                            <x-secondary-button type="submit" name="aksi" value="kembalikan" ikon="corner-up-left">Kembalikan</x-secondary-button>
+                            <x-primary-button name="aksi" value="terima" ikon="check-circle">Verifikasi</x-primary-button>
                         </form>
                     </div>
                 @empty
@@ -39,7 +39,7 @@
                 @endforelse
             </x-kartu>
 
-            <x-kartu :judul="'Capaian luaran ('.$luaran->count().')'">
+            <x-kartu ikon="target" :judul="'Capaian luaran ('.$luaran->count().')'">
                 @forelse ($luaran as $l)
                     <div class="border-b border-gray-100 py-4 first:pt-0 last:border-0 last:pb-0 text-sm">
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -57,8 +57,8 @@
                         <form method="POST" action="{{ route('verifikasi.luaran', $l) }}" class="mt-3 flex flex-wrap gap-3">
                             @csrf
                             <x-text-input name="catatan" placeholder="Catatan (wajib jika ditolak)" class="flex-1" />
-                            <x-secondary-button type="submit" name="aksi" value="tolak">Tolak</x-secondary-button>
-                            <x-primary-button name="aksi" value="valid">Valid</x-primary-button>
+                            <x-secondary-button type="submit" name="aksi" value="tolak" ikon="x-circle">Tolak</x-secondary-button>
+                            <x-primary-button name="aksi" value="valid" ikon="check-circle">Valid</x-primary-button>
                         </form>
                     </div>
                 @empty

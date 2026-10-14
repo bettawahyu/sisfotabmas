@@ -6,11 +6,11 @@
         @endunless
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6">
+        <div class="max-w-6xl px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
 
-            <x-kartu judul="Menunggu termin 1">
+            <x-kartu ikon="clock" judul="Menunggu termin 1">
                 @forelse ($menunggu as $p)
                     <div class="border-b border-gray-100 py-4 first:pt-0 last:border-0 last:pb-0">
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -23,13 +23,13 @@
                         @if ($bisaCatat)
                             <form method="POST" action="{{ route('pencairan.store', $p) }}" enctype="multipart/form-data" class="mt-3 flex flex-wrap items-end gap-3">
                                 @csrf
-                                <div><x-input-label value="Tanggal cair" /><x-text-input type="date" name="tgl_cair" class="mt-1" :value="today()->toDateString()" required /></div>
-                                <div><x-input-label value="Bukti transfer (PDF atau gambar)" /><input type="file" name="bukti" accept="application/pdf,image/*" required class="mt-1 text-sm"></div>
+                                <div><x-input-label value="Tanggal cair" ikon="calendar" /><x-text-input type="date" name="tgl_cair" class="mt-1" :value="today()->toDateString()" required /></div>
+                                <div><x-input-label value="Bukti transfer (PDF atau gambar)" ikon="paperclip" /><input type="file" name="bukti" accept="application/pdf,image/*" required class="mt-1 text-sm"></div>
                                 <label class="flex items-center gap-2 text-sm text-gray-700 pb-2">
                                     <input type="hidden" name="pajak_lunas" value="0">
                                     <input type="checkbox" name="pajak_lunas" value="1" class="rounded border-gray-300"> Pajak sudah dipotong
                                 </label>
-                                <x-primary-button>Catat termin 1</x-primary-button>
+                                <x-primary-button ikon="edit-3">Catat termin 1</x-primary-button>
                             </form>
                         @endif
                     </div>
@@ -38,7 +38,7 @@
                 @endforelse
             </x-kartu>
 
-            <x-kartu judul="Menunggu termin 2">
+            <x-kartu ikon="clock" judul="Menunggu termin 2">
                 @forelse ($termin2 as $p)
                     <div class="border-b border-gray-100 py-4 first:pt-0 last:border-0 last:pb-0">
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -57,13 +57,13 @@
                         @elseif ($bisaCatat)
                             <form method="POST" action="{{ route('pencairan.termin-2.store', $p) }}" enctype="multipart/form-data" class="mt-3 flex flex-wrap items-end gap-3">
                                 @csrf
-                                <div><x-input-label value="Tanggal cair" /><x-text-input type="date" name="tgl_cair" class="mt-1" :value="today()->toDateString()" required /></div>
-                                <div><x-input-label value="Bukti transfer (PDF atau gambar)" /><input type="file" name="bukti" accept="application/pdf,image/*" required class="mt-1 text-sm"></div>
+                                <div><x-input-label value="Tanggal cair" ikon="calendar" /><x-text-input type="date" name="tgl_cair" class="mt-1" :value="today()->toDateString()" required /></div>
+                                <div><x-input-label value="Bukti transfer (PDF atau gambar)" ikon="paperclip" /><input type="file" name="bukti" accept="application/pdf,image/*" required class="mt-1 text-sm"></div>
                                 <label class="flex items-center gap-2 text-sm text-gray-700 pb-2">
                                     <input type="hidden" name="pajak_lunas" value="0">
                                     <input type="checkbox" name="pajak_lunas" value="1" class="rounded border-gray-300"> Pajak sudah dipotong
                                 </label>
-                                <x-primary-button>Catat termin 2</x-primary-button>
+                                <x-primary-button ikon="edit-3">Catat termin 2</x-primary-button>
                             </form>
                         @else
                             <p class="mt-2 text-sm text-green-700">Syarat lengkap, menunggu keuangan.</p>
@@ -74,9 +74,9 @@
                 @endforelse
             </x-kartu>
 
-            <x-kartu judul="Riwayat pencairan">
+            <x-kartu ikon="clock" judul="Riwayat pencairan">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
+                    <table class="min-w-full text-sm" data-tabel-data>
                         <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Tanggal</th><th class="py-2 pe-4 font-medium">Proposal</th><th class="py-2 pe-4 font-medium">Termin</th><th class="py-2 pe-4 font-medium text-end">Jumlah</th><th class="py-2 pe-4 font-medium">Pajak</th><th class="py-2 pe-4 font-medium">Dicatat oleh</th><th class="py-2 font-medium">Bukti</th></tr></thead>
                         <tbody>
                             @forelse ($riwayat as $r)
@@ -95,7 +95,6 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4">{{ $riwayat->links() }}</div>
             </x-kartu>
         </div>
     </div>

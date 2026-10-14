@@ -7,18 +7,18 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Publikasi, HKI, dan Paten</h2>
-            <a href="{{ route("karya.{$jenis}.create") }}" class="inline-flex items-center px-4 py-2 bg-gray-800 rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">Tambah {{ AlurKarya::LABEL[$jenis] }}</a>
+            <x-tombol-tautan :href="route('karya.'.$jenis.'.create')" ikon="plus">Tambah {{ AlurKarya::LABEL[$jenis] }}</x-tombol-tautan>
         </div>
         @include('karya._tab')
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="px-4 sm:px-6 lg:px-8">
             <x-pesan />
             <x-kartu>
                 <p class="mb-4 text-sm text-gray-600">Data yang Anda isi atau yang mencantumkan nama Anda. Setiap data diperiksa kaprodi, lalu divalidasi LPPM. Data yang sudah valid bisa ditautkan ke capaian luaran proposal di halaman pelaksanaan.</p>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
+                    <table class="min-w-full text-sm" data-tabel-data>
                         <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Judul</th><th class="py-2 pe-4 font-medium">Jenis</th><th class="py-2 pe-4 font-medium">Status</th><th class="py-2 pe-4 font-medium">Verifikasi</th><th class="py-2 pe-4 font-medium">Luaran proposal</th><th></th></tr></thead>
                         <tbody>
                             @forelse ($karya as $k)

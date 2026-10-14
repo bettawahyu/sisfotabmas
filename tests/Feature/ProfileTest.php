@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
@@ -82,4 +84,50 @@ test('correct password must be provided to delete account', function () {
         ->assertRedirect('/profile');
 
     $this->assertNotNull($user->fresh());
+});
+
+test('profile photo can be uploaded, shown, replaced and removed', function () {
+    Storage::fake();
+    $user = User::factory()->create(['name' => 'Rina Hartati']);
+
+    $this->actingAs($user)->get('/dashboard')->assertSee('RH');
+
+    $this->actingAs($user)
+        ->post('/profile/foto', ['foto' => UploadedFile::fake()->image('foto.jpg', 300, 300)])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('/profile');
+
+    $pertama = $user->refresh()->foto_profil;
+    Storage::assertExists($pertama);
+    $this->actingAs($user)->get('/profile')->assertSee(route('foto-profil.show', $user));
+    $this->actingAs(User::factory()->create())->get(route('foto-profil.show', $user))->assertOk();
+
+    $this->actingAs($user)->post('/profile/foto', ['foto' => UploadedFile::fake()->image('baru.png', 200, 200)]);
+    Storage::assertMissing($pertama);
+    Storage::assertExists($user->refresh()->foto_profil);
+
+    $kedua = $user->foto_profil;
+    $this->actingAs($user)->delete('/profile/foto')->assertRedirect('/profile');
+    Storage::assertMissing($kedua);
+    expect($user->refresh()->foto_profil)->toBeNull();
+    $this->actingAs($user)->get(route('foto-profil.show', $user))->assertNotFound();
+});
+
+test('profile photo must be an image', function () {
+    Storage::fake();
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->from('/profile')
+        ->post('/profile/foto', ['foto' => UploadedFile::fake()->create('berkas.pdf', 100, 'application/pdf')])
+        ->assertSessionHasErrors('foto')
+        ->assertRedirect('/profile');
+
+    expect($user->refresh()->foto_profil)->toBeNull();
+});
+
+test('guests cannot see profile photos', function () {
+    $user = User::factory()->create();
+
+    $this->get(route('foto-profil.show', $user))->assertRedirect('/login');
 });

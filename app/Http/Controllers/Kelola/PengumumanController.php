@@ -22,7 +22,7 @@ class PengumumanController extends Controller
     public function index(): View
     {
         return view('kelola.pengumuman.index', [
-            'pengumuman' => Pengumuman::with('periode')->orderByDesc('is_pinned')->orderByDesc('terbit_at')->paginate(20),
+            'pengumuman' => Pengumuman::with('periode')->orderByDesc('is_pinned')->orderByDesc('terbit_at')->get(),
         ]);
     }
 

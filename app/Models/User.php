@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -76,6 +77,17 @@ class User extends Authenticatable
     public function penilaian(): HasMany
     {
         return $this->hasMany(Penilaian::class, 'reviewer_id');
+    }
+
+    /**
+     * Up to two initials from the user's name, shown when there is no profile photo.
+     */
+    public function inisial(): string
+    {
+        return Str::of($this->name)->squish()->explode(' ')
+            ->filter()->take(2)
+            ->map(fn (string $kata) => Str::upper(Str::substr($kata, 0, 1)))
+            ->implode('') ?: '?';
     }
 
     /**

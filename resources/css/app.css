@@ -1,3 +1,86 @@
+@import 'datatables.net-dt/css/dataTables.dataTables.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Dash UI look: base typography and a few shared pieces. */
+@layer base {
+    body {
+        @apply bg-gray-100 text-gray-600;
+    }
+}
+
+@layer components {
+    .sidebar-heading {
+        @apply px-6 pb-2 pt-5 text-xs font-bold uppercase tracking-wider text-gray-700;
+    }
+    .sidebar-link {
+        @apply mx-4 flex items-center gap-3 rounded-md px-4 py-2 text-sm text-gray-500 transition hover:bg-gray-700 hover:text-gray-200;
+    }
+    .sidebar-link.aktif {
+        @apply bg-gray-700 text-gray-200;
+    }
+    .sidebar-link svg {
+        @apply h-4 w-4 shrink-0 opacity-70;
+    }
+    .sidebar-link.aktif svg,
+    .sidebar-link:hover svg {
+        @apply opacity-100;
+    }
+}
+
+/* DataTables restyled to match the Dash UI tables. */
+div.dt-container {
+    @apply text-sm;
+}
+div.dt-container .dt-layout-row {
+    @apply my-3 flex flex-wrap items-center justify-between gap-3;
+}
+div.dt-container .dt-layout-row.dt-layout-table {
+    @apply my-0 block;
+}
+div.dt-container .dt-search input,
+div.dt-container .dt-input {
+    @apply rounded-md border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-800 shadow-sm focus:border-indigo-600 focus:ring-indigo-600;
+}
+div.dt-container .dt-search input {
+    @apply ms-0 w-64 max-w-full;
+}
+div.dt-container select.dt-input {
+    @apply me-1 py-1.5 pe-8;
+}
+div.dt-container .dt-info {
+    @apply text-gray-500;
+}
+div.dt-container .dt-paging .dt-paging-button,
+div.dt-container .dt-paging .dt-paging-button.disabled,
+div.dt-container .dt-paging .dt-paging-button.disabled:hover {
+    @apply ms-1 min-w-[2.25rem] rounded-md border border-gray-300 bg-white bg-none px-3 py-1 text-gray-700 shadow-none;
+}
+div.dt-container .dt-paging .dt-paging-button:hover {
+    @apply border-indigo-600 bg-white bg-none text-indigo-600 shadow-none !important;
+}
+div.dt-container .dt-paging .dt-paging-button.current,
+div.dt-container .dt-paging .dt-paging-button.current:hover {
+    @apply border-indigo-600 bg-indigo-600 bg-none text-white !important;
+}
+div.dt-container .dt-paging .dt-paging-button.disabled {
+    @apply cursor-default opacity-50;
+}
+table.dataTable > thead > tr > th,
+table.dataTable > thead > tr > td {
+    @apply border-b border-gray-300 bg-gray-200 py-3 pe-4 ps-3 text-xs font-semibold uppercase tracking-wide text-gray-700;
+}
+table.dataTable > tbody > tr > td {
+    @apply border-t border-gray-300 py-3 pe-4 ps-3;
+}
+table.dataTable > tbody > tr:hover > * {
+    @apply bg-gray-100;
+}
+table.dataTable.no-footer {
+    @apply border-b-0;
+}
+div.dt-container.dt-empty-footer tbody > tr:last-child > * {
+    @apply border-b border-gray-300;
+}
