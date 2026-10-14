@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Profil Dosen</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Kualifikasi Dosen</h2>
     </x-slot>
 
     <div class="py-12">
@@ -38,6 +38,10 @@
                     <div>
                         <x-input-label for="jabatan_fungsional" value="Jabatan fungsional" />
                         <x-text-input id="jabatan_fungsional" name="jabatan_fungsional" class="mt-1 block w-full" :value="old('jabatan_fungsional', $dosen?->jabatan_fungsional)" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil, opsional)" />
+                        <x-text-input id="google_scholar_id" name="google_scholar_id" class="mt-1 block w-full" :value="old('google_scholar_id', $dosen?->google_scholar_id)" placeholder="https://scholar.google.com/citations?user=..." />
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="prodi_id" value="Program studi (homebase)" />

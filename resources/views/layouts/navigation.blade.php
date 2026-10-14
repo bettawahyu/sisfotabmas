@@ -97,7 +97,7 @@
                         </x-dropdown-link>
                         @if (Auth::user()->hasRole(\App\Models\Role::DOSEN))
                             <x-dropdown-link :href="route('profil-dosen.edit')">
-                                Profil Dosen
+                                Kualifikasi Dosen
                             </x-dropdown-link>
                         @endif
 
@@ -144,7 +144,7 @@
                     Proposal
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('profil-dosen.edit')" :active="request()->routeIs('profil-dosen.*')">
-                    Profil Dosen
+                    Kualifikasi Dosen
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
