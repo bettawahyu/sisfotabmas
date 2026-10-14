@@ -57,10 +57,14 @@ test('only heads and system admins reach their own areas', function () {
     $this->actingAs(pengguna(Role::PIMPINAN_UNIT))->get(route('pimpinan.index'))->assertForbidden();
     $this->actingAs(pengguna(Role::ADMIN_LPPM))->get(route('sistem.pengguna.index'))->assertForbidden();
     $this->actingAs(pengguna(Role::PIMPINAN))->get(route('sistem.pengguna.index'))->assertForbidden();
-    $this->get(route('sistem.pengguna.index'))->assertRedirect('/login');
 
     $this->actingAs(pengguna(Role::PIMPINAN))->get(route('dashboard'))->assertSee(route('pimpinan.index'));
     $this->actingAs(pengguna(Role::ADMIN_SISTEM))->get(route('dashboard'))->assertSee(route('sistem.pengguna.index'));
+});
+
+test('guests are sent to login from both areas', function () {
+    $this->get(route('pimpinan.index'))->assertRedirect('/login');
+    $this->get(route('sistem.pengguna.index'))->assertRedirect('/login');
 });
 
 test('the system admin creates an account with several roles', function () {
