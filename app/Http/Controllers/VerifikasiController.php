@@ -24,7 +24,7 @@ class VerifikasiController extends Controller
                 ->get(),
             'luaran' => Luaran::where('status_validasi', Luaran::MENUNGGU)->where('status_capaian', '!=', Luaran::DIRENCANAKAN)
                 ->whereHas('proposal', fn ($q) => $q->whereIn('status', [StatusProposal::Berjalan, StatusProposal::Dimonev]))
-                ->with('proposal.ketua')
+                ->with('proposal.ketua', 'publikasi', 'hki', 'paten')
                 ->oldest('updated_at')
                 ->get(),
         ]);

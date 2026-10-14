@@ -86,6 +86,14 @@ class Luaran extends Model
         return $this->belongsTo(User::class, 'divalidasi_oleh');
     }
 
+    /**
+     * The publication, HKI or patent this output is reported as, if linked.
+     */
+    public function karya(): Publikasi|Hki|Paten|null
+    {
+        return $this->publikasi ?? $this->hki ?? $this->paten;
+    }
+
     public function namaCapaian(): string
     {
         return self::CAPAIAN[$this->status_capaian] ?? $this->status_capaian;

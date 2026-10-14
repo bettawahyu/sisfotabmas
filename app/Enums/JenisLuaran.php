@@ -2,6 +2,10 @@
 
 namespace App\Enums;
 
+use App\Models\Hki;
+use App\Models\Paten;
+use App\Models\Publikasi;
+
 enum JenisLuaran: string
 {
     case ArtikelJurnal = 'artikel_jurnal';
@@ -26,6 +30,22 @@ enum JenisLuaran: string
             self::VideoKegiatan => 'Video kegiatan',
             self::PublikasiMedia => 'Publikasi media',
             self::TestimoniMitra => 'Testimoni mitra',
+        };
+    }
+
+    /**
+     * The kind of entry on the publication, HKI and patent pages this output
+     * can be linked to, if any.
+     *
+     * @return class-string<Publikasi|Hki|Paten>|null
+     */
+    public function modelKarya(): ?string
+    {
+        return match ($this) {
+            self::ArtikelJurnal, self::Prosiding, self::Buku => Publikasi::class,
+            self::Hki => Hki::class,
+            self::Paten => Paten::class,
+            default => null,
         };
     }
 }

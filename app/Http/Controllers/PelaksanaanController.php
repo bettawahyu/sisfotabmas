@@ -9,6 +9,7 @@ use App\Models\Logbook;
 use App\Models\Luaran;
 use App\Models\Proposal;
 use App\Models\TemplateDokumen;
+use App\Services\AlurKarya;
 use App\Services\AlurPelaksanaan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,14 +27,19 @@ class PelaksanaanController extends Controller
     public function show(Request $request, Proposal $proposal, AlurPelaksanaan $alur): View
     {
         Gate::authorize('view', $proposal);
-        $proposal->load(['periode', 'logbook.pencatat', 'logbook.berkas', 'laporan.berkas', 'luaran']);
+        $proposal->load(['periode', 'logbook.pencatat', 'logbook.berkas', 'laporan.berkas', 'luaran.publikasi', 'luaran.hki', 'luaran.paten']);
         $isKetua = $proposal->isKetua($request->user()->dosen);
+        // What the lead can link each output to, keyed by model class.
+        $karyaKetua = $isKetua ? collect(AlurKarya::JENIS)->mapWithKeys(fn ($model) => [
+            $model => $model::milikDosen($request->user()->dosen)->where('status_verifikasi', '!=', $model::DITOLAK)->latest('updated_at')->get(),
+        ]) : collect();
         $laporanAkhir = $alur->laporanAkhir($proposal);
         $hasilMonev = $alur->hasilMonev($proposal);
 
         return view('proposal.pelaksanaan', [
             'proposal' => $proposal,
             'isKetua' => $isKetua,
+            'karyaKetua' => $karyaKetua,
             'bisaMencatat' => $alur->bisaMencatatLogbook($proposal) && $alur->anggotaTim($proposal, $request->user()),
             'laporanKemajuan' => $proposal->laporan->where('jenis', Laporan::KEMAJUAN)->sortByDesc('diajukan_at')->first(),
             'monev' => $hasilMonev,
@@ -90,9 +96,11 @@ class PelaksanaanController extends Controller
         $data = $request->validate([
             'status_capaian' => ['required', 'string', 'max:20'],
             'url_bukti' => ['nullable', 'url', 'max:2048'],
+            'karya_id' => ['nullable', 'integer'],
         ]);
 
-        $alur->laporCapaianLuaran($luaran, $data['status_capaian'], $data['url_bukti'] ?? null, $request->user());
+        $alur->laporCapaianLuaran($luaran, $data['status_capaian'], $data['url_bukti'] ?? null, $request->user(),
+            isset($data['karya_id']) ? (int) $data['karya_id'] : null);
 
         return back()->with('status', 'Capaian luaran tersimpan dan menunggu validasi operator.');
     }

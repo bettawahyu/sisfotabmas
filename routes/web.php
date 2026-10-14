@@ -179,4 +179,5 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('ad
     });
 });
 
+require __DIR__.'/karya.php';
 require __DIR__.'/auth.php';

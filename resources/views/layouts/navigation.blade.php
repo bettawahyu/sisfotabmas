@@ -22,6 +22,9 @@
                         <x-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
                             Proposal
                         </x-nav-link>
+                        <x-nav-link :href="route('karya.publikasi.index')" :active="request()->routeIs('karya.*')">
+                            Publikasi &amp; KI
+                        </x-nav-link>
                     @endif
                     @if (Auth::user()->hasRole(\App\Models\Role::REVIEWER))
                         <x-nav-link :href="route('review.index')" :active="request()->routeIs('review.*')">
@@ -36,6 +39,9 @@
                     @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
                         <x-nav-link :href="route('pengesahan.index')" :active="request()->routeIs('pengesahan.*')">
                             Pengesahan
+                        </x-nav-link>
+                        <x-nav-link :href="route('verifikasi-karya.index')" :active="request()->routeIs('verifikasi-karya.*')">
+                            Verifikasi Karya
                         </x-nav-link>
                     @endif
                     @if (Auth::user()->hasRole(\App\Models\Role::OPERATOR, \App\Models\Role::ADMIN_LPPM))
@@ -133,6 +139,9 @@
                 <x-responsive-nav-link :href="route('proposal.index')" :active="request()->routeIs('proposal.*', 'undangan.*')">
                     Proposal
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('karya.publikasi.index')" :active="request()->routeIs('karya.*')">
+                    Publikasi &amp; KI
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('profil-dosen.edit')" :active="request()->routeIs('profil-dosen.*')">
                     Profil Dosen
                 </x-responsive-nav-link>
@@ -150,6 +159,9 @@
             @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN_UNIT))
                 <x-responsive-nav-link :href="route('pengesahan.index')" :active="request()->routeIs('pengesahan.*')">
                     Pengesahan
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('verifikasi-karya.index')" :active="request()->routeIs('verifikasi-karya.*')">
+                    Verifikasi Karya
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasRole(\App\Models\Role::OPERATOR, \App\Models\Role::ADMIN_LPPM))

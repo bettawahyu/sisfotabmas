@@ -19,6 +19,22 @@ class Hki extends Model
     /** @use HasFactory<HkiFactory> */
     use HasFactory, MemilikiVerifikasi, SoftDeletes;
 
+    public const JENIS = [
+        'hak_cipta' => 'Hak cipta',
+        'merek' => 'Merek',
+        'desain_industri' => 'Desain industri',
+        'desain_tata_letak_sirkuit' => 'Desain tata letak sirkuit terpadu',
+        'rahasia_dagang' => 'Rahasia dagang',
+        'varietas_tanaman' => 'Perlindungan varietas tanaman',
+    ];
+
+    public const STATUS = [
+        'draft' => 'Draf',
+        'diajukan' => 'Diajukan',
+        'tercatat' => 'Tercatat atau terdaftar',
+        'ditolak' => 'Ditolak DJKI',
+    ];
+
     protected $table = 'hki';
 
     /**
@@ -39,5 +55,23 @@ class Hki extends Model
     public function pencipta(): HasMany
     {
         return $this->hasMany(HkiPencipta::class)->orderBy('urutan');
+    }
+
+    /**
+     * @return HasMany<HkiPencipta, $this>
+     */
+    public function kontributor(): HasMany
+    {
+        return $this->pencipta();
+    }
+
+    public function namaJenis(): string
+    {
+        return self::JENIS[$this->jenis] ?? $this->jenis;
+    }
+
+    public function namaStatus(): string
+    {
+        return self::STATUS[$this->status] ?? $this->status;
     }
 }
