@@ -38,6 +38,20 @@ test('a lecturer saves their profile', function () {
     expect($user->fresh()->dosen->identitasLengkap())->toBeTrue();
 });
 
+test('a lecturer saves a Google Scholar profile URL as its ID', function () {
+    $user = akun(Role::DOSEN);
+
+    $this->actingAs($user)->get(route('profil-dosen.edit'))->assertOk()
+        ->assertSee('Kualifikasi Dosen')->assertSee('Google Scholar');
+
+    $this->actingAs($user)->put(route('profil-dosen.update'), [
+        'nama' => 'Ani Lestari',
+        'google_scholar_id' => 'https://scholar.google.com/citations?user=AbC123xYz-0&hl=id',
+    ])->assertRedirect(route('profil-dosen.edit'));
+
+    expect($user->fresh()->dosen->google_scholar_id)->toBe('AbC123xYz-0');
+});
+
 test('a lecturer opens a call and creates a draft', function () {
     $dosen = Dosen::factory()->create();
     $periode = PeriodeHibah::factory()->create();
