@@ -17,11 +17,13 @@ use App\Http\Controllers\PemantauanController;
 use App\Http\Controllers\PencairanController;
 use App\Http\Controllers\PengesahanController;
 use App\Http\Controllers\PengumumanController;
+use App\Http\Controllers\PimpinanController;
 use App\Http\Controllers\ProfilDosenController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProposalBagianController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\Sistem\PenggunaController;
 use App\Http\Controllers\TemplateDokumenController;
 use App\Http\Controllers\UndanganController;
 use App\Http\Controllers\VerifikasiController;
@@ -133,6 +135,17 @@ Route::middleware(['auth', 'role:'.Role::PIMPINAN_UNIT])->prefix('pengesahan')->
     Route::get('/', [PengesahanController::class, 'index'])->name('index');
     Route::post('/{proposal}/sahkan', [PengesahanController::class, 'sahkan'])->name('sahkan');
     Route::post('/{proposal}/tolak', [PengesahanController::class, 'tolak'])->name('tolak');
+});
+
+// The LPPM or institution head only reads the summary.
+Route::middleware(['auth', 'role:'.Role::PIMPINAN])->prefix('pimpinan')->name('pimpinan.')->group(function () {
+    Route::get('/', [PimpinanController::class, 'index'])->name('index');
+});
+
+Route::middleware(['auth', 'role:'.Role::ADMIN_SISTEM])->prefix('sistem')->name('sistem.')->group(function () {
+    Route::redirect('/', '/sistem/pengguna')->name('dashboard');
+    Route::resource('pengguna', PenggunaController::class)->except(['show', 'destroy'])
+        ->parameters(['pengguna' => 'pengguna']);
 });
 
 Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('admin.')->group(function () {

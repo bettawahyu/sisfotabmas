@@ -46,6 +46,16 @@
                             Verifikasi
                         </x-nav-link>
                     @endif
+                    @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN))
+                        <x-nav-link :href="route('pimpinan.index')" :active="request()->routeIs('pimpinan.*')">
+                            Ringkasan
+                        </x-nav-link>
+                    @endif
+                    @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_SISTEM))
+                        <x-nav-link :href="route('sistem.pengguna.index')" :active="request()->routeIs('sistem.*')">
+                            Pengguna
+                        </x-nav-link>
+                    @endif
                     @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_LPPM))
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                             {{ __('Admin') }}
@@ -158,6 +168,16 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('verifikasi.index')" :active="request()->routeIs('verifikasi.*')">
                     Verifikasi
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->hasRole(\App\Models\Role::PIMPINAN))
+                <x-responsive-nav-link :href="route('pimpinan.index')" :active="request()->routeIs('pimpinan.*')">
+                    Ringkasan
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_SISTEM))
+                <x-responsive-nav-link :href="route('sistem.pengguna.index')" :active="request()->routeIs('sistem.*')">
+                    Pengguna
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasRole(\App\Models\Role::ADMIN_LPPM))
