@@ -136,8 +136,8 @@ test('the lead links an output to their own publication', function () {
     $proposal = proposalBerjalan();
     $ketua = $proposal->ketua;
     $luaran = $proposal->luaran()->where('kategori', 'wajib')->sole();
-    $milikKetua = Publikasi::factory()->olehDosen($ketua)->create();
-    $milikLain = Publikasi::factory()->olehDosen($this->dosen)->create();
+    $milikKetua = Publikasi::factory()->olehDosen($ketua)->create(['judul' => 'Model prediksi debit irigasi']);
+    $milikLain = Publikasi::factory()->olehDosen($this->dosen)->create(['judul' => 'Sistem pakar hama padi']);
 
     $this->actingAs($ketua->user)->get(route('proposal.pelaksanaan.show', $proposal))->assertOk()
         ->assertSee($milikKetua->judul)->assertDontSee($milikLain->judul);
