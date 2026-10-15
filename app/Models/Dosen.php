@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\JabatanFungsional;
 use Database\Factories\DosenFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,7 @@ class Dosen extends Model
     protected function casts(): array
     {
         return [
+            'jabatan_fungsional' => JabatanFungsional::class,
             'tgl_lahir' => 'date',
             'skor_sinta' => 'decimal:2',
             'sinkron_terakhir_at' => 'datetime',

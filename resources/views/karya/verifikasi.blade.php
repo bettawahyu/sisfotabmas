@@ -21,7 +21,7 @@
                                 <p class="text-gray-600">
                                     {{ $k->namaJenis() }} · {{ $k->namaStatus() }}
                                     @if ($jenis === 'publikasi')
-                                        · {{ $k->nama_wadah }} {{ $k->tahun }}{{ $k->peringkat ? ' · '.$k::PERINGKAT[$k->peringkat] : '' }}
+                                        · {{ $k->nama_wadah }} {{ $k->tahun }}{{ $k->peringkat ? ' · '.$k->namaPeringkat() : '' }}
                                     @elseif ($k->no_pencatatan ?? $k->no_paten ?? $k->no_permohonan)
                                         · No. {{ $k->no_pencatatan ?? $k->no_paten ?? $k->no_permohonan }}
                                     @endif

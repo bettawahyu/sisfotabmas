@@ -24,7 +24,7 @@ class PublikasiController extends KaryaController
             'tgl_terbit' => ['nullable', 'date'],
             'doi' => ['nullable', 'string', 'max:255', Rule::unique('publikasi', 'doi')->ignore($id)],
             'url' => ['nullable', 'url', 'max:255'],
-            'peringkat' => ['nullable', Rule::in(array_keys(Publikasi::PERINGKAT))],
+            'peringkat' => ['nullable', Rule::exists('peringkat_jurnal', 'kode')],
             'status' => ['required', Rule::in(array_keys(Publikasi::STATUS))],
         ];
     }

@@ -23,7 +23,13 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProposalBagianController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\Sistem\BidangFokusController;
+use App\Http\Controllers\Sistem\FakultasController;
+use App\Http\Controllers\Sistem\ImporController;
 use App\Http\Controllers\Sistem\PenggunaController;
+use App\Http\Controllers\Sistem\PeringkatJurnalController;
+use App\Http\Controllers\Sistem\ProgramStudiController;
+use App\Http\Controllers\Sistem\RumpunIlmuController;
 use App\Http\Controllers\TemplateDokumenController;
 use App\Http\Controllers\UndanganController;
 use App\Http\Controllers\VerifikasiController;
@@ -152,6 +158,23 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_SISTEM])->prefix('sistem')->name(
     Route::redirect('/', '/sistem/pengguna')->name('dashboard');
     Route::resource('pengguna', PenggunaController::class)->except(['show', 'destroy'])
         ->parameters(['pengguna' => 'pengguna']);
+
+    // Reference data is switched off rather than deleted, so there is no destroy.
+    Route::resource('unit', FakultasController::class)->except(['show', 'destroy'])
+        ->names('fakultas')->parameters(['unit' => 'fakultas']);
+    Route::resource('prodi', ProgramStudiController::class)->except(['index', 'show', 'destroy']);
+    Route::resource('rumpun-ilmu', RumpunIlmuController::class)->except(['show', 'destroy']);
+    Route::resource('bidang-fokus', BidangFokusController::class)->except(['show', 'destroy'])
+        ->parameters(['bidang-fokus' => 'bidang_fokus']);
+    Route::resource('peringkat-jurnal', PeringkatJurnalController::class)->except(['show', 'destroy']);
+
+    Route::controller(ImporController::class)->prefix('impor/{jenis}')->name('impor.')
+        ->whereIn('jenis', ['prodi', 'rumpun-ilmu'])->group(function () {
+            Route::get('/', 'create')->name('create');
+            Route::get('/templat', 'templat')->name('templat');
+            Route::post('/periksa', 'periksa')->name('periksa');
+            Route::post('/simpan', 'simpan')->name('simpan');
+        });
 });
 
 Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('admin.')->group(function () {

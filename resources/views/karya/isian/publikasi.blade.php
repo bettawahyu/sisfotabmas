@@ -1,4 +1,10 @@
-@php use App\Models\Publikasi; @endphp
+@php
+    use App\Models\PeringkatJurnal;
+    use App\Models\Publikasi;
+
+    // Inactive ranks are no longer offered, except the one this entry already has.
+    $daftarPeringkat = PeringkatJurnal::berurutan()->where(fn ($q) => $q->where('is_active', true)->orWhere('kode', $karya->peringkat))->get();
+@endphp
 <div class="sm:col-span-2">
     <x-input-label for="judul" value="Judul" ikon="type" />
     <x-text-input id="judul" name="judul" class="mt-1 block w-full" :value="old('judul', $karya->judul)" required />
@@ -27,8 +33,8 @@
     <x-input-label for="peringkat" value="Peringkat" ikon="star" />
     <x-select-input id="peringkat" name="peringkat" class="mt-1 block w-full">
         <option value="">-</option>
-        @foreach (Publikasi::PERINGKAT as $kode => $nama)
-            <option value="{{ $kode }}" @selected(old('peringkat', $karya->peringkat) === $kode)>{{ $nama }}</option>
+        @foreach ($daftarPeringkat as $p)
+            <option value="{{ $p->kode }}" @selected(old('peringkat', $karya->peringkat) === $p->kode)>{{ $p->nama }}</option>
         @endforeach
     </x-select-input>
 </div>

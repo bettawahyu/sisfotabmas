@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\JabatanFungsional;
 use App\Models\ProgramStudi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,9 +13,11 @@ class ProfilDosenController extends Controller
 {
     public function edit(Request $request): View
     {
+        $dosen = $request->user()->dosen;
+
         return view('dosen.profil', [
-            'dosen' => $request->user()->dosen,
-            'prodi' => ProgramStudi::with('fakultas')->orderBy('nama')->get(),
+            'dosen' => $dosen,
+            'prodi' => ProgramStudi::aktifAtau($dosen?->prodi_id)->with('fakultas')->orderBy('nama')->get(),
         ]);
     }
 
@@ -38,8 +41,10 @@ class ProfilDosenController extends Controller
             'nuptk' => ['nullable', 'string', 'max:20', Rule::unique('dosen')->ignore($id)],
             'sinta_id' => ['nullable', 'string', 'max:20'],
             'google_scholar_id' => ['nullable', 'string', 'max:30', 'regex:/^[A-Za-z0-9_-]+$/'],
-            'prodi_id' => ['nullable', 'exists:program_studi,id'],
-            'jabatan_fungsional' => ['nullable', 'string', 'max:50'],
+            // A programme switched off is no longer offered, but a lecturer already in it keeps it.
+            'prodi_id' => ['nullable', Rule::exists('program_studi', 'id')
+                ->where(fn ($q) => $q->where('is_active', true)->orWhere('id', $user->dosen?->prodi_id))],
+            'jabatan_fungsional' => ['nullable', Rule::enum(JabatanFungsional::class)],
         ]);
 
         $user->dosen()->updateOrCreate([], $data);

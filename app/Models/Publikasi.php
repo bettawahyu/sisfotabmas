@@ -7,6 +7,7 @@ use Database\Factories\PublikasiFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -26,20 +27,6 @@ class Publikasi extends Model
         'prosiding_nasional' => 'Prosiding nasional',
         'buku' => 'Buku',
         'bab_buku' => 'Bab buku',
-    ];
-
-    public const PERINGKAT = [
-        'scopus_q1' => 'Scopus Q1',
-        'scopus_q2' => 'Scopus Q2',
-        'scopus_q3' => 'Scopus Q3',
-        'scopus_q4' => 'Scopus Q4',
-        'sinta_1' => 'SINTA 1',
-        'sinta_2' => 'SINTA 2',
-        'sinta_3' => 'SINTA 3',
-        'sinta_4' => 'SINTA 4',
-        'sinta_5' => 'SINTA 5',
-        'sinta_6' => 'SINTA 6',
-        'lainnya' => 'Lainnya',
     ];
 
     public const STATUS = [
@@ -75,6 +62,21 @@ class Publikasi extends Model
     public function kontributor(): HasMany
     {
         return $this->penulis();
+    }
+
+    /**
+     * The rank is stored by its code so ranks can be renamed without touching publications.
+     *
+     * @return BelongsTo<PeringkatJurnal, $this>
+     */
+    public function peringkatJurnal(): BelongsTo
+    {
+        return $this->belongsTo(PeringkatJurnal::class, 'peringkat', 'kode');
+    }
+
+    public function namaPeringkat(): ?string
+    {
+        return $this->peringkat ? ($this->peringkatJurnal?->nama ?? $this->peringkat) : null;
     }
 
     public function namaJenis(): string
