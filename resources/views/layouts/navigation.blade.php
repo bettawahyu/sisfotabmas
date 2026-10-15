@@ -14,6 +14,7 @@
             ['Dashboard', 'dashboard', ['dashboard'], 'home'],
             ['Pengumuman', 'pengumuman.index', ['pengumuman.*'], 'volume-2'],
             ['Notifikasi', 'notifikasi.index', ['notifikasi.*'], 'bell'],
+            $pengguna->can('unduh-data') ? ['Unduh Data', 'unduh-data.index', ['unduh-data.*'], 'download'] : null,
         ],
         'Dosen' => ! $pengguna->hasRole(Role::DOSEN) ? [] : array_values(array_filter([
             ['Proposal', 'proposal.index', ['proposal.*', 'undangan.*'], 'file-text'],

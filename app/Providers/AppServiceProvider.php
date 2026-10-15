@@ -23,5 +23,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('kelola-pengumuman', fn (User $user) => $user->hasRole(Role::ADMIN_LPPM, Role::OPERATOR));
+        Gate::define('unduh-data', fn (User $user) => $user->hasRole(
+            Role::ADMIN_LPPM, Role::OPERATOR, Role::KEUANGAN, Role::PIMPINAN, Role::PIMPINAN_UNIT,
+        ));
     }
 }

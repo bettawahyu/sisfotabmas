@@ -16,7 +16,7 @@ class PengumumanController extends Controller
     public function index(Request $request): View
     {
         return view('pengumuman.index', [
-            'pengumuman' => Pengumuman::tampil()->untuk($request->user())->with('periode')->paginate(15),
+            'pengumuman' => Pengumuman::tampil()->untuk($request->user())->with(['periode', 'gambar'])->paginate(15),
         ]);
     }
 
@@ -24,7 +24,7 @@ class PengumumanController extends Controller
     {
         $this->pastikanBolehBaca($request, $pengumuman);
 
-        return view('pengumuman.show', ['pengumuman' => $pengumuman->load(['periode', 'lampiran'])]);
+        return view('pengumuman.show', ['pengumuman' => $pengumuman->load(['periode', 'lampiran', 'gambar'])]);
     }
 
     public function lampiran(Request $request, Pengumuman $pengumuman): StreamedResponse
@@ -34,6 +34,15 @@ class PengumumanController extends Controller
         abort_if($berkas === null, 404);
 
         return Storage::download($berkas->path, $berkas->nama_asli);
+    }
+
+    public function gambar(Request $request, Pengumuman $pengumuman): StreamedResponse
+    {
+        $this->pastikanBolehBaca($request, $pengumuman);
+        $berkas = $pengumuman->gambar;
+        abort_if($berkas === null || ! Storage::exists($berkas->path), 404);
+
+        return Storage::response($berkas->path, headers: ['Cache-Control' => 'private, max-age=604800']);
     }
 
     /**

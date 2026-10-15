@@ -12,8 +12,22 @@
         <div class="px-4 sm:px-6 lg:px-8 space-y-6">
             <x-pesan />
             <p class="text-sm text-gray-600">Kaprodi atau dekan memeriksa data dosen di unitnya lebih dulu, lalu LPPM memvalidasinya. Hanya data yang valid yang dihitung dalam laporan.</p>
+            @php
+                $tabAwal = collect($menunggu)->search(fn ($daftar) => $daftar->isNotEmpty()) ?: 'publikasi';
+                $tabVerifikasi = collect($menunggu)->map(fn ($daftar, $jenis) => [
+                    'label' => AlurKarya::LABEL[$jenis],
+                    'ikon' => AlurKarya::IKON[$jenis],
+                    'kunci' => $jenis,
+                    'jumlah' => $daftar->count(),
+                ])->values()->all();
+            @endphp
+            {{-- The chosen tab goes into the address, so the page comes back on it after a decision. --}}
+            <div x-data="{ tab: new URLSearchParams(location.search).get('tab') || @js($tabAwal) }"
+                x-init="$watch('tab', t => history.replaceState(null, '', '?tab=' + t))">
+            <x-kartu>
+                <x-tab class="mb-4" :daftar="$tabVerifikasi" />
             @foreach ($menunggu as $jenis => $daftar)
-                <x-kartu ikon="book-open" :judul="AlurKarya::LABEL[$jenis]">
+                <div x-show="tab === @js($jenis)" x-cloak role="tabpanel">
                     <div class="space-y-4">
                         @forelse ($daftar as $k)
                             <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0 text-sm">
@@ -48,8 +62,10 @@
                             <p class="text-sm text-gray-600">Tidak ada yang menunggu.</p>
                         @endforelse
                     </div>
-                </x-kartu>
+                </div>
             @endforeach
+            </x-kartu>
+            </div>
         </div>
     </div>
 </x-app-layout>

@@ -23,6 +23,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProposalBagianController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\RiwayatPendidikanController;
 use App\Http\Controllers\Sistem\BidangFokusController;
 use App\Http\Controllers\Sistem\FakultasController;
 use App\Http\Controllers\Sistem\ImporController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\Sistem\ProgramStudiController;
 use App\Http\Controllers\Sistem\RumpunIlmuController;
 use App\Http\Controllers\TemplateDokumenController;
 use App\Http\Controllers\UndanganController;
+use App\Http\Controllers\UnduhDataController;
 use App\Http\Controllers\VerifikasiController;
 use App\Models\Pengumuman;
 use App\Models\Role;
@@ -60,6 +62,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/pengumuman', [PengumumanController::class, 'index'])->name('pengumuman.index');
     Route::get('/pengumuman/{pengumuman}', [PengumumanController::class, 'show'])->name('pengumuman.show');
     Route::get('/pengumuman/{pengumuman}/lampiran', [PengumumanController::class, 'lampiran'])->name('pengumuman.lampiran');
+    Route::get('/pengumuman/{pengumuman}/gambar', [PengumumanController::class, 'gambar'])->name('pengumuman.gambar');
 
     Route::get('/templat/{template}/unduh', [TemplateDokumenController::class, 'unduh'])->name('templat.unduh');
 
@@ -74,9 +77,18 @@ Route::middleware(['auth', 'can:kelola-pengumuman'])->prefix('kelola')->name('ke
         ->parameters(['pengumuman' => 'pengumuman']);
 });
 
+// Excel downloads of proposals and of publications, HKI and patents.
+Route::middleware(['auth', 'can:unduh-data'])->prefix('unduh-data')->name('unduh-data.')->controller(UnduhDataController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/proposal', 'proposal')->name('proposal');
+    Route::get('/publikasi-ki', 'karya')->name('karya');
+});
+
 Route::middleware(['auth', 'role:'.Role::DOSEN])->group(function () {
     Route::get('/profil-dosen', [ProfilDosenController::class, 'edit'])->name('profil-dosen.edit');
     Route::put('/profil-dosen', [ProfilDosenController::class, 'update'])->name('profil-dosen.update');
+    Route::resource('profil-dosen/pendidikan', RiwayatPendidikanController::class)->only(['store', 'edit', 'update', 'destroy'])
+        ->parameters(['pendidikan' => 'riwayat'])->names('profil-dosen.pendidikan');
 
     Route::get('/proposal', [ProposalController::class, 'index'])->name('proposal.index');
     Route::get('/hibah/{periode}/proposal/buat', [ProposalController::class, 'create'])->name('proposal.create');

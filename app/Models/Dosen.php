@@ -70,9 +70,6 @@ class Dosen extends Model
     }
 
     /**
-     * Whether the national identifiers the grant rules require are filled in.
-     */
-    /**
      * Whether the highest degree reaches the given one, such as S2.
      */
     public function pendidikanSetidaknya(string $minimal): bool
@@ -82,6 +79,22 @@ class Dosen extends Model
         return $punya !== false && $punya >= array_search($minimal, self::PENDIDIKAN, true);
     }
 
+    /**
+     * Set the highest degree from the education history, so scheme requirements
+     * follow what the lecturer recorded there.
+     */
+    public function perbaruiPendidikanTerakhir(): void
+    {
+        $tertinggi = $this->riwayatPendidikan()->pluck('jenjang')
+            ->sortBy(fn (string $jenjang) => array_search($jenjang, self::PENDIDIKAN, true))
+            ->last();
+
+        $this->update(['pendidikan_terakhir' => $tertinggi]);
+    }
+
+    /**
+     * Whether the national identifiers the grant rules require are filled in.
+     */
     public function identitasLengkap(): bool
     {
         return ($this->nidn || $this->nuptk) && $this->sinta_id;

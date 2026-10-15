@@ -34,6 +34,13 @@ class AlurKarya
         'paten' => 'Paten',
     ];
 
+    /** Feather icons for the tabs. */
+    public const IKON = [
+        'publikasi' => 'file-text',
+        'hki' => 'award',
+        'paten' => 'zap',
+    ];
+
     /** Contributors' name column differs between the three tables. */
     private const KOLOM_NAMA = [
         'publikasi' => 'nama_penulis',

@@ -9,13 +9,13 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Publikasi, HKI, dan Paten</h2>
             <x-tombol-tautan :href="route('karya.'.$jenis.'.create')" ikon="plus">Tambah {{ AlurKarya::LABEL[$jenis] }}</x-tombol-tautan>
         </div>
-        @include('karya._tab')
     </x-slot>
 
     <div class="py-6">
         <div class="px-4 sm:px-6 lg:px-8">
             <x-pesan />
             <x-kartu>
+                @include('karya._tab')
                 <p class="mb-4 text-sm text-gray-600">Data yang Anda isi atau yang mencantumkan nama Anda. Setiap data diperiksa kaprodi, lalu divalidasi LPPM. Data yang sudah valid bisa ditautkan ke capaian luaran proposal di halaman pelaksanaan.</p>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm" data-tabel-data>
