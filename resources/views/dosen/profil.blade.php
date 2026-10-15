@@ -37,7 +37,12 @@
                     </div>
                     <div>
                         <x-input-label for="jabatan_fungsional" value="Jabatan fungsional" ikon="briefcase" />
-                        <x-text-input id="jabatan_fungsional" name="jabatan_fungsional" class="mt-1 block w-full" :value="old('jabatan_fungsional', $dosen?->jabatan_fungsional)" />
+                        <x-select-input id="jabatan_fungsional" name="jabatan_fungsional" class="mt-1 block w-full">
+                            <option value="">-</option>
+                            @foreach (App\Enums\JabatanFungsional::cases() as $jabatan)
+                                <option value="{{ $jabatan->value }}" @selected(old('jabatan_fungsional', $dosen?->jabatan_fungsional?->value) === $jabatan->value)>{{ $jabatan->label() }}</option>
+                            @endforeach
+                        </x-select-input>
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil, opsional)" ikon="link" />

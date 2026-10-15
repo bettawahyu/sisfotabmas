@@ -7,7 +7,8 @@
     $adaPelaksanaan = $dosenNav !== null && \App\Models\Proposal::dalamPelaksanaan()->timDosen($dosenNav)->exists();
     $adminLppm = $pengguna->hasRole(Role::ADMIN_LPPM);
 
-    // Sidebar sections: heading => [[label, route, active route patterns, feather icon], ...]
+    // Sidebar sections: heading => [[label, route, active route patterns, feather icon], ...].
+    // An entry keyed by a name is a collapsible group: name => [feather icon, [links...]].
     $menu = array_filter([
         'Umum' => [
             ['Dashboard', 'dashboard', ['dashboard'], 'home'],
@@ -36,27 +37,45 @@
         ] : [],
         'Admin LPPM' => $adminLppm ? [
             ['Ringkasan Admin', 'admin.dashboard', ['admin.dashboard'], 'grid'],
-            ['Skema Hibah', 'admin.skema.index', ['admin.skema.*'], 'layers'],
-            ['Periode Hibah', 'admin.periode.index', ['admin.periode.*'], 'calendar'],
-            ['Templat Dokumen', 'admin.template.index', ['admin.template.*'], 'file'],
-            ['Unit Pimpinan', 'admin.pimpinan-unit.index', ['admin.pimpinan-unit.*'], 'briefcase'],
-            ['Seleksi Administrasi', 'admin.seleksi.index', ['admin.seleksi.*'], 'filter'],
-            ['Penugasan Reviewer', 'admin.review.index', ['admin.review.*'], 'user-check'],
-            ['Penetapan & SK', 'admin.penetapan.index', ['admin.penetapan.*'], 'award'],
-            ['Kontrak', 'admin.kontrak.index', ['admin.kontrak.*'], 'file-plus'],
-            ['Pencairan', 'pencairan.index', ['pencairan.*'], 'dollar-sign'],
-            ['Monev', 'admin.monev.index', ['admin.monev.*'], 'trending-up'],
-            ['Pemantauan', 'pemantauan.index', ['pemantauan.*'], 'monitor'],
-            ['Verifikasi', 'verifikasi.index', ['verifikasi.*'], 'clipboard'],
-            $pengguna->hasRole(Role::PIMPINAN_UNIT) ? null : ['Verifikasi Karya', 'verifikasi-karya.index', ['verifikasi-karya.*'], 'shield'],
+            'Persiapan Hibah' => ['layers', [
+                ['Skema Hibah', 'admin.skema.index', ['admin.skema.*'], 'layers'],
+                ['Periode Hibah', 'admin.periode.index', ['admin.periode.*'], 'calendar'],
+                ['Templat Dokumen', 'admin.template.index', ['admin.template.*'], 'file'],
+            ]],
+            'Seleksi' => ['filter', [
+                ['Seleksi Administrasi', 'admin.seleksi.index', ['admin.seleksi.*'], 'filter'],
+                ['Penugasan Reviewer', 'admin.review.index', ['admin.review.*'], 'user-check'],
+                ['Penetapan & SK', 'admin.penetapan.index', ['admin.penetapan.*'], 'award'],
+            ]],
+            'Pelaksanaan' => ['activity', [
+                ['Kontrak', 'admin.kontrak.index', ['admin.kontrak.*'], 'file-plus'],
+                ['Pencairan', 'pencairan.index', ['pencairan.*'], 'dollar-sign'],
+                ['Pemantauan', 'pemantauan.index', ['pemantauan.*'], 'monitor'],
+                ['Monev', 'admin.monev.index', ['admin.monev.*'], 'trending-up'],
+            ]],
+            'Laporan & Luaran' => ['clipboard', array_values(array_filter([
+                ['Verifikasi Laporan', 'verifikasi.index', ['verifikasi.*'], 'clipboard'],
+                $pengguna->hasRole(Role::PIMPINAN_UNIT) ? null : ['Verifikasi Karya', 'verifikasi-karya.index', ['verifikasi-karya.*'], 'shield'],
+            ]))],
+            'Pengaturan LPPM' => ['sliders', [
+                ['Unit Pimpinan', 'admin.pimpinan-unit.index', ['admin.pimpinan-unit.*'], 'briefcase'],
+                ['Kelola Pengumuman', 'kelola.pengumuman.index', ['kelola.pengumuman.*'], 'edit'],
+            ]],
         ] : [],
         'Pimpinan' => $pengguna->hasRole(Role::PIMPINAN) ? [
             ['Ringkasan', 'pimpinan.index', ['pimpinan.*'], 'bar-chart-2'],
         ] : [],
-        'Sistem' => array_values(array_filter([
-            $pengguna->hasRole(Role::ADMIN_SISTEM) ? ['Pengguna', 'sistem.pengguna.index', ['sistem.*'], 'users'] : null,
-            $pengguna->can('kelola-pengumuman') ? ['Kelola Pengumuman', 'kelola.pengumuman.index', ['kelola.pengumuman.*'], 'edit'] : null,
-        ])),
+        'Sistem' => array_filter([
+            $pengguna->hasRole(Role::ADMIN_SISTEM) ? ['Pengguna', 'sistem.pengguna.index', ['sistem.pengguna.*'], 'users'] : null,
+            'Data Master' => $pengguna->hasRole(Role::ADMIN_SISTEM) ? ['database', [
+                ['Unit', 'sistem.fakultas.index', ['sistem.fakultas.*', 'sistem.prodi.*', 'sistem.impor.*'], 'home'],
+                ['Rumpun Ilmu', 'sistem.rumpun-ilmu.index', ['sistem.rumpun-ilmu.*'], 'git-branch'],
+                ['Bidang Fokus', 'sistem.bidang-fokus.index', ['sistem.bidang-fokus.*'], 'target'],
+                ['Peringkat Jurnal', 'sistem.peringkat-jurnal.index', ['sistem.peringkat-jurnal.*'], 'star'],
+            ]] : null,
+            // LPPM admins find it under Pengaturan LPPM.
+            $pengguna->can('kelola-pengumuman') && ! $adminLppm ? ['Kelola Pengumuman', 'kelola.pengumuman.index', ['kelola.pengumuman.*'], 'edit'] : null,
+        ]),
     ]);
 @endphp
 
@@ -83,10 +102,31 @@
             @continue(empty($daftar))
             <p class="sidebar-heading">{{ $judul }}</p>
             <ul class="space-y-1">
-                @foreach (array_filter($daftar) as [$label, $rute, $pola, $ikon])
-                    <li>
-                        <x-nav-link :href="route($rute)" :active="request()->routeIs(...$pola)" :ikon="$ikon">{{ $label }}</x-nav-link>
-                    </li>
+                @foreach ($daftar as $kunci => $isi)
+                    @continue(empty($isi))
+                    @if (is_string($kunci))
+                        @php([$ikonGrup, $tautan] = $isi)
+                        @php($grupAktif = collect($tautan)->contains(fn ($t) => request()->routeIs(...$t[2])))
+                        <li x-data="{ buka: @js($grupAktif) }">
+                            <button type="button" @click="buka = ! buka" class="sidebar-link w-[calc(100%-2rem)]" :aria-expanded="buka">
+                                <x-ikon :nama="$ikonGrup" />
+                                <span class="flex-1 truncate text-start">{{ $kunci }}</span>
+                                <span class="transition-transform" :class="buka && 'rotate-180'"><x-ikon nama="chevron-down" /></span>
+                            </button>
+                            <ul x-show="buka" class="mt-1 space-y-1 ps-4" @unless ($grupAktif) style="display: none;" @endunless>
+                                @foreach ($tautan as [$label, $rute, $pola, $ikon])
+                                    <li>
+                                        <x-nav-link :href="route($rute)" :active="request()->routeIs(...$pola)" :ikon="$ikon">{{ $label }}</x-nav-link>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </li>
+                    @else
+                        @php([$label, $rute, $pola, $ikon] = $isi)
+                        <li>
+                            <x-nav-link :href="route($rute)" :active="request()->routeIs(...$pola)" :ikon="$ikon">{{ $label }}</x-nav-link>
+                        </li>
+                    @endif
                 @endforeach
             </ul>
         @endforeach

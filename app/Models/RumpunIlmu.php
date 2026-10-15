@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BisaNonaktif;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -14,11 +15,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['kode', 'nama', 'tingkat', 'induk_id', 'is_active'])]
 class RumpunIlmu extends Model
 {
+    use BisaNonaktif;
+
     public const RUMPUN = 'rumpun';
 
     public const POHON = 'pohon';
 
     public const CABANG = 'cabang';
+
+    public const TINGKAT = ['rumpun' => 'Rumpun', 'pohon' => 'Pohon', 'cabang' => 'Cabang'];
+
+    /**
+     * The level a parent must have, for each level.
+     */
+    public const TINGKAT_INDUK = ['rumpun' => null, 'pohon' => 'rumpun', 'cabang' => 'pohon'];
 
     protected $table = 'rumpun_ilmu';
 
@@ -46,6 +56,16 @@ class RumpunIlmu extends Model
     public function turunan(): HasMany
     {
         return $this->hasMany(self::class, 'induk_id');
+    }
+
+    /**
+     * Proposals filed under this cabang ilmu.
+     *
+     * @return HasMany<Proposal, $this>
+     */
+    public function proposal(): HasMany
+    {
+        return $this->hasMany(Proposal::class, 'cabang_ilmu_id');
     }
 
     /**
