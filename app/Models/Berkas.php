@@ -18,6 +18,8 @@ class Berkas extends Model
 
     public const LAMPIRAN = 'lampiran';
 
+    public const GAMBAR_UNGGULAN = 'gambar_unggulan';
+
     public const TEMPLAT = 'templat';
 
     public const BUKTI_PENCAIRAN = 'bukti_pencairan';

@@ -97,6 +97,16 @@ class Pengumuman extends Model
         return $this->morphOne(Berkas::class, 'pemilik')->where('kategori', Berkas::LAMPIRAN)->latestOfMany();
     }
 
+    /**
+     * The featured image shown above the text and beside it in the list, if any.
+     *
+     * @return MorphOne<Berkas, $this>
+     */
+    public function gambar(): MorphOne
+    {
+        return $this->morphOne(Berkas::class, 'pemilik')->where('kategori', Berkas::GAMBAR_UNGGULAN)->latestOfMany();
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

@@ -7,6 +7,7 @@ use App\Models\Luaran;
 use App\Models\Paten;
 use App\Models\Publikasi;
 use App\Models\Role;
+use App\Models\User;
 use App\Notifications\Pemberitahuan;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -152,4 +153,18 @@ test('the lead links an output to their own publication', function () {
     $this->actingAs($ketua->user)->get(route('karya.publikasi.index'))->assertSee($proposal->judul);
     $this->actingAs($ketua->user)->delete(route('karya.publikasi.destroy', $milikKetua))->assertSessionHasErrors('karya');
     expect($milikKetua->fresh()->trashed())->toBeFalse();
+});
+
+test('publications, HKI and patents sit in tabs', function () {
+    $this->actingAs($this->dosen->user)->get(route('karya.hki.index'))->assertOk()
+        ->assertSee('role="tablist"', false)
+        ->assertSee(route('karya.publikasi.index'), false)
+        ->assertSee(route('karya.paten.index'), false)
+        ->assertSee('aria-selected="true"', false);
+
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::ADMIN_LPPM);
+    $this->actingAs($admin)->get(route('verifikasi-karya.index'))->assertOk()
+        ->assertSee('role="tablist"', false)
+        ->assertSee('role="tabpanel"', false);
 });

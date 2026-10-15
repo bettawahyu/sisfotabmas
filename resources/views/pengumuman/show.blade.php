@@ -6,6 +6,9 @@
     <div class="py-6">
         <div class="max-w-4xl px-4 sm:px-6 lg:px-8">
             <x-kartu>
+                @if ($pengumuman->gambar)
+                    <img src="{{ route('pengumuman.gambar', $pengumuman) }}?v={{ $pengumuman->gambar->id }}" alt="{{ $pengumuman->judul }}" class="mb-6 max-h-96 w-full rounded-md object-cover">
+                @endif
                 <div class="text-xs text-gray-500">
                     {{ $pengumuman->terbit_at?->translatedFormat('d F Y H:i') }}
                     · {{ \App\Models\Pengumuman::KATEGORI[$pengumuman->kategori] ?? $pengumuman->kategori }}

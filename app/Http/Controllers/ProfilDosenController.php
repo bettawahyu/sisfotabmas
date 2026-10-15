@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\JabatanFungsional;
-use App\Models\Dosen;
 use App\Models\ProgramStudi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,7 +13,7 @@ class ProfilDosenController extends Controller
 {
     public function edit(Request $request): View
     {
-        $dosen = $request->user()->dosen;
+        $dosen = $request->user()->dosen?->load('riwayatPendidikan');
 
         return view('dosen.profil', [
             'dosen' => $dosen,
@@ -46,7 +45,6 @@ class ProfilDosenController extends Controller
             'prodi_id' => ['nullable', Rule::exists('program_studi', 'id')
                 ->where(fn ($q) => $q->where('is_active', true)->orWhere('id', $user->dosen?->prodi_id))],
             'jabatan_fungsional' => ['nullable', Rule::enum(JabatanFungsional::class)],
-            'pendidikan_terakhir' => ['nullable', Rule::in(Dosen::PENDIDIKAN)],
         ]);
 
         $user->dosen()->updateOrCreate([], $data);

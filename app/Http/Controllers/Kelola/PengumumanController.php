@@ -45,7 +45,7 @@ class PengumumanController extends Controller
                 'slug' => Pengumuman::slugBaru($data['judul']),
                 'dibuat_oleh' => $request->user()->id,
             ]);
-            $this->simpanLampiran($request, $pengumuman);
+            $this->simpanBerkas($request, $pengumuman);
 
             return $pengumuman;
         });
@@ -59,7 +59,7 @@ class PengumumanController extends Controller
 
     public function edit(Pengumuman $pengumuman): View
     {
-        return view('kelola.pengumuman.form', $this->dataForm($pengumuman->load('lampiran')));
+        return view('kelola.pengumuman.form', $this->dataForm($pengumuman->load(['lampiran', 'gambar'])));
     }
 
     public function update(Request $request, Pengumuman $pengumuman, SiaranPengumuman $siaran): RedirectResponse
@@ -71,7 +71,10 @@ class PengumumanController extends Controller
             if ($request->boolean('hapus_lampiran')) {
                 $pengumuman->lampiran?->delete();
             }
-            $this->simpanLampiran($request, $pengumuman);
+            if ($request->boolean('hapus_gambar')) {
+                $pengumuman->gambar?->delete();
+            }
+            $this->simpanBerkas($request, $pengumuman);
         });
 
         // A draft moved to an earlier date may now be live; send it if it was never sent.
@@ -115,22 +118,32 @@ class PengumumanController extends Controller
             'berakhir_at' => ['nullable', 'date', 'after:terbit_at'],
             'lampiran' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
             'hapus_lampiran' => ['boolean'],
+            'gambar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:max_width=4000,max_height=4000'],
+            'hapus_gambar' => ['boolean'],
         ]);
         $data['is_pinned'] = $request->boolean('is_pinned');
-        unset($data['lampiran'], $data['hapus_lampiran']);
+        unset($data['lampiran'], $data['hapus_lampiran'], $data['gambar'], $data['hapus_gambar']);
 
         return $data;
     }
 
-    private function simpanLampiran(Request $request, Pengumuman $pengumuman): void
+    /**
+     * Store the uploaded PDF and featured image; a new one supersedes the old.
+     */
+    private function simpanBerkas(Request $request, Pengumuman $pengumuman): void
     {
-        if (! $request->hasFile('lampiran')) {
-            return;
+        foreach (['lampiran' => Berkas::LAMPIRAN, 'gambar' => Berkas::GAMBAR_UNGGULAN] as $field => $kategori) {
+            if ($request->hasFile($field)) {
+                $this->simpanFile($request, $pengumuman, $field, $kategori);
+            }
         }
+    }
 
-        $file = $request->file('lampiran');
+    private function simpanFile(Request $request, Pengumuman $pengumuman, string $field, string $kategori): void
+    {
+        $file = $request->file($field);
         $pengumuman->berkas()->create([
-            'kategori' => Berkas::LAMPIRAN,
+            'kategori' => $kategori,
             'nama_asli' => $file->getClientOriginalName(),
             'path' => $file->store("pengumuman/{$pengumuman->id}"),
             'mime' => $file->getMimeType(),

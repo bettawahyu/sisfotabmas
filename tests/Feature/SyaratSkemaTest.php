@@ -144,11 +144,46 @@ test('a team larger than the scheme allows cannot be sent', function () {
     expect(app(AlurProposal::class)->kekurangan($proposal->fresh()))->toContain('Skema ini membatasi anggota dosen paling banyak 0 (sekarang 1).');
 });
 
-test('the lecturer records the highest degree', function () {
+test('the highest degree follows the education history', function () {
     $user = akunSyarat(Role::DOSEN);
+    $this->actingAs($user)->put(route('profil-dosen.update'), ['nama' => 'Ani'])->assertSessionHasNoErrors();
 
-    $this->actingAs($user)->put(route('profil-dosen.update'), ['nama' => 'Ani', 'pendidikan_terakhir' => 'S3'])->assertSessionHasNoErrors();
-    expect($user->fresh()->dosen->pendidikanSetidaknya('S2'))->toBeTrue();
+    $this->actingAs($user)->post(route('profil-dosen.pendidikan.store'), ['jenjang' => 'S1', 'institusi' => 'Universitas A', 'tahun_lulus' => 2010])
+        ->assertSessionHasNoErrors();
+    $this->actingAs($user)->post(route('profil-dosen.pendidikan.store'), ['jenjang' => 'S3', 'institusi' => 'Universitas B', 'tahun_lulus' => 2020]);
+    expect($user->fresh()->dosen->pendidikan_terakhir)->toBe('S3')
+        ->and($user->fresh()->dosen->pendidikanSetidaknya('S2'))->toBeTrue();
 
-    $this->actingAs($user)->put(route('profil-dosen.update'), ['nama' => 'Ani', 'pendidikan_terakhir' => 'D3'])->assertSessionHasErrors('pendidikan_terakhir');
+    // Correcting the S3 entry to S2 lowers the highest degree with it.
+    $s3 = $user->dosen->riwayatPendidikan()->firstWhere('jenjang', 'S3');
+    $this->actingAs($user)->put(route('profil-dosen.pendidikan.update', $s3), ['jenjang' => 'S2', 'institusi' => 'Universitas B']);
+    expect($user->fresh()->dosen->pendidikan_terakhir)->toBe('S2');
+
+    $this->actingAs($user)->delete(route('profil-dosen.pendidikan.destroy', $s3));
+    expect($user->fresh()->dosen->pendidikan_terakhir)->toBe('S1');
+
+    $this->actingAs($user)->post(route('profil-dosen.pendidikan.store'), ['jenjang' => 'D3', 'institusi' => 'Politeknik C'])
+        ->assertSessionHasErrors('jenjang');
+    // The highest degree can no longer be typed in by hand.
+    $this->actingAs($user)->put(route('profil-dosen.update'), ['nama' => 'Ani', 'pendidikan_terakhir' => 'S3']);
+    expect($user->fresh()->dosen->pendidikan_terakhir)->toBe('S1');
+});
+
+test('a lecturer cannot touch another lecturer\'s education history', function () {
+    $pemilik = akunSyarat(Role::DOSEN);
+    $riwayat = Dosen::factory()->create(['user_id' => $pemilik->id])->riwayatPendidikan()->create(['jenjang' => 'S2', 'institusi' => 'Universitas A']);
+    $lain = akunSyarat(Role::DOSEN);
+    Dosen::factory()->create(['user_id' => $lain->id]);
+
+    $this->actingAs($lain)->get(route('profil-dosen.pendidikan.edit', $riwayat))->assertNotFound();
+    $this->actingAs($lain)->delete(route('profil-dosen.pendidikan.destroy', $riwayat))->assertNotFound();
+    expect($riwayat->fresh())->not->toBeNull();
+});
+
+test('the qualification page lists the education history', function () {
+    $user = akunSyarat(Role::DOSEN);
+    Dosen::factory()->create(['user_id' => $user->id])->riwayatPendidikan()->create(['jenjang' => 'S2', 'institusi' => 'Institut Teknologi Bandung']);
+
+    $this->actingAs($user)->get(route('profil-dosen.edit'))->assertOk()
+        ->assertSee('Riwayat Pendidikan')->assertSee('Institut Teknologi Bandung');
 });

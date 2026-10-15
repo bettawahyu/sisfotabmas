@@ -74,6 +74,19 @@
                         @endif
                         <input id="lampiran" type="file" name="lampiran" accept="application/pdf" class="mt-2 text-sm">
                     </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="gambar" value="Gambar unggulan (opsional, JPG/PNG/WebP, maksimal 2 MB)" ikon="image" />
+                        @if ($pengumuman->gambar)
+                            <img src="{{ route('pengumuman.gambar', $pengumuman) }}?v={{ $pengumuman->gambar->id }}" alt="Gambar unggulan saat ini" class="mt-2 h-32 rounded-md object-cover">
+                            <label class="mt-1 flex items-center gap-2 text-sm text-gray-700">
+                                <input type="hidden" name="hapus_gambar" value="0">
+                                <input type="checkbox" name="hapus_gambar" value="1" class="rounded border-gray-300">
+                                Hapus gambar ini
+                            </label>
+                        @endif
+                        <input id="gambar" type="file" name="gambar" accept="image/jpeg,image/png,image/webp" class="mt-2 text-sm">
+                        <x-input-error :messages="$errors->get('gambar')" class="mt-2" />
+                    </div>
                     <div class="sm:col-span-2"><x-primary-button ikon="save">Simpan</x-primary-button></div>
                 </form>
             </x-kartu>

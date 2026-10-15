@@ -45,13 +45,9 @@
                         </x-select-input>
                     </div>
                     <div>
-                        <x-input-label for="pendidikan_terakhir" value="Pendidikan terakhir" ikon="book-open" />
-                        <x-select-input id="pendidikan_terakhir" name="pendidikan_terakhir" class="mt-1 block w-full">
-                            <option value="">-</option>
-                            @foreach (App\Models\Dosen::PENDIDIKAN as $jenjang)
-                                <option value="{{ $jenjang }}" @selected(old('pendidikan_terakhir', $dosen?->pendidikan_terakhir) === $jenjang)>{{ $jenjang }}</option>
-                            @endforeach
-                        </x-select-input>
+                        <x-input-label value="Pendidikan terakhir" ikon="book-open" />
+                        <p class="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">{{ $dosen?->pendidikan_terakhir ?? 'Belum ada' }}</p>
+                        <p class="mt-1 text-xs text-gray-500">Diambil dari jenjang tertinggi di riwayat pendidikan.</p>
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil, opsional)" ikon="link" />
@@ -70,6 +66,46 @@
                         <x-primary-button ikon="save">Simpan</x-primary-button>
                     </div>
                 </form>
+            </x-kartu>
+
+            <x-kartu judul="Riwayat Pendidikan" ikon="book-open" class="mt-6">
+                @if ($dosen)
+                    <p class="mb-4 text-sm text-gray-600">Jenjang tertinggi menjadi pendidikan terakhir yang dicek terhadap syarat pendidikan minimal skema hibah.</p>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Jenjang</th><th class="py-2 pe-4 font-medium">Perguruan tinggi</th><th class="py-2 pe-4 font-medium">Program studi</th><th class="py-2 pe-4 font-medium">Lulus</th><th></th></tr></thead>
+                            <tbody>
+                                @forelse ($dosen->riwayatPendidikan as $r)
+                                    <tr class="border-b border-gray-100 last:border-0 align-top">
+                                        <td class="py-2 pe-4 font-medium">{{ $r->jenjang }}</td>
+                                        <td class="py-2 pe-4">{{ $r->institusi }}@if ($r->negara && $r->negara !== 'Indonesia'), {{ $r->negara }}@endif</td>
+                                        <td class="py-2 pe-4">{{ $r->program_studi ?? '-' }}</td>
+                                        <td class="py-2 pe-4">{{ $r->tahun_lulus ?? '-' }}</td>
+                                        <td class="py-2 text-end whitespace-nowrap">
+                                            <a href="{{ route('profil-dosen.pendidikan.edit', $r) }}" class="text-indigo-700 hover:underline">Ubah</a>
+                                            <form method="POST" action="{{ route('profil-dosen.pendidikan.destroy', $r) }}" class="inline" onsubmit="return confirm('Hapus riwayat pendidikan ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="ms-3 text-red-700 hover:underline">Hapus</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="py-4 text-gray-600">Belum ada riwayat pendidikan.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4 class="mt-6 mb-3 text-sm font-semibold text-gray-800">Tambah pendidikan</h4>
+                    <form method="POST" action="{{ route('profil-dosen.pendidikan.store') }}" class="grid gap-4 sm:grid-cols-2">
+                        @csrf
+                        @include('dosen._isian-pendidikan', ['riwayat' => null])
+                        <div class="sm:col-span-2"><x-primary-button ikon="plus">Tambah</x-primary-button></div>
+                    </form>
+                @else
+                    <p class="text-sm text-gray-600">Simpan kualifikasi dosen di atas terlebih dahulu, lalu tambahkan riwayat pendidikan.</p>
+                @endif
             </x-kartu>
         </div>
     </div>

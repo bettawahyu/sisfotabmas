@@ -210,3 +210,46 @@ test('only substance templates are offered on the proposal page', function () {
         ->assertSee('Templat substansi')
         ->assertDontSee('Templat laporan akhir');
 });
+
+test('an announcement carries a featured image its readers can see', function () {
+    Notification::fake();
+    Storage::fake();
+    $operator = penggunaDengan(Role::OPERATOR);
+    $dosen = penggunaDengan(Role::DOSEN);
+
+    $this->actingAs($operator)->post(route('kelola.pengumuman.store'), isianPengumuman([
+        'gambar' => UploadedFile::fake()->image('sampul.jpg', 1200, 600),
+    ]))->assertSessionHasNoErrors();
+
+    $pengumuman = Pengumuman::sole();
+    expect($pengumuman->gambar->kategori)->toBe(Berkas::GAMBAR_UNGGULAN)
+        ->and($pengumuman->lampiran)->toBeNull();
+
+    $this->actingAs($dosen)->get(route('pengumuman.index'))->assertOk()->assertSee(route('pengumuman.gambar', $pengumuman), false);
+    $this->actingAs($dosen)->get(route('pengumuman.show', $pengumuman))->assertOk()->assertSee(route('pengumuman.gambar', $pengumuman), false);
+    $this->actingAs($dosen)->get(route('pengumuman.gambar', $pengumuman))->assertOk();
+
+    $this->actingAs($operator)->put(route('kelola.pengumuman.update', $pengumuman), isianPengumuman(['hapus_gambar' => '1']));
+    expect($pengumuman->fresh()->gambar)->toBeNull();
+    $this->actingAs($dosen)->get(route('pengumuman.gambar', $pengumuman))->assertNotFound();
+});
+
+test('the featured image must be a picture', function () {
+    Storage::fake();
+    $operator = penggunaDengan(Role::OPERATOR);
+
+    $this->actingAs($operator)->post(route('kelola.pengumuman.store'), isianPengumuman([
+        'gambar' => UploadedFile::fake()->create('sampul.pdf', 100, 'application/pdf'),
+    ]))->assertSessionHasErrors('gambar');
+});
+
+test('a reader cannot fetch the image of an announcement not meant for them', function () {
+    Storage::fake();
+    $pengumuman = Pengumuman::factory()->create(['target_peran' => Role::REVIEWER, 'terbit_at' => now()->subDay()]);
+    $pengumuman->berkas()->create([
+        'kategori' => Berkas::GAMBAR_UNGGULAN, 'nama_asli' => 'a.jpg', 'path' => UploadedFile::fake()->image('a.jpg')->store('pengumuman'),
+        'mime' => 'image/jpeg', 'ukuran_byte' => 10,
+    ]);
+
+    $this->actingAs(penggunaDengan(Role::DOSEN))->get(route('pengumuman.gambar', $pengumuman))->assertNotFound();
+});
