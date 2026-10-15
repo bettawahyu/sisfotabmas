@@ -147,9 +147,11 @@ test('a team larger than the scheme allows cannot be sent', function () {
 test('the highest degree follows the education history', function () {
     $user = akunSyarat(Role::DOSEN);
     $this->actingAs($user)->put(route('profil-dosen.update'), ['nama' => 'Ani'])->assertSessionHasNoErrors();
+    // Each request in the app loads the user afresh; here the same instance would still hold no profile.
+    $user = $user->fresh();
 
     $this->actingAs($user)->post(route('profil-dosen.pendidikan.store'), ['jenjang' => 'S1', 'institusi' => 'Universitas A', 'tahun_lulus' => 2010])
-        ->assertSessionHasNoErrors();
+        ->assertRedirect(route('profil-dosen.edit'))->assertSessionHasNoErrors();
     $this->actingAs($user)->post(route('profil-dosen.pendidikan.store'), ['jenjang' => 'S3', 'institusi' => 'Universitas B', 'tahun_lulus' => 2020]);
     expect($user->fresh()->dosen->pendidikan_terakhir)->toBe('S3')
         ->and($user->fresh()->dosen->pendidikanSetidaknya('S2'))->toBeTrue();

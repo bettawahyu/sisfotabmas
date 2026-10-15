@@ -78,7 +78,11 @@ test('proposals are filtered by year, scheme and the lead\'s programme, leaving 
 });
 
 test('publications and IP come as one sheet each, filtered by year, type and programme', function () {
-    $valid = fn ($karya) => tap($karya)->forceFill(['status_verifikasi' => Hki::VALID])->save();
+    $valid = function ($karya) {
+        $karya->forceFill(['status_verifikasi' => Hki::VALID])->save();
+
+        return $karya;
+    };
 
     $valid(Publikasi::factory()->olehDosen($this->dosenTi)->create(['judul' => 'Artikel TI', 'tahun' => 2026, 'jenis' => 'jurnal_internasional']));
     $valid(Publikasi::factory()->olehDosen($this->dosenTi)->create(['judul' => 'Prosiding TI', 'tahun' => 2026, 'jenis' => 'prosiding_nasional']));
