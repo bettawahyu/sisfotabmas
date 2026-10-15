@@ -112,7 +112,7 @@ class AlurPencairan
 
         $belum = $proposal->luaran()->where('kategori', 'wajib')->get()->reject->memenuhiTermin2();
         if ($belum->isNotEmpty()) {
-            $masalah[] = 'Luaran wajib belum tervalidasi minimal submitted: '.$belum->map(fn ($l) => $l->jenis->label())->join(', ').'.';
+            $masalah[] = 'Luaran wajib belum tervalidasi minimal submitted: '.$belum->map(fn ($l) => $l->namaJenis())->join(', ').'.';
         }
 
         return $masalah;

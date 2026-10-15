@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\JenisKegiatan;
-use App\Enums\JenisLuaran;
 use App\Enums\KategoriRab;
 use App\Enums\TipeAnggota;
 use App\Models\Berkas;
 use App\Models\Dosen;
+use App\Models\JenisLuaran;
 use App\Models\Luaran;
 use App\Models\Proposal;
 use App\Models\ProposalAnggota;
@@ -140,9 +140,12 @@ class ProposalBagianController extends Controller
     {
         Gate::authorize('update', $proposal);
 
+        $jenisKegiatan = $proposal->periode->skema->jenis_kegiatan;
+
         $proposal->luaran()->create($request->validate([
             'kategori' => ['required', 'in:wajib,tambahan'],
-            'jenis' => ['required', Rule::enum(JenisLuaran::class)],
+            'jenis' => ['required', Rule::exists('jenis_luaran', 'kode')->where('is_active', true)
+                ->whereIn('berlaku_untuk', [JenisLuaran::SEMUA, $jenisKegiatan->value])],
             'target_keterangan' => ['nullable', 'string', 'max:255'],
         ]));
 

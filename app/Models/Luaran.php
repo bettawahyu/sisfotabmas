@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\JenisLuaran;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,7 +40,6 @@ class Luaran extends Model
     protected function casts(): array
     {
         return [
-            'jenis' => JenisLuaran::class,
             'divalidasi_at' => 'datetime',
         ];
     }
@@ -52,6 +50,30 @@ class Luaran extends Model
     public function proposal(): BelongsTo
     {
         return $this->belongsTo(Proposal::class);
+    }
+
+    /**
+     * @return BelongsTo<JenisLuaran, $this>
+     */
+    public function jenisLuaran(): BelongsTo
+    {
+        return $this->belongsTo(JenisLuaran::class, 'jenis', 'kode');
+    }
+
+    public function namaJenis(): string
+    {
+        return $this->jenisLuaran?->nama ?? $this->jenis;
+    }
+
+    /**
+     * The kind of entry on the publication, HKI and patent pages this output
+     * can be linked to, if any.
+     *
+     * @return class-string<Publikasi|Hki|Paten>|null
+     */
+    public function modelKarya(): ?string
+    {
+        return $this->jenisLuaran?->modelKarya();
     }
 
     /**

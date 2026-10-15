@@ -21,6 +21,9 @@ class Dosen extends Model
     /** @use HasFactory<DosenFactory> */
     use HasFactory, SoftDeletes;
 
+    /** Highest degree, lowest first, so a scheme can ask for a minimum. */
+    public const PENDIDIKAN = ['S1', 'S2', 'S3'];
+
     protected $table = 'dosen';
 
     /**
@@ -69,6 +72,16 @@ class Dosen extends Model
     /**
      * Whether the national identifiers the grant rules require are filled in.
      */
+    /**
+     * Whether the highest degree reaches the given one, such as S2.
+     */
+    public function pendidikanSetidaknya(string $minimal): bool
+    {
+        $punya = array_search($this->pendidikan_terakhir, self::PENDIDIKAN, true);
+
+        return $punya !== false && $punya >= array_search($minimal, self::PENDIDIKAN, true);
+    }
+
     public function identitasLengkap(): bool
     {
         return ($this->nidn || $this->nuptk) && $this->sinta_id;

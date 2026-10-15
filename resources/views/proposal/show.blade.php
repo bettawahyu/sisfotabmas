@@ -1,6 +1,5 @@
 @php
     use App\Enums\JenisKegiatan;
-    use App\Enums\JenisLuaran;
     use App\Enums\KategoriRab;
     use App\Enums\StatusProposal;
     use App\Enums\TipeAnggota;
@@ -350,7 +349,7 @@
             <x-kartu ikon="target" judul="Target luaran">
                 @forelse ($proposal->luaran as $luaran)
                     <div class="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
-                        <div><span class="font-medium">{{ $luaran->jenis->label() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></div>
+                        <div><span class="font-medium">{{ $luaran->namaJenis() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></div>
                         @if ($bisaDiubah)
                             <form method="POST" action="{{ route('proposal.luaran.destroy', [$proposal, $luaran]) }}">
                                 @csrf
@@ -362,8 +361,11 @@
                 @empty
                     <p class="text-sm text-gray-600">Belum ada target luaran.</p>
                 @endforelse
+                @if ($periode->skema->jenisLuaranWajib->isNotEmpty())
+                    <p class="mt-3 text-xs text-gray-500">Luaran wajib skema ini: {{ $periode->skema->jenisLuaranWajib->map(fn ($j) => $j->pivot->jumlah_min.' '.$j->nama)->join(', ') }}.</p>
+                @endif
                 @if ($periode->skema->luaran_wajib)
-                    <p class="mt-3 text-xs text-gray-500">Luaran wajib skema ini: {{ $periode->skema->luaran_wajib }}</p>
+                    <p class="mt-1 text-xs text-gray-500">Catatan luaran: {{ $periode->skema->luaran_wajib }}</p>
                 @endif
                 @if ($bisaDiubah)
                     <form method="POST" action="{{ route('proposal.luaran.store', $proposal) }}" class="mt-6 grid gap-3 sm:grid-cols-4">
@@ -373,8 +375,8 @@
                             <option value="tambahan">Tambahan</option>
                         </x-select-input>
                         <x-select-input name="jenis">
-                            @foreach (JenisLuaran::cases() as $jenis)
-                                <option value="{{ $jenis->value }}">{{ $jenis->label() }}</option>
+                            @foreach ($jenisLuaran as $jenis)
+                                <option value="{{ $jenis->kode }}">{{ $jenis->nama }}</option>
                             @endforeach
                         </x-select-input>
                         <x-text-input name="target_keterangan" placeholder="Target, misalnya jurnal Sinta 2" />

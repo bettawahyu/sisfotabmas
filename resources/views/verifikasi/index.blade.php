@@ -44,7 +44,7 @@
                     <div class="border-b border-gray-100 py-4 first:pt-0 last:border-0 last:pb-0 text-sm">
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
                             <div>
-                                <p><span class="font-medium">{{ $l->jenis->label() }}</span> <span class="text-gray-500">· {{ $l->kategori }} · {{ $l->namaCapaian() }}</span></p>
+                                <p><span class="font-medium">{{ $l->namaJenis() }}</span> <span class="text-gray-500">· {{ $l->kategori }} · {{ $l->namaCapaian() }}</span></p>
                                 <a href="{{ route('pelaksanaan.show', $l->proposal) }}" class="text-gray-500 hover:underline">{{ $l->proposal->judul }} · {{ $l->proposal->ketua->namaLengkap() }}</a>
                             </div>
                         </div>

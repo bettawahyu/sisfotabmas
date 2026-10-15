@@ -26,6 +26,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Sistem\BidangFokusController;
 use App\Http\Controllers\Sistem\FakultasController;
 use App\Http\Controllers\Sistem\ImporController;
+use App\Http\Controllers\Sistem\JenisLuaranController;
 use App\Http\Controllers\Sistem\PenggunaController;
 use App\Http\Controllers\Sistem\PeringkatJurnalController;
 use App\Http\Controllers\Sistem\ProgramStudiController;
@@ -167,6 +168,7 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_SISTEM])->prefix('sistem')->name(
     Route::resource('bidang-fokus', BidangFokusController::class)->except(['show', 'destroy'])
         ->parameters(['bidang-fokus' => 'bidang_fokus']);
     Route::resource('peringkat-jurnal', PeringkatJurnalController::class)->except(['show', 'destroy']);
+    Route::resource('jenis-luaran', JenisLuaranController::class)->except(['show', 'destroy']);
 
     Route::controller(ImporController::class)->prefix('impor/{jenis}')->name('impor.')
         ->whereIn('jenis', ['prodi', 'rumpun-ilmu'])->group(function () {

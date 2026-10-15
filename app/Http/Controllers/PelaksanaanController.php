@@ -44,7 +44,7 @@ class PelaksanaanController extends Controller
     {
         Gate::authorize('view', $proposal);
         abort_unless($proposal->sudahDilaksanakan(), 404);
-        $proposal->load(['periode', 'logbook.pencatat', 'logbook.berkas', 'laporan.berkas', 'luaran.publikasi', 'luaran.hki', 'luaran.paten']);
+        $proposal->load(['periode', 'logbook.pencatat', 'logbook.berkas', 'laporan.berkas', 'luaran.jenisLuaran', 'luaran.publikasi', 'luaran.hki', 'luaran.paten']);
         $isKetua = $proposal->isKetua($request->user()->dosen);
         // What the lead can link each output to, keyed by model class.
         $karyaKetua = $isKetua ? collect(AlurKarya::JENIS)->mapWithKeys(fn ($model) => [
