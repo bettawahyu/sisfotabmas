@@ -6,6 +6,7 @@ use App\Enums\JenisKegiatan;
 use App\Enums\StatusPeriode;
 use App\Models\BidangFokus;
 use App\Models\Fakultas;
+use App\Models\JenisLuaran;
 use App\Models\Pengaturan;
 use App\Models\Pengumuman;
 use App\Models\Penilaian;
@@ -76,10 +77,13 @@ class DatabaseSeeder extends Seeder
             'dana_maksimal_default' => 15_000_000, 'honor_diizinkan' => true, 'batas_honor_persen' => 10,
             'luaran_wajib' => 'Artikel di jurnal nasional terakreditasi Sinta',
         ]);
-        SkemaHibah::create([
+        $desaBinaan = SkemaHibah::create([
             'kode' => 'PKM-DB', 'nama' => 'PkM Desa Binaan', 'jenis_kegiatan' => JenisKegiatan::Pkm,
             'dana_maksimal_default' => 10_000_000, 'luaran_wajib' => 'Video kegiatan dan publikasi media',
         ]);
+        $jenisLuaran = JenisLuaran::pluck('id', 'kode');
+        $pemula->jenisLuaranWajib()->attach($jenisLuaran['artikel_jurnal']);
+        $desaBinaan->jenisLuaranWajib()->attach([$jenisLuaran['video_kegiatan'], $jenisLuaran['publikasi_media']]);
 
         $pemula->periode()->create([
             'tahun_anggaran' => now()->year, 'nama' => 'Penelitian Dosen Pemula '.now()->year,

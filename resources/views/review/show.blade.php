@@ -87,7 +87,7 @@
             <x-kartu ikon="target" judul="Target luaran">
                 <ul class="space-y-1 text-sm">
                     @foreach ($proposal->luaran as $luaran)
-                        <li><span class="font-medium">{{ $luaran->jenis->label() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></li>
+                        <li><span class="font-medium">{{ $luaran->namaJenis() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></li>
                     @endforeach
                 </ul>
                 @if ($proposal->periode->skema->jenis_kegiatan === JenisKegiatan::Pkm && $proposal->mitra->isNotEmpty())

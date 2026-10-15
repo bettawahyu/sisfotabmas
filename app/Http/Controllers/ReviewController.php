@@ -36,7 +36,7 @@ class ReviewController extends Controller
     {
         $this->pastikanMilik($request, $penilaian);
         $penilaian->load('nilai', 'proposal.periode.skema', 'proposal.bidangFokus', 'proposal.cabangIlmu.induk.induk',
-            'proposal.rab', 'proposal.luaran', 'proposal.mitra', 'proposal.berkasSubstansi', 'laporan.berkas', 'proposal.logbook');
+            'proposal.rab', 'proposal.luaran.jenisLuaran', 'proposal.mitra', 'proposal.berkasSubstansi', 'laporan.berkas', 'proposal.logbook');
 
         return view('review.show', [
             'penilaian' => $penilaian,

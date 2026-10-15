@@ -71,6 +71,7 @@
                 ['Unit', 'sistem.fakultas.index', ['sistem.fakultas.*', 'sistem.prodi.*', 'sistem.impor.*'], 'home'],
                 ['Rumpun Ilmu', 'sistem.rumpun-ilmu.index', ['sistem.rumpun-ilmu.*'], 'git-branch'],
                 ['Bidang Fokus', 'sistem.bidang-fokus.index', ['sistem.bidang-fokus.*'], 'target'],
+                ['Jenis Luaran', 'sistem.jenis-luaran.index', ['sistem.jenis-luaran.*'], 'package'],
                 ['Peringkat Jurnal', 'sistem.peringkat-jurnal.index', ['sistem.peringkat-jurnal.*'], 'star'],
             ]] : null,
             // LPPM admins find it under Pengaturan LPPM.

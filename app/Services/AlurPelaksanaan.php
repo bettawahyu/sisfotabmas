@@ -154,7 +154,7 @@ class AlurPelaksanaan
         // An output can point at one of the lead's own publications, HKI or patents.
         $tautan = ['publikasi_id' => null, 'hki_id' => null, 'paten_id' => null];
         if ($karyaId !== null) {
-            $model = $luaran->jenis->modelKarya();
+            $model = $luaran->modelKarya();
             $this->pastikan($model !== null, 'Luaran jenis ini tidak bisa ditautkan ke publikasi, HKI, atau paten.');
             $karya = $model::milikDosen($oleh->dosen)->find($karyaId);
             $this->pastikan($karya !== null, 'Pilih data yang mencantumkan nama Anda.');
@@ -179,7 +179,7 @@ class AlurPelaksanaan
 
         if (! $valid) {
             $this->pemberitahu->keKetua($luaran->proposal, 'Capaian luaran ditolak',
-                "Capaian luaran {$luaran->jenis->label()} untuk proposal \"{$luaran->proposal->judul}\" ditolak. Alasan: {$catatan}");
+                "Capaian luaran {$luaran->namaJenis()} untuk proposal \"{$luaran->proposal->judul}\" ditolak. Alasan: {$catatan}");
         }
     }
 

@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\TipeAnggota;
 use App\Models\BidangFokus;
+use App\Models\JenisLuaran;
 use App\Models\Penilaian;
 use App\Models\PeriodeHibah;
 use App\Models\Proposal;
 use App\Models\RumpunIlmu;
 use App\Models\TemplateDokumen;
 use App\Services\AlurProposal;
+use App\Services\SyaratSkema;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -21,13 +23,19 @@ class ProposalController extends Controller
     /**
      * The lecturer's own proposals, as lead or member, plus open calls.
      */
-    public function index(Request $request): View
+    public function index(Request $request, SyaratSkema $syarat): View
     {
         $dosen = $request->user()->dosen;
+        $periodeDibuka = PeriodeHibah::sedangDibuka()->with('skema.jenisLuaranWajib')->orderBy('tgl_tutup')->get();
 
         return view('proposal.index', [
             'dosen' => $dosen,
-            'periodeDibuka' => PeriodeHibah::sedangDibuka()->with('skema')->orderBy('tgl_tutup')->get(),
+            'periodeDibuka' => $periodeDibuka,
+            // Per call: the scheme's requirements, and what keeps this lecturer from leading one.
+            'syarat' => $periodeDibuka->mapWithKeys(fn (PeriodeHibah $p) => [$p->id => [
+                'ringkasan' => $syarat->ringkasan($p->skema),
+                'kekurangan' => $syarat->kekuranganKetua($dosen, $p->skema),
+            ]]),
             'sebagaiKetua' => $dosen?->proposalSebagaiKetua()->with('periode.skema')->latest()->get() ?? collect(),
             'sebagaiAnggota' => $dosen
                 ? Proposal::whereHas('anggota', fn ($q) => $q->where('tipe', TipeAnggota::Dosen)->where('dosen_id', $dosen->id))
@@ -43,6 +51,9 @@ class ProposalController extends Controller
             return $redirect;
         }
         abort_unless($periode->menerimaPengajuan(), 404);
+        if ($redirect = $this->belumMemenuhiSyarat($request, $periode)) {
+            return $redirect;
+        }
 
         return view('proposal.create', [
             'periode' => $periode->load('skema'),
@@ -57,6 +68,9 @@ class ProposalController extends Controller
             return $redirect;
         }
         abort_unless($periode->menerimaPengajuan(), 404);
+        if ($redirect = $this->belumMemenuhiSyarat($request, $periode)) {
+            return $redirect;
+        }
 
         $data = $this->validasiIdentitas($request, $periode);
         $data['lama_tahun'] = $periode->skema->is_multitahun ? ($data['lama_tahun'] ?? 1) : 1;
@@ -70,7 +84,7 @@ class ProposalController extends Controller
     {
         Gate::authorize('view', $proposal);
 
-        $proposal->load(['periode.skema', 'ketua', 'bidangFokus', 'cabangIlmu.induk.induk', 'anggota.dosen', 'mitra', 'rab', 'luaran', 'berkasSubstansi', 'riwayatStatus.pelaku', 'pencairan',
+        $proposal->load(['periode.skema', 'ketua', 'bidangFokus', 'cabangIlmu.induk.induk', 'anggota.dosen', 'mitra', 'rab', 'luaran.jenisLuaran', 'berkasSubstansi', 'riwayatStatus.pelaku', 'pencairan',
             'penilaian' => fn ($q) => $q->where('tahap', Penilaian::SELEKSI)->where('status', Penilaian::SELESAI)->orderBy('urutan_reviewer')]);
 
         return view('proposal.show', [
@@ -79,6 +93,7 @@ class ProposalController extends Controller
             'kekurangan' => Gate::allows('update', $proposal) ? $alur->kekurangan($proposal) : [],
             'bidangFokus' => $this->bidangFokus($proposal->periode),
             'cabangIlmu' => $this->cabangIlmu(),
+            'jenisLuaran' => JenisLuaran::aktif()->untukKegiatan($proposal->periode->skema->jenis_kegiatan)->berurutan()->get(),
             // Report templates belong on the report pages, not next to the substance upload.
             'templat' => TemplateDokumen::berlakuUntuk($proposal->periode->skema_id, $proposal->periode->tahun_anggaran)
                 ->where('jenis', TemplateDokumen::SUBSTANSI)
@@ -140,6 +155,13 @@ class ProposalController extends Controller
     private function cabangIlmu()
     {
         return RumpunIlmu::cabangAktif()->with('induk.induk')->get()->sortBy(fn (RumpunIlmu $cabang) => $cabang->jalur())->values();
+    }
+
+    private function belumMemenuhiSyarat(Request $request, PeriodeHibah $periode): ?RedirectResponse
+    {
+        $kekurangan = app(SyaratSkema::class)->kekuranganKetua($request->user()->dosen, $periode->skema);
+
+        return $kekurangan ? redirect()->route('proposal.index')->withErrors($kekurangan) : null;
     }
 
     private function butuhProfil(Request $request): ?RedirectResponse

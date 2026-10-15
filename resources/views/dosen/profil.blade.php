@@ -44,6 +44,15 @@
                             @endforeach
                         </x-select-input>
                     </div>
+                    <div>
+                        <x-input-label for="pendidikan_terakhir" value="Pendidikan terakhir" ikon="book-open" />
+                        <x-select-input id="pendidikan_terakhir" name="pendidikan_terakhir" class="mt-1 block w-full">
+                            <option value="">-</option>
+                            @foreach (App\Models\Dosen::PENDIDIKAN as $jenjang)
+                                <option value="{{ $jenjang }}" @selected(old('pendidikan_terakhir', $dosen?->pendidikan_terakhir) === $jenjang)>{{ $jenjang }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil, opsional)" ikon="link" />
                         <x-text-input id="google_scholar_id" name="google_scholar_id" class="mt-1 block w-full" :value="old('google_scholar_id', $dosen?->google_scholar_id)" placeholder="https://scholar.google.com/citations?user=..." />

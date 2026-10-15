@@ -24,7 +24,7 @@ use Illuminate\Validation\ValidationException;
  */
 class AlurProposal
 {
-    public function __construct(private Pemberitahu $pemberitahu) {}
+    public function __construct(private Pemberitahu $pemberitahu, private SyaratSkema $syarat) {}
 
     /**
      * Everything that still stops the lead from sending the proposal, as messages
@@ -34,7 +34,7 @@ class AlurProposal
      */
     public function kekurangan(Proposal $proposal): array
     {
-        $proposal->loadMissing(['periode.skema', 'ketua', 'anggota', 'rab', 'luaran', 'mitra', 'berkasSubstansi']);
+        $proposal->loadMissing(['periode.skema.jenisLuaranWajib', 'ketua', 'anggota', 'rab', 'luaran', 'mitra', 'berkasSubstansi']);
         $periode = $proposal->periode;
         $masalah = [];
 
@@ -79,6 +79,9 @@ class AlurProposal
         if ($proposal->luaran->where('kategori', 'wajib')->isEmpty()) {
             $masalah[] = 'Tambahkan minimal satu luaran wajib.';
         }
+
+        array_push($masalah, ...$this->syarat->kekuranganKetua($proposal->ketua, $periode->skema));
+        array_push($masalah, ...$this->syarat->kekuranganProposal($proposal));
 
         if ($periode->skema->jenis_kegiatan === JenisKegiatan::Pkm && $proposal->mitra->isEmpty()) {
             $masalah[] = 'Proposal PkM wajib mencantumkan minimal satu mitra.';

@@ -1,6 +1,9 @@
 @php
+    use App\Enums\JabatanFungsional;
     use App\Enums\JenisKegiatan;
     use App\Enums\SumberDana;
+    use App\Models\Dosen;
+    use App\Models\JenisLuaran;
 @endphp
 <x-app-layout>
     <x-slot name="header">
@@ -67,9 +70,66 @@
                         <x-input-label for="batas_honor_persen" value="Batas honorarium (% dari total, opsional)" ikon="dollar-sign" />
                         <x-text-input id="batas_honor_persen" name="batas_honor_persen" type="number" min="1" max="100" class="mt-1 block w-full" :value="old('batas_honor_persen', $skema->batas_honor_persen)" />
                     </div>
+
+                    <div class="sm:col-span-2 border-t border-gray-200 pt-4">
+                        <h3 class="font-semibold text-gray-800">Syarat pengusul</h3>
+                        <p class="text-sm text-gray-600">Kosongkan bila tidak ada syarat. Syarat ketua dicek saat dosen menekan "Buat proposal"; syarat tim dicek saat proposal dikirim.</p>
+                    </div>
+                    <div>
+                        <x-input-label for="jabatan_min" value="Jabatan fungsional minimal ketua" ikon="briefcase" />
+                        <x-select-input id="jabatan_min" name="jabatan_min" class="mt-1 block w-full">
+                            <option value="">Tanpa syarat</option>
+                            @foreach (JabatanFungsional::cases() as $jabatan)
+                                <option value="{{ $jabatan->value }}" @selected(old('jabatan_min', $skema->jabatan_min?->value) === $jabatan->value)>{{ $jabatan->label() }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div>
+                        <x-input-label for="pendidikan_min" value="Pendidikan minimal ketua" ikon="book-open" />
+                        <x-select-input id="pendidikan_min" name="pendidikan_min" class="mt-1 block w-full">
+                            <option value="">Tanpa syarat</option>
+                            @foreach (Dosen::PENDIDIKAN as $jenjang)
+                                <option value="{{ $jenjang }}" @selected(old('pendidikan_min', $skema->pendidikan_min) === $jenjang)>{{ $jenjang }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div>
+                        <x-input-label for="anggota_dosen_min" value="Anggota dosen minimal" ikon="users" />
+                        <x-text-input id="anggota_dosen_min" name="anggota_dosen_min" type="number" min="0" max="20" class="mt-1 block w-full" :value="old('anggota_dosen_min', $skema->anggota_dosen_min)" />
+                    </div>
+                    <div>
+                        <x-input-label for="anggota_dosen_maks" value="Anggota dosen maksimal" ikon="users" />
+                        <x-text-input id="anggota_dosen_maks" name="anggota_dosen_maks" type="number" min="0" max="20" class="mt-1 block w-full" :value="old('anggota_dosen_maks', $skema->anggota_dosen_maks)" />
+                    </div>
+                    <div>
+                        <x-input-label for="anggota_mahasiswa_min" value="Anggota mahasiswa minimal" ikon="user-plus" />
+                        <x-text-input id="anggota_mahasiswa_min" name="anggota_mahasiswa_min" type="number" min="0" max="20" class="mt-1 block w-full" :value="old('anggota_mahasiswa_min', $skema->anggota_mahasiswa_min)" />
+                    </div>
+
+                    <div class="sm:col-span-2 border-t border-gray-200 pt-4">
+                        <h3 class="font-semibold text-gray-800">Luaran wajib</h3>
+                        <p class="text-sm text-gray-600">Centang jenis luaran yang wajib dicantumkan dan jumlah minimalnya. Proposal tidak bisa dikirim sebelum memenuhinya.</p>
+                        <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                            @foreach ($jenisLuaran as $jenis)
+                                @php($dicentang = in_array($jenis->id, array_map('intval', old('luaran_wajib_jenis', $luaranTerpilih->keys()->all())), true))
+                                <div class="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2 text-sm">
+                                    <label class="flex items-center gap-2 text-gray-700">
+                                        <input type="checkbox" name="luaran_wajib_jenis[]" value="{{ $jenis->id }}" @checked($dicentang) class="rounded border-gray-300">
+                                        {{ $jenis->nama }}
+                                        @if ($jenis->berlaku_untuk !== JenisLuaran::SEMUA)
+                                            <span class="text-xs text-gray-500">({{ JenisLuaran::BERLAKU[$jenis->berlaku_untuk] }})</span>
+                                        @endif
+                                    </label>
+                                    <input type="number" name="luaran_wajib_jumlah[{{ $jenis->id }}]" min="1" max="20" aria-label="Jumlah minimal {{ $jenis->nama }}"
+                                           value="{{ old('luaran_wajib_jumlah.'.$jenis->id, $luaranTerpilih->get($jenis->id, 1)) }}"
+                                           class="w-16 rounded-md border-gray-300 py-1 text-sm shadow-sm">
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                     <div class="sm:col-span-2">
-                        <x-input-label for="luaran_wajib" value="Luaran wajib" ikon="target" />
-                        <textarea id="luaran_wajib" name="luaran_wajib" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('luaran_wajib', $skema->luaran_wajib) }}</textarea>
+                        <x-input-label for="luaran_wajib" value="Catatan luaran (opsional, misalnya jurnal nasional terakreditasi SINTA)" ikon="target" />
+                        <textarea id="luaran_wajib" name="luaran_wajib" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('luaran_wajib', $skema->luaran_wajib) }}</textarea>
                     </div>
                     <label class="flex items-center gap-2 text-sm text-gray-700">
                         <input type="hidden" name="is_active" value="0">

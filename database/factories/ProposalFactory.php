@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\JenisLuaran;
 use App\Enums\KategoriRab;
 use App\Models\Berkas;
 use App\Models\Dosen;
@@ -50,7 +49,7 @@ class ProposalFactory extends Factory
                 'harga_satuan' => 5_000_000,
                 'total' => 5_000_000,
             ]);
-            $proposal->luaran()->create(['kategori' => 'wajib', 'jenis' => JenisLuaran::ArtikelJurnal]);
+            $proposal->luaran()->create(['kategori' => 'wajib', 'jenis' => 'artikel_jurnal']);
         });
     }
 }

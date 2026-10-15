@@ -120,7 +120,7 @@
                     @foreach ($proposal->luaran as $luaran)
                         <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0 text-sm">
                             <div class="flex flex-wrap items-baseline justify-between gap-2">
-                                <p><span class="font-medium">{{ $luaran->jenis->label() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></p>
+                                <p><span class="font-medium">{{ $luaran->namaJenis() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></p>
                                 <p class="{{ $luaran->status_validasi === Luaran::VALID ? 'text-green-700' : ($luaran->status_validasi === Luaran::DITOLAK ? 'text-red-700' : 'text-gray-600') }}">
                                     {{ $luaran->namaCapaian() }}@if ($luaran->status_capaian !== Luaran::DIRENCANAKAN) · {{ Luaran::VALIDASI[$luaran->status_validasi] ?? $luaran->status_validasi }}@endif
                                 </p>
@@ -144,7 +144,7 @@
                                         @endforeach
                                     </x-select-input>
                                     <x-text-input name="url_bukti" type="url" placeholder="Tautan bukti (DOI, URL artikel, nomor permohonan)" class="flex-1" :value="$luaran->url_bukti" />
-                                    @if ($model = $luaran->jenis->modelKarya())
+                                    @if ($model = $luaran->modelKarya())
                                         <x-select-input name="karya_id" class="w-full" aria-label="Tautkan ke data publikasi, HKI, atau paten">
                                             <option value="">Tidak ditautkan</option>
                                             @foreach ($karyaKetua[$model] as $karya)

@@ -29,7 +29,7 @@ class PimpinanController extends Controller
             ->with('periode.skema', 'ketua.prodi.fakultas')
             ->get();
         $didanai = $proposal->filter(fn (Proposal $p) => in_array($p->status, self::DIDANAI, true));
-        $luaran = Luaran::whereIn('proposal_id', $didanai->modelKeys())->get();
+        $luaran = Luaran::with('jenisLuaran')->whereIn('proposal_id', $didanai->modelKeys())->get();
 
         return view('pimpinan.index', [
             'daftarTahun' => $daftarTahun,
@@ -54,8 +54,8 @@ class PimpinanController extends Controller
                     'usulan' => $kelompok->count(),
                     'didanai' => $kelompok->intersect($didanai)->count(),
                 ])->sortBy('nama')->values(),
-            'perLuaran' => $luaran->groupBy(fn (Luaran $l) => $l->jenis->value)->map(fn ($kelompok) => [
-                'label' => $kelompok->first()->jenis->label(),
+            'perLuaran' => $luaran->groupBy(fn (Luaran $l) => $l->jenis)->map(fn ($kelompok) => [
+                'label' => $kelompok->first()->namaJenis(),
                 'target' => $kelompok->count(),
                 'tercapai' => $kelompok->where('status_capaian', 'terbit')->count(),
             ])->sortBy('label')->values(),

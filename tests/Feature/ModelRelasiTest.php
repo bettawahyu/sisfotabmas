@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\JenisLuaran;
 use App\Models\Dosen;
 use App\Models\Hki;
 use App\Models\KriteriaPenilaian;
@@ -41,7 +40,7 @@ test('an output links to its publication and records its validation', function (
     $proposal = Proposal::factory()->create();
     $publikasi = Publikasi::factory()->create();
     $operator = User::factory()->create();
-    $luaran = $proposal->luaran()->create(['kategori' => 'wajib', 'jenis' => JenisLuaran::ArtikelJurnal, 'publikasi_id' => $publikasi->id]);
+    $luaran = $proposal->luaran()->create(['kategori' => 'wajib', 'jenis' => 'artikel_jurnal', 'publikasi_id' => $publikasi->id]);
 
     $luaran->validasi($operator, true);
 

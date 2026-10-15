@@ -16,11 +16,32 @@
             <x-kartu ikon="gift" judul="Hibah yang sedang dibuka">
                 @forelse ($periodeDibuka as $periode)
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 py-3 last:border-0">
+                        @php(['ringkasan' => $ringkasan, 'kekurangan' => $kekurangan] = $syarat[$periode->id])
                         <div>
                             <p class="font-medium text-gray-900">{{ $periode->nama }}</p>
                             <p class="text-sm text-gray-600">{{ $periode->skema->jenis_kegiatan->label() }} · plafon <x-rupiah :nilai="$periode->dana_maksimal" /> · ditutup {{ $periode->tgl_tutup->translatedFormat('d M Y') }}</p>
+                            @if ($ringkasan)
+                                <p class="mt-1 text-xs text-gray-500">Syarat: {{ implode(' · ', $ringkasan) }}</p>
+                            @endif
                         </div>
-                        @if ($dosen)
+                        @if ($dosen && $kekurangan)
+                            <x-secondary-button type="button" ikon="file-plus" x-data x-on:click="$dispatch('open-modal', 'syarat-{{ $periode->id }}')">Buat proposal</x-secondary-button>
+                            <x-modal name="syarat-{{ $periode->id }}" maxWidth="lg" focusable>
+                                <div class="p-6">
+                                    <h3 class="text-lg font-semibold text-gray-800">Belum bisa mengajukan</h3>
+                                    <p class="mt-1 text-sm text-gray-600">{{ $periode->nama }}</p>
+                                    <ul class="mt-4 list-disc space-y-1 ps-5 text-sm text-gray-700">
+                                        @foreach ($kekurangan as $k)
+                                            <li>{{ $k }}</li>
+                                        @endforeach
+                                    </ul>
+                                    <div class="mt-6 flex justify-end gap-3">
+                                        <x-secondary-button type="button" x-on:click="$dispatch('close')">Tutup</x-secondary-button>
+                                        <x-tombol-tautan href="{{ route('profil-dosen.edit') }}" ikon="award">Perbarui kualifikasi</x-tombol-tautan>
+                                    </div>
+                                </div>
+                            </x-modal>
+                        @elseif ($dosen)
                             <x-tombol-tautan href="{{ route('proposal.create', $periode) }}" ikon="file-plus">Buat proposal</x-tombol-tautan>
                         @endif
                     </div>
