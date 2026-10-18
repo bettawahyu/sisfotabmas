@@ -231,7 +231,7 @@
                     </tbody>
                 </table>
                 @if ($bisaDiubah)
-                    <form method="POST" action="{{ route('proposal.anggota.store', $proposal) }}" class="mt-6 grid gap-3 sm:grid-cols-3" x-data="{ tipe: '{{ old('tipe', 'dosen') }}' }">
+                    <form method="POST" action="{{ route('proposal.anggota.store', $proposal) }}" class="mt-6 grid gap-3 sm:grid-cols-3" x-data="{ tipe: @js(old('tipe', 'dosen')) }">
                         @csrf
                         <x-select-input name="tipe" x-model="tipe">
                             @foreach (TipeAnggota::cases() as $tipe)

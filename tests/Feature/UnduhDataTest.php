@@ -116,3 +116,19 @@ test('publications and IP come as one sheet each, filtered by year, type and pro
 test('an unknown output type is refused', function () {
     $this->actingAs(pengunduh(Role::ADMIN_LPPM))->get(route('unduh-data.karya', ['jenis' => 'buku:apa']))->assertSessionHasErrors('jenis');
 });
+
+test('a title starting with "=" is written as text, not as a formula', function () {
+    $periode = PeriodeHibah::factory()->create();
+    Proposal::factory()->for($periode, 'periode')->for($this->dosenTi, 'ketua')
+        ->create(['judul' => '=HYPERLINK("https://contoh.test","klik")', 'status' => StatusProposal::Diajukan]);
+
+    $berkas = tempnam(sys_get_temp_dir(), 'unduh');
+    file_put_contents($berkas, $this->actingAs(pengunduh(Role::ADMIN_LPPM))->get(route('unduh-data.proposal'))->streamedContent());
+    $zip = new ZipArchive;
+    $zip->open($berkas);
+    $lembar = $zip->getFromName('xl/worksheets/sheet1.xml');
+    $zip->close();
+    unlink($berkas);
+
+    expect($lembar)->toContain('HYPERLINK')->not->toContain('<f>');
+});
