@@ -127,8 +127,9 @@ test('a title starting with "=" is written as text, not as a formula', function 
     $zip = new ZipArchive;
     $zip->open($berkas);
     $lembar = $zip->getFromName('xl/worksheets/sheet1.xml');
+    $teks = $lembar.$zip->getFromName('xl/sharedStrings.xml');
     $zip->close();
     unlink($berkas);
 
-    expect($lembar)->toContain('HYPERLINK')->not->toContain('<f>');
+    expect($lembar)->not->toContain('<f>')->and($teks)->toContain('HYPERLINK');
 });
