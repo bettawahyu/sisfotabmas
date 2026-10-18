@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Local development accounts; every password is "password".
+        // Sample accounts; every password is "password" and must be replaced on first login.
         $accounts = [
             'admin@example.com' => ['Admin LPPM', Role::ADMIN_LPPM],
             'dosen@example.com' => ['Dosen', Role::DOSEN],
@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($accounts as $email => [$name, $role]) {
-            User::factory()->create(['name' => $name, 'email' => $email])->assignRole($role);
+            User::factory()->create(['name' => $name, 'email' => $email, 'wajib_ganti_password' => true])->assignRole($role);
         }
 
         $this->contohDataHibah();

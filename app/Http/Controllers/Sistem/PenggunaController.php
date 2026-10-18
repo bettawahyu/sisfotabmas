@@ -44,6 +44,8 @@ class PenggunaController extends Controller
 
         $user = User::create(['name' => $data['name'], 'email' => $data['email'], 'password' => $data['password']]);
         $user->markEmailAsVerified();
+        // The admin chose this password, so the user replaces it on first login.
+        $user->forceFill(['wajib_ganti_password' => true])->save();
         $user->roles()->sync(Role::whereIn('kode', $data['peran'])->pluck('id'));
 
         return redirect()->route('sistem.pengguna.index')->with('status', "Akun {$user->name} dibuat.");
@@ -66,6 +68,7 @@ class PenggunaController extends Controller
         $pengguna->fill(['name' => $data['name'], 'email' => $data['email']]);
         if (! empty($data['password'])) {
             $pengguna->password = $data['password'];
+            $pengguna->wajib_ganti_password = ! $pengguna->is($request->user());
         }
         $pengguna->save();
 

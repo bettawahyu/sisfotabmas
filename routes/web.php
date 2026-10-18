@@ -57,6 +57,7 @@ Route::get('/dashboard', function (Request $request) {
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// The profile stays open before the email is verified, so a mistyped address can be fixed.
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -64,7 +65,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/foto', [ProfileController::class, 'updateFoto'])->name('profile.foto.update');
     Route::delete('/profile/foto', [ProfileController::class, 'destroyFoto'])->name('profile.foto.destroy');
     Route::get('/foto-profil/{user}', [ProfileController::class, 'foto'])->name('foto-profil.show');
+});
 
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pengumuman', [PengumumanController::class, 'index'])->name('pengumuman.index');
     Route::get('/pengumuman/{pengumuman}', [PengumumanController::class, 'show'])->name('pengumuman.show');
     Route::get('/pengumuman/{pengumuman}/lampiran', [PengumumanController::class, 'lampiran'])->name('pengumuman.lampiran');
@@ -78,19 +81,19 @@ Route::middleware('auth')->group(function () {
 });
 
 // Announcements are kept by LPPM admins and operators.
-Route::middleware(['auth', 'can:kelola-pengumuman'])->prefix('kelola')->name('kelola.')->group(function () {
+Route::middleware(['auth', 'verified', 'can:kelola-pengumuman'])->prefix('kelola')->name('kelola.')->group(function () {
     Route::resource('pengumuman', KelolaPengumumanController::class)->except('show')
         ->parameters(['pengumuman' => 'pengumuman']);
 });
 
 // Excel downloads of proposals and of publications, HKI and patents.
-Route::middleware(['auth', 'can:unduh-data'])->prefix('unduh-data')->name('unduh-data.')->controller(UnduhDataController::class)->group(function () {
+Route::middleware(['auth', 'verified', 'can:unduh-data'])->prefix('unduh-data')->name('unduh-data.')->controller(UnduhDataController::class)->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/proposal', 'proposal')->name('proposal');
     Route::get('/publikasi-ki', 'karya')->name('karya');
 });
 
-Route::middleware(['auth', 'role:'.Role::DOSEN])->group(function () {
+Route::middleware(['auth', 'verified', 'role:'.Role::DOSEN])->group(function () {
     Route::get('/profil-dosen', [ProfilDosenController::class, 'edit'])->name('profil-dosen.edit');
     Route::put('/profil-dosen', [ProfilDosenController::class, 'update'])->name('profil-dosen.update');
     Route::resource('profil-dosen/pendidikan', RiwayatPendidikanController::class)->only(['store', 'edit', 'update', 'destroy'])
@@ -122,7 +125,7 @@ Route::middleware(['auth', 'role:'.Role::DOSEN])->group(function () {
 });
 
 // The proposal page is shared by the team, LPPM and faculty heads; ProposalPolicy decides.
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/proposal/{proposal}', [ProposalController::class, 'show'])->name('proposal.show');
     Route::get('/proposal/{proposal}/substansi', [ProposalBagianController::class, 'unduhSubstansi'])->name('proposal.substansi.show');
 
@@ -139,14 +142,14 @@ Route::middleware('auth')->group(function () {
     Route::redirect('/proposal/{proposal}/pelaksanaan', '/pelaksanaan/{proposal}', 301);
 });
 
-Route::middleware(['auth', 'role:'.Role::OPERATOR.','.Role::ADMIN_LPPM])->group(function () {
+Route::middleware(['auth', 'verified', 'role:'.Role::OPERATOR.','.Role::ADMIN_LPPM])->group(function () {
     Route::get('/pemantauan', [PemantauanController::class, 'index'])->name('pemantauan.index');
     Route::get('/verifikasi', [VerifikasiController::class, 'index'])->name('verifikasi.index');
     Route::post('/verifikasi/laporan/{laporan}', [VerifikasiController::class, 'laporan'])->name('verifikasi.laporan');
     Route::post('/verifikasi/luaran/{luaran}', [VerifikasiController::class, 'luaran'])->name('verifikasi.luaran');
 });
 
-Route::middleware(['auth', 'role:'.Role::REVIEWER])->prefix('review')->name('review.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:'.Role::REVIEWER])->prefix('review')->name('review.')->group(function () {
     Route::get('/', [ReviewController::class, 'index'])->name('index');
     Route::get('/{penilaian}', [ReviewController::class, 'show'])->name('show');
     Route::put('/{penilaian}', [ReviewController::class, 'update'])->name('update');
@@ -155,25 +158,25 @@ Route::middleware(['auth', 'role:'.Role::REVIEWER])->prefix('review')->name('rev
 });
 
 // Finance records tranches; LPPM admins only look.
-Route::middleware(['auth', 'role:'.Role::KEUANGAN.','.Role::ADMIN_LPPM])->prefix('pencairan')->name('pencairan.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:'.Role::KEUANGAN.','.Role::ADMIN_LPPM])->prefix('pencairan')->name('pencairan.')->group(function () {
     Route::get('/', [PencairanController::class, 'index'])->name('index');
     Route::post('/{proposal}/termin-1', [PencairanController::class, 'store'])->name('store');
     Route::post('/{proposal}/termin-2', [PencairanController::class, 'storeTermin2'])->name('termin-2.store');
     Route::get('/bukti/{pencairan}', [PencairanController::class, 'bukti'])->name('bukti');
 });
 
-Route::middleware(['auth', 'role:'.Role::PIMPINAN_UNIT])->prefix('pengesahan')->name('pengesahan.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:'.Role::PIMPINAN_UNIT])->prefix('pengesahan')->name('pengesahan.')->group(function () {
     Route::get('/', [PengesahanController::class, 'index'])->name('index');
     Route::post('/{proposal}/sahkan', [PengesahanController::class, 'sahkan'])->name('sahkan');
     Route::post('/{proposal}/tolak', [PengesahanController::class, 'tolak'])->name('tolak');
 });
 
 // The LPPM or institution head only reads the summary.
-Route::middleware(['auth', 'role:'.Role::PIMPINAN])->prefix('pimpinan')->name('pimpinan.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:'.Role::PIMPINAN])->prefix('pimpinan')->name('pimpinan.')->group(function () {
     Route::get('/', [PimpinanController::class, 'index'])->name('index');
 });
 
-Route::middleware(['auth', 'role:'.Role::ADMIN_SISTEM])->prefix('sistem')->name('sistem.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:'.Role::ADMIN_SISTEM])->prefix('sistem')->name('sistem.')->group(function () {
     Route::redirect('/', '/sistem/pengguna')->name('dashboard');
     Route::resource('pengguna', PenggunaController::class)->except(['show', 'destroy'])
         ->parameters(['pengguna' => 'pengguna']);
@@ -203,7 +206,7 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_SISTEM])->prefix('sistem')->name(
         });
 });
 
-Route::middleware(['auth', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:'.Role::ADMIN_LPPM])->prefix('admin')->name('admin.')->group(function () {
     Route::view('/', 'admin.dashboard')->name('dashboard');
 
     Route::resource('skema', SkemaHibahController::class)->except(['show', 'destroy']);

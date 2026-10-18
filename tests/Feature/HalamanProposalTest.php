@@ -227,6 +227,9 @@ test('the seeded data shows an open call', function () {
     $this->seed();
 
     $dosen = User::where('email', 'dosen@example.com')->sole();
+    // Seeded accounts must replace the shared password first.
+    $this->actingAs($dosen)->get(route('proposal.index'))->assertRedirect(route('password.wajib'));
+    $dosen->forceFill(['wajib_ganti_password' => false])->save();
 
     $this->actingAs($dosen)->get(route('proposal.index'))->assertOk()->assertSee('Penelitian Dosen Pemula');
 });
