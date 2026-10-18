@@ -39,8 +39,8 @@ class ImporController extends Controller
         if ($hilang = $impor->kolomHilang($baris)) {
             throw ValidationException::withMessages(['berkas' => 'Kolom berikut tidak ada di berkas: '.implode(', ', $hilang).'. Gunakan templat.']);
         }
-        if (count($baris) > Impor::MAKS_BARIS) {
-            throw ValidationException::withMessages(['berkas' => 'Berkas paling banyak '.Impor::MAKS_BARIS.' baris.']);
+        if (count($baris) > $impor->maksBaris()) {
+            throw ValidationException::withMessages(['berkas' => 'Berkas paling banyak '.$impor->maksBaris().' baris.']);
         }
 
         $hasil = $impor->periksa($baris);

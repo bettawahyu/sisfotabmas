@@ -5,9 +5,8 @@ namespace App\Services\Impor;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
@@ -20,8 +19,9 @@ use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Accounts from an Excel sheet. Each new user gets an email link to set their
- * own password, so no password is ever written in the file.
+ * Accounts from an Excel sheet. Each row carries a first password, which the
+ * user must replace on first login. Between preview and save the password is
+ * kept encrypted in the session and never shown.
  */
 class ImporPengguna extends Impor
 {
@@ -37,20 +37,26 @@ class ImporPengguna extends Impor
 
     public function kolom(): array
     {
-        return ['nama', 'email', 'peran'];
+        return ['nama', 'email', 'peran', 'kata_sandi'];
     }
 
     public function contoh(): array
     {
         return [
-            ['Budi Santoso, M.Kom.', 'budi@kampus.ac.id', 'dosen'],
-            ['Siti Aminah, M.T.', 'siti@kampus.ac.id', 'dosen, reviewer'],
+            ['Budi Santoso, M.Kom.', 'budi@kampus.ac.id', 'dosen', 'Sementara#2026'],
+            ['Siti Aminah, M.T.', 'siti@kampus.ac.id', 'dosen, reviewer', 'Awal-Siti-01'],
         ];
     }
 
     public function jenisBerkas(): array
     {
         return ['xlsx'];
+    }
+
+    /** Each new account is hashed on save, which is slow, so files stay small. */
+    public function maksBaris(): int
+    {
+        return 500;
     }
 
     /** An xlsx file is a zip archive; some systems report it only as that. */
@@ -62,8 +68,8 @@ class ImporPengguna extends Impor
     public function petunjuk(): string
     {
         return 'Isi sheet Pengguna pada templat Excel, satu baris per akun. Peran ditulis dengan kode atau nama peran, '
-            .'dipisah koma bila lebih dari satu. Email yang sudah terdaftar ditolak. Setiap akun baru menerima email '
-            .'berisi tautan untuk membuat kata sandi sendiri.';
+            .'dipisah koma bila lebih dari satu. Kata sandi awal minimal 8 karakter dan wajib diganti pengguna saat '
+            .'pertama kali masuk. Email yang sudah terdaftar ditolak. Paling banyak 500 baris per berkas.';
     }
 
     /**
@@ -133,25 +139,33 @@ class ImporPengguna extends Impor
             }
             $b['peran'] = implode(', ', $peran);
 
+            $sandi = $b['kata_sandi'] ?? '';
+            if (mb_strlen($sandi) < 8) {
+                $galat[] = 'Kata sandi awal minimal 8 karakter.';
+            } elseif (mb_strlen($sandi) > 72) {
+                $galat[] = 'Kata sandi awal paling panjang 72 karakter.';
+            }
+            // The preview and the session never hold the password in clear text.
+            $b['sandi_terenkripsi'] = Crypt::encryptString($sandi);
+            $b['kata_sandi'] = $sandi === '' ? '' : '••••••••';
+
             return ['data' => $b, 'aksi' => 'baru', 'galat' => $galat];
         }, $baris);
     }
 
     public function simpan(array $hasil): int
     {
-        $baru = DB::transaction(fn () => array_map(function (array $b) {
-            $user = User::create(['name' => $b['nama'], 'email' => $b['email'], 'password' => Str::random(40)]);
-            $user->markEmailAsVerified();
-            $user->roles()->sync(Role::whereIn('kode', self::bacaPeran($b['peran'])[0])->pluck('id'));
+        set_time_limit(600);
 
-            return $user;
-        }, array_column($hasil, 'data')));
+        return DB::transaction(function () use ($hasil) {
+            foreach (array_column($hasil, 'data') as $b) {
+                $user = User::create(['name' => $b['nama'], 'email' => $b['email'], 'password' => Crypt::decryptString($b['sandi_terenkripsi'])]);
+                $user->forceFill(['email_verified_at' => now(), 'wajib_ganti_password' => true])->save();
+                $user->roles()->sync(Role::whereIn('kode', self::bacaPeran($b['peran'])[0])->pluck('id'));
+            }
 
-        foreach ($baru as $user) {
-            Password::sendResetLink(['email' => $user->email]);
-        }
-
-        return count($baru);
+            return count($hasil);
+        });
     }
 
     /**
@@ -172,6 +186,7 @@ class ImporPengguna extends Impor
         $sheet->setColumnWidth(35, 1);
         $sheet->setColumnWidth(35, 2);
         $sheet->setColumnWidth(30, 3);
+        $sheet->setColumnWidth(25, 4);
         $writer->addRow(Row::fromValues($this->kolom(), $tebal));
         foreach ($this->contoh() as $baris) {
             $writer->addRow(Row::fromValues($baris));
@@ -185,10 +200,12 @@ class ImporPengguna extends Impor
         foreach ([
             '1. Isi sheet Pengguna mulai baris 2. Jangan mengubah judul kolom di baris 1.',
             '2. nama: nama lengkap beserta gelar.',
-            '3. email: alamat email aktif; tautan untuk membuat kata sandi dikirim ke alamat ini.',
+            '3. email: alamat email aktif yang dipakai untuk masuk.',
             '4. peran: kode atau nama peran dari sheet Daftar peran, dipisah koma bila lebih dari satu.',
-            '5. Hapus baris contoh sebelum mengunggah. Email yang sudah terdaftar akan ditolak.',
-            '6. Akun dengan peran pimpinan_unit perlu diatur unitnya di menu Pimpinan unit setelah diimpor.',
+            '5. kata_sandi: kata sandi awal, minimal 8 karakter. Pengguna wajib menggantinya saat pertama kali masuk.',
+            '6. Hapus baris contoh sebelum mengunggah. Email yang sudah terdaftar akan ditolak. Paling banyak 500 baris.',
+            '7. Akun dengan peran pimpinan_unit perlu diatur unitnya di menu Pimpinan unit setelah diimpor.',
+            '8. Simpan file ini di tempat aman dan hapus setelah diimpor, karena berisi kata sandi.',
         ] as $teks) {
             $writer->addRow(Row::fromValues([$teks]));
         }

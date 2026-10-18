@@ -56,6 +56,12 @@ abstract class Impor
         };
     }
 
+    /** The most rows one file may hold. */
+    public function maksBaris(): int
+    {
+        return self::MAKS_BARIS;
+    }
+
     /**
      * Extensions the upload accepts.
      *

@@ -3,9 +3,8 @@
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Tanda;
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Hash;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\XLSX\Writer;
 
@@ -17,7 +16,7 @@ beforeEach(function () {
 /**
  * @param  list<list<string>>  $baris
  */
-function berkasPengguna(array $baris, array $kepala = ['nama', 'email', 'peran']): UploadedFile
+function berkasPengguna(array $baris, array $kepala = ['nama', 'email', 'peran', 'kata_sandi']): UploadedFile
 {
     $path = tempnam(sys_get_temp_dir(), 'impor').'.xlsx';
     $writer = new Writer;
@@ -79,40 +78,46 @@ test('the user template is an Excel file with locked help sheets', function () {
         ->and($lembarIsian)->not->toContain('<sheetProtection');
 });
 
-test('users are imported from Excel and get a link to set their password', function () {
-    Notification::fake();
+test('users are imported from Excel and must replace their first password', function () {
     User::factory()->create(['email' => 'lama@example.com']);
 
     $this->actingAs($this->sistem)->post(route('sistem.impor.periksa', 'pengguna'), ['berkas' => berkasPengguna([
-        ['', 'kosong@example.com', 'dosen'],
-        ['Lama', 'lama@example.com', 'dosen'],
-        ['Salah', 'bukan-email', 'dosen'],
-        ['Peran asing', 'asing@example.com', 'dosen, kepala_dunia'],
-    ])])->assertOk()->assertSee('Nama kosong.')->assertSee('Email sudah terdaftar.')->assertSee('Email tidak valid.')->assertSee('kepala_dunia');
+        ['', 'kosong@example.com', 'dosen', 'rahasia-awal'],
+        ['Lama', 'lama@example.com', 'dosen', 'rahasia-awal'],
+        ['Salah', 'bukan-email', 'dosen', 'rahasia-awal'],
+        ['Peran asing', 'asing@example.com', 'dosen, kepala_dunia', 'rahasia-awal'],
+        ['Pendek', 'pendek@example.com', 'dosen', 'abc'],
+    ])])->assertOk()->assertSee('Nama kosong.')->assertSee('Email sudah terdaftar.')->assertSee('Email tidak valid.')
+        ->assertSee('kepala_dunia')->assertSee('Kata sandi awal minimal 8 karakter.')->assertDontSee('rahasia-awal');
     $this->actingAs($this->sistem)->post(route('sistem.impor.simpan', 'pengguna'))->assertSessionHasErrors('berkas');
 
     $this->actingAs($this->sistem)->post(route('sistem.impor.periksa', 'pengguna'), ['berkas' => berkasPengguna([
-        ['Budi Santoso', 'Budi@Kampus.ac.id', 'dosen'],
-        ['Siti Aminah', 'siti@kampus.ac.id', 'Dosen; reviewer'],
-    ])])->assertOk()->assertSee('Simpan 2 baris');
+        ['Budi Santoso', 'Budi@Kampus.ac.id', 'dosen', 'Sandi-Budi-01'],
+        ['Siti Aminah', 'siti@kampus.ac.id', 'Dosen; reviewer', 'Sandi-Siti-02'],
+    ])])->assertOk()->assertSee('Simpan 2 baris')->assertDontSee('Sandi-Budi-01');
+    expect(json_encode(session()->all()))->not->toContain('Sandi-Budi-01');
+
     $this->actingAs($this->sistem)->post(route('sistem.impor.simpan', 'pengguna'))
         ->assertRedirect(route('sistem.pengguna.index'));
 
     $budi = User::where('email', 'budi@kampus.ac.id')->sole();
     $siti = User::where('email', 'siti@kampus.ac.id')->sole();
     expect($budi->hasVerifiedEmail())->toBeTrue()
+        ->and($budi->wajib_ganti_password)->toBeTrue()
+        ->and(Hash::check('Sandi-Budi-01', $budi->password))->toBeTrue()
         ->and($budi->hasRole(Role::DOSEN))->toBeTrue()
         ->and($siti->hasRole(Role::DOSEN))->toBeTrue()
         ->and($siti->hasRole(Role::REVIEWER))->toBeTrue();
-    Notification::assertSentTo([$budi, $siti], ResetPassword::class);
+
+    $this->actingAs($budi)->get(route('dashboard'))->assertRedirect(route('password.wajib'));
 });
 
 test('an Excel file with changed headers or a non-Excel file is refused', function () {
     $this->actingAs($this->sistem)->post(route('sistem.impor.periksa', 'pengguna'), [
-        'berkas' => berkasPengguna([['Budi', 'budi@kampus.ac.id', 'dosen']], ['nama lengkap', 'email', 'peran']),
+        'berkas' => berkasPengguna([['Budi', 'budi@kampus.ac.id', 'dosen', 'rahasia-awal']], ['nama lengkap', 'email', 'peran', 'kata_sandi']),
     ])->assertSessionHasErrors('berkas');
 
     $this->actingAs($this->sistem)->post(route('sistem.impor.periksa', 'pengguna'), [
-        'berkas' => UploadedFile::fake()->createWithContent('pengguna.xlsx', "nama,email,peran\nBudi,budi@kampus.ac.id,dosen\n"),
+        'berkas' => UploadedFile::fake()->createWithContent('pengguna.xlsx', "nama,email,peran,kata_sandi\nBudi,budi@kampus.ac.id,dosen,rahasia-awal\n"),
     ])->assertSessionHasErrors('berkas');
 });
