@@ -104,3 +104,11 @@ test('accounts the system admin creates or resets must change their password', f
     ]);
     expect($lain->refresh()->wajib_ganti_password)->toBeFalse();
 });
+
+test('password fields have a show/hide button', function () {
+    $this->get('/login')->assertOk()->assertSee('Tampilkan kata sandi')->assertSee(':type="lihat ? \'text\' : \'password\'"', false);
+    $this->get('/register')->assertSee('Tampilkan kata sandi');
+
+    $user = akunDenganPeran(Role::DOSEN);
+    $this->actingAs($user)->get(route('profile.edit'))->assertSee('Tampilkan kata sandi');
+});
