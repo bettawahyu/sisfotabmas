@@ -32,6 +32,39 @@
     .sidebar-link:hover svg {
         @apply opacity-100;
     }
+
+    /* Collapsed desktop sidebar: icons only, names come up as tooltips. */
+    .sidebar,
+    .konten-utama {
+        @apply md:transition-all md:duration-200;
+    }
+    @media (min-width: 768px) {
+        .sidebar-ciut .sidebar {
+            @apply w-[4.5rem];
+        }
+        .sidebar-ciut .konten-utama {
+            @apply ms-[4.5rem];
+        }
+        .sidebar-ciut .sidebar .sidebar-teks,
+        .sidebar-ciut .sidebar .sidebar-sub {
+            display: none !important;
+        }
+        .sidebar-ciut .sidebar .sidebar-merek {
+            @apply justify-center px-0;
+        }
+        .sidebar-ciut .sidebar .sidebar-profil {
+            @apply mx-2 justify-center bg-transparent p-1;
+        }
+        .sidebar-ciut .sidebar .sidebar-heading {
+            @apply mx-4 mb-2 h-px overflow-hidden bg-gray-700 p-0 pt-0 text-transparent;
+        }
+        .sidebar-ciut .sidebar .sidebar-link {
+            @apply mx-2 w-[calc(100%-1rem)] justify-center px-0;
+        }
+        .sidebar-ciut .sidebar .sidebar-link svg {
+            @apply h-5 w-5;
+        }
+    }
 }
 
 /* DataTables restyled to match the Dash UI tables. */
