@@ -44,7 +44,7 @@ Jalankan `php artisan schedule:work` di terminal lain agar perintah terjadwal ik
 
 ### Akun contoh
 
-Semua akun memakai kata sandi `password`.
+Semua akun memakai kata sandi `password`, dan setiap akun wajib mengganti kata sandi saat pertama kali masuk.
 
 | Email | Peran |
 | --- | --- |
@@ -62,6 +62,35 @@ Seeder juga membuat satu periode hibah Penelitian Dosen Pemula yang sedang dibuk
 ### Email
 
 Notifikasi selalu tampil di aplikasi. Untuk juga mengirim email, isi variabel `MAIL_*` dengan SMTP kampus lalu set `NOTIFIKASI_EMAIL=true` di `.env`. Bawaannya `MAIL_MAILER=log`, jadi email hanya ditulis ke `storage/logs`.
+
+Akun yang mendaftar sendiri harus membuka tautan verifikasi di emailnya sebelum bisa memakai aplikasi. Selama `MAIL_MAILER=log`, tautan itu ada di `storage/logs/laravel.log`.
+
+## Menjalankan di server produksi
+
+Ubah `.env` dari contoh lokal:
+
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://alamat-aplikasi-kampus
+LOG_LEVEL=warning
+SESSION_SECURE_COOKIE=true
+MAIL_MAILER=smtp
+```
+
+Isi juga `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, dan `MAIL_FROM_ADDRESS` dengan SMTP kampus, karena pendaftaran butuh email verifikasi. Jalankan aplikasi hanya lewat HTTPS dan arahkan web server ke folder `public/`.
+
+```sh
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build
+php artisan key:generate   # hanya sekali, saat pertama memasang
+php artisan migrate --force
+php artisan optimize
+```
+
+Tambahkan cron `* * * * * cd /path/aplikasi && php artisan schedule:run` agar pengingat terjadwal tetap berjalan.
+
+Jika menjalankan `php artisan db:seed --force` untuk membuat akun contoh, segera masuk dengan setiap akun contoh dan ganti kata sandinya, atau nonaktifkan akun yang tidak dipakai. Sebelum diganti, siapa pun yang tahu kata sandi `password` bisa masuk dan menggantinya lebih dulu.
 
 ## Alur hibah
 
