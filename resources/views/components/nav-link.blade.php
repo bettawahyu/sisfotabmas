@@ -1,6 +1,6 @@
 @props(['active' => false, 'ikon'])
 
-<a {{ $attributes->class(['sidebar-link', 'aktif' => $active]) }} @if ($active) aria-current="page" @endif>
+<a {{ $attributes->class(['sidebar-link', 'aktif' => $active])->merge(['title' => trim(strip_tags((string) $slot))]) }} @if ($active) aria-current="page" @endif>
     <x-ikon :nama="$ikon" />
-    <span class="truncate">{{ $slot }}</span>
+    <span class="sidebar-teks truncate">{{ $slot }}</span>
 </a>

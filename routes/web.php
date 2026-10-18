@@ -26,6 +26,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\RiwayatPendidikanController;
 use App\Http\Controllers\Sistem\BidangFokusController;
 use App\Http\Controllers\Sistem\FakultasController;
+use App\Http\Controllers\Sistem\IdentitasAplikasiController;
 use App\Http\Controllers\Sistem\ImporController;
 use App\Http\Controllers\Sistem\JenisLuaranController;
 use App\Http\Controllers\Sistem\PenggunaController;
@@ -38,12 +39,17 @@ use App\Http\Controllers\UnduhDataController;
 use App\Http\Controllers\VerifikasiController;
 use App\Models\Pengumuman;
 use App\Models\Role;
+use App\Services\IdentitasAplikasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Logo, favicon and landing background are public: the landing and login pages use them.
+Route::get('/identitas/{jenis}', [IdentitasAplikasiController::class, 'berkas'])
+    ->whereIn('jenis', array_keys(IdentitasAplikasi::BERKAS))->name('identitas.berkas');
 
 Route::get('/dashboard', function (Request $request) {
     return view('dashboard', [
@@ -181,6 +187,12 @@ Route::middleware(['auth', 'role:'.Role::ADMIN_SISTEM])->prefix('sistem')->name(
         ->parameters(['bidang-fokus' => 'bidang_fokus']);
     Route::resource('peringkat-jurnal', PeringkatJurnalController::class)->except(['show', 'destroy']);
     Route::resource('jenis-luaran', JenisLuaranController::class)->except(['show', 'destroy']);
+
+    Route::controller(IdentitasAplikasiController::class)->prefix('identitas')->name('identitas.')->group(function () {
+        Route::get('/', 'edit')->name('edit');
+        Route::put('/', 'update')->name('update');
+        Route::delete('/{jenis}', 'hapusBerkas')->whereIn('jenis', array_keys(IdentitasAplikasi::BERKAS))->name('berkas.destroy');
+    });
 
     Route::controller(ImporController::class)->prefix('impor/{jenis}')->name('impor.')
         ->whereIn('jenis', ['prodi', 'rumpun-ilmu'])->group(function () {

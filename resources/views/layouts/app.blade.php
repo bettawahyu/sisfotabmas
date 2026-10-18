@@ -6,6 +6,12 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        <x-favicon />
+
+        {{-- Collapse the desktop sidebar before the first paint, so it does not jump. --}}
+        <script>
+            try { if (localStorage.getItem('sidebar-ciut') === '1') document.documentElement.classList.add('sidebar-ciut'); } catch (e) {}
+        </script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -18,13 +24,18 @@
         @php($pengguna = Auth::user())
         @include('layouts.navigation')
 
-        <div class="flex min-h-screen min-w-0 flex-col md:ms-64">
+        <div class="konten-utama flex min-h-screen min-w-0 flex-col md:ms-64">
             <!-- Top navbar -->
             <header class="sticky top-0 z-20 flex items-center justify-between bg-white px-4 py-2.5 shadow-sm sm:px-6">
                 <button type="button" @click="menu = ! menu" class="rounded-md p-2 text-gray-800 hover:bg-gray-100 md:hidden" aria-label="Buka menu">
                     <x-ikon nama="menu" class="h-6 w-6" />
                 </button>
-                <span class="hidden text-sm text-gray-500 md:block">{{ now()->translatedFormat('l, d F Y') }}</span>
+                <div class="hidden items-center gap-3 md:flex">
+                    <button type="button" onclick="aturSidebar()" class="rounded-md p-2 text-gray-800 hover:bg-gray-100" title="Ciutkan atau lebarkan menu" aria-label="Ciutkan atau lebarkan menu">
+                        <x-ikon nama="sidebar" class="h-5 w-5" />
+                    </button>
+                    <span class="text-sm text-gray-500">{{ now()->translatedFormat('l, d F Y') }}</span>
+                </div>
 
                 <div class="ms-auto flex items-center gap-2">
                     @php($belumDibaca = $pengguna->unreadNotifications()->count())
@@ -87,7 +98,7 @@
             </main>
 
             <footer class="px-6 py-4 text-center text-xs text-gray-500">
-                &copy; {{ now()->year }} {{ config('app.name', 'Sisfotabmas') }} · LPPM
+                &copy; {{ now()->year }} {{ config('app.name') }} · LPPM
             </footer>
         </div>
     </body>

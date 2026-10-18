@@ -75,6 +75,7 @@
                 ['Jenis Luaran', 'sistem.jenis-luaran.index', ['sistem.jenis-luaran.*'], 'package'],
                 ['Peringkat Jurnal', 'sistem.peringkat-jurnal.index', ['sistem.peringkat-jurnal.*'], 'star'],
             ]] : null,
+            $pengguna->hasRole(Role::ADMIN_SISTEM) ? ['Identitas Aplikasi', 'sistem.identitas.edit', ['sistem.identitas.*'], 'image'] : null,
             // LPPM admins find it under Pengaturan LPPM.
             $pengguna->can('kelola-pengumuman') && ! $adminLppm ? ['Kelola Pengumuman', 'kelola.pengumuman.index', ['kelola.pengumuman.*'], 'edit'] : null,
         ]),
@@ -84,16 +85,16 @@
 {{-- Backdrop for the off-canvas sidebar on small screens --}}
 <div x-show="menu" x-transition.opacity @click="menu = false" class="fixed inset-0 z-30 bg-gray-900/50 md:hidden" style="display: none;"></div>
 
-<aside class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-gray-800 transition-transform duration-200 md:translate-x-0"
+<aside class="sidebar fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-gray-800 transition-transform duration-200 md:translate-x-0"
        :class="{ '!translate-x-0': menu }" aria-label="Menu utama">
-    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-6 py-5">
-        <x-application-logo class="h-8 w-8 fill-current text-indigo-500" />
-        <span class="text-lg font-bold tracking-tight text-white">{{ config('app.name', 'Sisfotabmas') }}</span>
+    <a href="{{ route('dashboard') }}" class="sidebar-merek flex items-center gap-3 px-6 py-5" title="{{ config('app.name') }}">
+        <x-logo-aplikasi gelap class="h-8 w-8 fill-current text-indigo-500" />
+        <span class="sidebar-teks truncate text-lg font-bold tracking-tight text-white">{{ app(\App\Services\IdentitasAplikasi::class)->namaSingkat() }}</span>
     </a>
 
-    <div class="mx-4 mb-2 flex items-center gap-3 rounded-md bg-gray-900/40 p-3">
+    <div class="sidebar-profil mx-4 mb-2 flex items-center gap-3 rounded-md bg-gray-900/40 p-3">
         <x-avatar :user="$pengguna" />
-        <div class="min-w-0">
+        <div class="sidebar-teks min-w-0">
             <p class="truncate text-sm font-semibold text-white">{{ $pengguna->name }}</p>
             <p class="truncate text-xs text-gray-500">{{ $pengguna->roles->map(fn ($r) => Role::ALL[$r->kode] ?? $r->nama)->implode(', ') ?: 'Tanpa peran' }}</p>
         </div>
@@ -110,12 +111,14 @@
                         @php([$ikonGrup, $tautan] = $isi)
                         @php($grupAktif = collect($tautan)->contains(fn ($t) => request()->routeIs(...$t[2])))
                         <li x-data="{ buka: @js($grupAktif) }">
-                            <button type="button" @click="buka = ! buka" class="sidebar-link w-[calc(100%-2rem)]" :aria-expanded="buka">
+                            {{-- On a collapsed sidebar the group icon widens it again to show the links. --}}
+                            <button type="button" @click="if (sidebarCiut()) { aturSidebar(false); buka = true } else { buka = ! buka }"
+                                    class="sidebar-link w-[calc(100%-2rem)]" :aria-expanded="buka" title="{{ $kunci }}">
                                 <x-ikon :nama="$ikonGrup" />
-                                <span class="flex-1 truncate text-start">{{ $kunci }}</span>
-                                <span class="transition-transform" :class="buka && 'rotate-180'"><x-ikon nama="chevron-down" /></span>
+                                <span class="sidebar-teks flex-1 truncate text-start">{{ $kunci }}</span>
+                                <span class="sidebar-teks transition-transform" :class="buka && 'rotate-180'"><x-ikon nama="chevron-down" /></span>
                             </button>
-                            <ul x-show="buka" class="mt-1 space-y-1 ps-4" @unless ($grupAktif) style="display: none;" @endunless>
+                            <ul x-show="buka" class="sidebar-sub mt-1 space-y-1 ps-4" @unless ($grupAktif) style="display: none;" @endunless>
                                 @foreach ($tautan as [$label, $rute, $pola, $ikon])
                                     <li>
                                         <x-nav-link :href="route($rute)" :active="request()->routeIs(...$pola)" :ikon="$ikon">{{ $label }}</x-nav-link>

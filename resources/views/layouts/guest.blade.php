@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        <x-favicon />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -19,7 +20,7 @@
             <div class="w-full sm:max-w-md">
                 <div class="rounded-md bg-white p-8 shadow">
                     <a href="/" class="mb-6 flex items-center justify-center gap-3">
-                        <x-application-logo class="h-10 w-10 fill-current text-indigo-600" />
+                        <x-logo-aplikasi class="h-10 w-10 fill-current text-indigo-600" />
                         <span class="text-xl font-bold tracking-tight text-gray-800">{{ config('app.name', 'Sisfotabmas') }}</span>
                     </a>
                     {{ $slot }}
