@@ -113,7 +113,7 @@
                                 @foreach ($daftar as $k)
                                     <li class="py-2 flex items-center justify-between gap-4">
                                         <span>{{ $k->nama }} <span class="text-gray-500">· bobot {{ $k->bobot }} · skala 1 sampai {{ $k->skala_maks }}</span></span>
-                                        <form method="POST" action="{{ route('admin.periode.kriteria.destroy', [$periode, $k]) }}">
+                                        <form method="POST" action="{{ route('admin.periode.kriteria.destroy', [$periode, $k]) }}" data-konfirmasi="Hapus kriteria penilaian ini?">
                                             @csrf
                                             @method('DELETE')
                                             <button class="text-red-700 hover:underline">Hapus</button>

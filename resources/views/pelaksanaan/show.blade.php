@@ -68,7 +68,7 @@
                         <div><x-input-label for="persentase_anggaran_terpakai" value="Anggaran terpakai (%)" ikon="dollar-sign" /><x-text-input id="persentase_anggaran_terpakai" name="persentase_anggaran_terpakai" type="number" min="0" max="100" class="mt-1 block w-full" :value="old('persentase_anggaran_terpakai')" required /></div>
                         <div><x-input-label for="laporan" value="Laporan kemajuan (PDF)" ikon="paperclip" /><input id="laporan" name="laporan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
                         <div><x-input-label for="keuangan" value="Laporan keuangan termin 1 (PDF)" ikon="paperclip" /><input id="keuangan" name="keuangan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
-                        <div class="sm:col-span-2"><x-primary-button onclick="return confirm('Kirim laporan kemajuan? Setelah dikirim, laporan tidak bisa diubah.')" ikon="send">Kirim laporan kemajuan</x-primary-button></div>
+                        <div class="sm:col-span-2"><x-primary-button data-konfirmasi="Kirim laporan kemajuan? Setelah dikirim, laporan tidak bisa diubah." ikon="send">Kirim laporan kemajuan</x-primary-button></div>
                     </form>
                 @else
                     <p class="text-sm text-gray-600">Laporan kemajuan belum dikirim{{ $periode->tgl_laporan_kemajuan ? '. Batas '.$periode->tgl_laporan_kemajuan->translatedFormat('j F Y') : '' }}.</p>
@@ -196,7 +196,7 @@
                                         <td class="py-2 pe-4">{{ $entri->pencatat?->namaLengkap() ?? '-' }}</td>
                                         <td class="py-2 text-end">
                                             @if ($bisaMencatat && $entri->dicatat_oleh === auth()->user()->dosen?->id)
-                                                <form method="POST" action="{{ route('pelaksanaan.logbook.destroy', [$proposal, $entri]) }}" onsubmit="return confirm('Hapus entri ini?')">
+                                                <form method="POST" action="{{ route('pelaksanaan.logbook.destroy', [$proposal, $entri]) }}" data-konfirmasi="Hapus entri ini?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button class="text-red-700 hover:underline">Hapus</button>

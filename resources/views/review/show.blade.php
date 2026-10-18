@@ -160,7 +160,7 @@
                             @unless ($terkunci)
                                 <div class="flex flex-wrap gap-3">
                                     <x-secondary-button type="submit" name="aksi" value="simpan" ikon="save">Simpan draf</x-secondary-button>
-                                    <x-primary-button name="aksi" value="kirim" onclick="return confirm('Kirim {{ $monev ? 'hasil monev' : 'penilaian' }}? Setelah dikirim, isian terkunci.')" ikon="send">{{ $monev ? 'Kirim hasil monev' : 'Kirim penilaian' }}</x-primary-button>
+                                    <x-primary-button name="aksi" value="kirim" data-konfirmasi="Kirim {{ $monev ? 'hasil monev' : 'penilaian' }}? Setelah dikirim, isian terkunci." ikon="send">{{ $monev ? 'Kirim hasil monev' : 'Kirim penilaian' }}</x-primary-button>
                                 </div>
                             @endunless
                         </fieldset>

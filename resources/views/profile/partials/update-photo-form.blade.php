@@ -9,7 +9,7 @@
             <x-avatar :user="$user" ukuran="h-20 w-20 text-xl" />
         </template>
         @if ($user->foto_profil)
-            <form method="post" action="{{ route('profile.foto.destroy') }}">
+            <form method="post" action="{{ route('profile.foto.destroy') }}" data-konfirmasi="Hapus foto profil?">
                 @csrf
                 @method('delete')
                 <button class="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700"><x-ikon nama="trash-2" /> Hapus foto</button>

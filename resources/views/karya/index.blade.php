@@ -44,7 +44,7 @@
                                         @if ($k->status_verifikasi !== Hki::VALID)
                                             <a href="{{ route("karya.{$jenis}.edit", $k) }}" class="text-indigo-700 hover:underline">Ubah</a>
                                             @if ($k->luaran->isEmpty())
-                                                <form method="POST" action="{{ route("karya.{$jenis}.destroy", $k) }}" class="inline" onsubmit="return confirm('Hapus data ini?')">
+                                                <form method="POST" action="{{ route("karya.{$jenis}.destroy", $k) }}" class="inline" data-konfirmasi="Hapus data ini?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="ms-3 text-red-700 hover:underline">Hapus</button>

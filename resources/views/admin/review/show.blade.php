@@ -52,7 +52,7 @@
                                 <x-secondary-button type="submit" ikon="unlock">Buka kembali</x-secondary-button>
                             </form>
                         @else
-                            <form method="POST" action="{{ route('admin.review.destroy', [$proposal, $pen]) }}" class="mt-3">
+                            <form method="POST" action="{{ route('admin.review.destroy', [$proposal, $pen]) }}" data-konfirmasi="Batalkan penugasan reviewer ini?" class="mt-3">
                                 @csrf
                                 @method('DELETE')
                                 <button class="text-sm text-red-700 hover:underline">Batalkan penugasan</button>

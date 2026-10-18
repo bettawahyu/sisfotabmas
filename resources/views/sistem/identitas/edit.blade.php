@@ -88,7 +88,7 @@
             {{-- Forms for the "back to default" buttons, kept outside the main form. --}}
             @foreach (array_keys($gambar) as $jenis)
                 @if ($identitas->berkas($jenis))
-                    <form id="hapus-{{ $jenis }}" method="POST" action="{{ route('sistem.identitas.berkas.destroy', $jenis) }}" class="hidden">
+                    <form id="hapus-{{ $jenis }}" method="POST" action="{{ route('sistem.identitas.berkas.destroy', $jenis) }}" data-konfirmasi="Kembalikan berkas ini ke bawaan? Berkas yang diunggah akan dihapus." class="hidden">
                         @csrf
                         @method('DELETE')
                     </form>
