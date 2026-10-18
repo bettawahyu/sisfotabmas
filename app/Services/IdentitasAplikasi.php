@@ -28,7 +28,7 @@ class IdentitasAplikasi
 
     private const KUNCI = [
         'identitas.nama', 'identitas.nama_singkat', 'landing.deskripsi',
-        'identitas.logo', 'identitas.logo_gelap', 'identitas.favicon', 'landing.latar',
+        'identitas.logo', 'identitas.logo_gelap', 'identitas.favicon', 'landing.latar', 'akun.pendaftaran',
     ];
 
     private const CACHE = 'identitas-aplikasi';
@@ -50,6 +50,12 @@ class IdentitasAplikasi
     public function deskripsi(): string
     {
         return $this->ambil('landing.deskripsi') ?? self::DESKRIPSI_BAWAAN;
+    }
+
+    /** Whether visitors may create their own lecturer account. Open until the admin closes it. */
+    public function pendaftaranDibuka(): bool
+    {
+        return $this->ambil('akun.pendaftaran') !== '0';
     }
 
     /** The value the admin saved, without a fallback, for filling the form. */
@@ -78,7 +84,7 @@ class IdentitasAplikasi
     }
 
     /**
-     * @param  array{nama: string, nama_singkat?: ?string, deskripsi?: ?string}  $teks
+     * @param  array{nama: string, nama_singkat?: ?string, deskripsi?: ?string, pendaftaran?: ?bool}  $teks
      * @param  array<string, UploadedFile|null>  $unggahan  keyed by self::BERKAS slugs
      */
     public function simpan(array $teks, array $unggahan, User $oleh): void
@@ -86,6 +92,9 @@ class IdentitasAplikasi
         Pengaturan::simpan('identitas.nama', $teks['nama'], $oleh);
         Pengaturan::simpan('identitas.nama_singkat', $teks['nama_singkat'] ?? null, $oleh);
         Pengaturan::simpan('landing.deskripsi', $teks['deskripsi'] ?? null, $oleh);
+        if (isset($teks['pendaftaran'])) {
+            Pengaturan::simpan('akun.pendaftaran', $teks['pendaftaran'] ? '1' : '0', $oleh);
+        }
 
         foreach (array_filter($unggahan) as $jenis => $berkas) {
             $lama = $this->berkas($jenis);

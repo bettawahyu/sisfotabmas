@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\IdentitasAplikasi;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,8 +20,11 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): View
+    public function create(IdentitasAplikasi $identitas): View
     {
+        // The system admin can close self-registration on the app identity page.
+        abort_unless($identitas->pendaftaranDibuka(), 404);
+
         return view('auth.register');
     }
 
@@ -29,8 +33,10 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, IdentitasAplikasi $identitas): RedirectResponse
     {
+        abort_unless($identitas->pendaftaranDibuka(), 404);
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],

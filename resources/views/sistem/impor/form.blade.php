@@ -6,14 +6,11 @@
     <div class="py-6">
         <div class="space-y-6 px-4 sm:px-6 lg:px-8">
             <x-pesan />
-            <x-kartu judul="Unggah berkas CSV" ikon="upload" class="max-w-3xl">
-                <p class="mb-4 text-sm text-gray-600">
-                    Kolom yang dibutuhkan: <code>{{ implode(', ', $impor->kolom()) }}</code>. Pemisah koma atau titik koma.
-                    Baris dengan kode yang sudah ada akan diperbarui; kode baru akan ditambahkan.
-                </p>
+            <x-kartu :judul="'Unggah berkas '.strtoupper($impor->jenisBerkas()[0])" ikon="upload" class="max-w-3xl">
+                <p class="mb-4 text-sm text-gray-600">{{ $impor->petunjuk() }}</p>
                 <form method="POST" action="{{ route('sistem.impor.periksa', $jenis) }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
                     @csrf
-                    <input type="file" name="berkas" accept=".csv,text/csv" required class="text-sm">
+                    <input type="file" name="berkas" accept="{{ collect($impor->jenisBerkas())->map(fn ($e) => '.'.$e)->implode(',') }}" required class="text-sm">
                     <x-primary-button ikon="eye">Periksa</x-primary-button>
                     <a href="{{ route('sistem.impor.templat', $jenis) }}" class="inline-flex items-center gap-1 text-sm text-indigo-700 hover:underline"><x-ikon nama="download" /> Unduh templat</a>
                     <a href="{{ route($impor->ruteKembali()) }}" class="text-sm text-gray-600 hover:underline">Kembali</a>

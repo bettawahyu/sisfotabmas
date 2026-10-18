@@ -69,6 +69,16 @@
                     <p class="mt-1 text-xs text-gray-500">Teks biasa, maks. 1.000 karakter; baris baru dipertahankan. Bila kosong, deskripsi bawaan yang dipakai.</p>
                 </x-kartu>
 
+                <x-kartu judul="Pendaftaran akun" ikon="user-plus">
+                    <input type="hidden" name="pendaftaran" value="0">
+                    <label for="pendaftaran" class="inline-flex items-center gap-2">
+                        <input id="pendaftaran" type="checkbox" name="pendaftaran" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm"
+                               @checked(old('pendaftaran', $identitas->pendaftaranDibuka()))>
+                        <span class="text-sm text-gray-800">Dosen boleh mendaftar sendiri</span>
+                    </label>
+                    <p class="mt-1 text-xs text-gray-500">Bila dimatikan, tombol Daftar hilang dari landing dan halaman pendaftaran ditutup. Akun baru lalu dibuat oleh admin sistem, satu per satu atau lewat impor.</p>
+                </x-kartu>
+
                 <div class="flex items-center gap-3">
                     <x-primary-button ikon="save">Simpan</x-primary-button>
                     <a href="{{ url('/') }}" target="_blank" class="text-sm text-gray-600 hover:underline">Lihat landing</a>

@@ -2,7 +2,10 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Pengguna dan Peran</h2>
-            <x-tombol-tautan href="{{ route('sistem.pengguna.create') }}" ikon="user-plus">Tambah pengguna</x-tombol-tautan>
+            <div class="flex items-center gap-2">
+                <x-tombol-tautan href="{{ route('sistem.impor.create', 'pengguna') }}" ikon="upload" varian="kedua">Impor Excel</x-tombol-tautan>
+                <x-tombol-tautan href="{{ route('sistem.pengguna.create') }}" ikon="user-plus">Tambah pengguna</x-tombol-tautan>
+            </div>
         </div>
     </x-slot>
 

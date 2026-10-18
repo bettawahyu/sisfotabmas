@@ -7,6 +7,7 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
         <x-favicon />
+        <x-meta />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
