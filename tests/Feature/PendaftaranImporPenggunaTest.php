@@ -59,7 +59,7 @@ test('pages carry the description, keywords and author mark', function () {
     $this->get('/')->assertSee('<meta name="author" content="'.e(Tanda::penulis()).'">', false)
         ->assertSee('name="keywords"', false)
         ->assertSee('name="description"', false);
-    $this->actingAs($this->sistem)->get(route('sistem.pengguna.index'))->assertSee(Tanda::penulis());
+    $this->actingAs($this->sistem)->get(route('sistem.pengguna.index'))->assertSee(Tanda::penulis())->assertSee(Tanda::tautan());
 });
 
 test('the user template is an Excel file with locked help sheets', function () {
