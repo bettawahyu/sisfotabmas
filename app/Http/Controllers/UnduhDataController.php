@@ -68,6 +68,7 @@ class UnduhDataController extends Controller
 
     private function excel(FastExcel $excel, string $nama): StreamedResponse
     {
-        return $excel->headerStyle((new Style)->setFontBold())->download($nama);
+        // Titles and names are typed by lecturers: a leading "=" must stay text, not become a live formula.
+        return $excel->escapeFormulas()->headerStyle((new Style)->setFontBold())->download($nama);
     }
 }
