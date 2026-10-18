@@ -8,11 +8,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Bulk loading of study programmes and the science classification from CSV:
- * upload, review every row, then save. Nothing is saved while any row has an error.
+ * Bulk loading of study programmes and the science classification from CSV,
+ * and of user accounts from Excel: upload, review every row, then save.
+ * Nothing is saved while any row has an error.
  */
 class ImporController extends Controller
 {
@@ -21,24 +22,15 @@ class ImporController extends Controller
         return view('sistem.impor.form', ['jenis' => $jenis, 'impor' => $this->impor($jenis), 'hasil' => null]);
     }
 
-    public function templat(string $jenis): StreamedResponse
+    public function templat(string $jenis): Response
     {
-        $impor = $this->impor($jenis);
-
-        return response()->streamDownload(function () use ($impor) {
-            $keluar = fopen('php://output', 'w');
-            fputcsv($keluar, $impor->kolom(), ',', '"', '');
-            foreach ($impor->contoh() as $baris) {
-                fputcsv($keluar, $baris, ',', '"', '');
-            }
-            fclose($keluar);
-        }, "templat-{$jenis}.csv", ['Content-Type' => 'text/csv']);
+        return $this->impor($jenis)->unduhTemplat($jenis);
     }
 
     public function periksa(Request $request, string $jenis): View
     {
         $impor = $this->impor($jenis);
-        $request->validate(['berkas' => ['required', 'file', 'mimes:csv,txt', 'max:1024']]);
+        $request->validate(['berkas' => ['required', 'file', ...$impor->aturanBerkas(), 'max:1024']]);
 
         $baris = $impor->baca($request->file('berkas'));
         if (! $baris) {

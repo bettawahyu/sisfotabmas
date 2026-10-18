@@ -136,4 +136,5 @@
             </ul>
         @endforeach
     </nav>
+    <p class="sidebar-teks border-t border-gray-700 px-6 py-3 text-xs text-gray-400">&copy; {{ now()->year }} {{ \App\Support\Tanda::penulis() }}</p>
 </aside>

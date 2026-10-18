@@ -3,10 +3,11 @@
 namespace App\Services\Impor;
 
 use Illuminate\Http\UploadedFile;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
- * A CSV import of reference data: read the file, check every row and show the
- * result before anything is saved.
+ * An import from a spreadsheet file: read the file, check every row and show
+ * the result before anything is saved. Reference data comes as CSV.
  */
 abstract class Impor
 {
@@ -50,8 +51,50 @@ abstract class Impor
         return match ($jenis) {
             'prodi' => new ImporProdi,
             'rumpun-ilmu' => new ImporRumpunIlmu,
+            'pengguna' => new ImporPengguna,
             default => null,
         };
+    }
+
+    /**
+     * Extensions the upload accepts.
+     *
+     * @return list<string>
+     */
+    public function jenisBerkas(): array
+    {
+        return ['csv', 'txt'];
+    }
+
+    /**
+     * Validation rules for the uploaded file's type.
+     *
+     * @return list<string>
+     */
+    public function aturanBerkas(): array
+    {
+        return ['mimes:'.implode(',', $this->jenisBerkas())];
+    }
+
+    public function petunjuk(): string
+    {
+        return 'Kolom yang dibutuhkan: '.implode(', ', $this->kolom()).'. Pemisah koma atau titik koma. '
+            .'Baris dengan kode yang sudah ada akan diperbarui; kode baru akan ditambahkan.';
+    }
+
+    /**
+     * The template: the header row and the example rows as CSV.
+     */
+    public function unduhTemplat(string $jenis): Response
+    {
+        return response()->streamDownload(function () {
+            $keluar = fopen('php://output', 'w');
+            fputcsv($keluar, $this->kolom(), ',', '"', '');
+            foreach ($this->contoh() as $baris) {
+                fputcsv($keluar, $baris, ',', '"', '');
+            }
+            fclose($keluar);
+        }, "templat-{$jenis}.csv", ['Content-Type' => 'text/csv']);
     }
 
     /**

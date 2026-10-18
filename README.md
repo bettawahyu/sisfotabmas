@@ -63,6 +63,8 @@ Seeder juga membuat satu periode hibah Penelitian Dosen Pemula yang sedang dibuk
 
 Notifikasi selalu tampil di aplikasi. Untuk juga mengirim email, isi variabel `MAIL_*` dengan SMTP kampus lalu set `NOTIFIKASI_EMAIL=true` di `.env`. Bawaannya `MAIL_MAILER=log`, jadi email hanya ditulis ke `storage/logs`.
 
+Admin sistem bisa menutup pendaftaran mandiri di halaman Identitas Aplikasi, lalu membuat akun satu per satu atau mengimpornya dari templat Excel di menu Pengguna. Akun hasil impor menerima email berisi tautan untuk membuat kata sandi sendiri.
+
 Akun yang mendaftar sendiri harus membuka tautan verifikasi di emailnya sebelum bisa memakai aplikasi. Selama `MAIL_MAILER=log`, tautan itu ada di `storage/logs/laravel.log`.
 
 ## Menjalankan di server produksi

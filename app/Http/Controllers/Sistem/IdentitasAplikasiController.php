@@ -30,6 +30,7 @@ class IdentitasAplikasiController extends Controller
             'nama' => ['required', 'string', 'max:100'],
             'nama_singkat' => ['nullable', 'string', 'max:20'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
+            'pendaftaran' => ['sometimes', 'boolean'],
             'logo' => [...$gambar, 'max:1024'],
             'logo_gelap' => [...$gambar, 'max:1024'],
             'favicon' => ['nullable', 'file', 'mimes:png,ico', 'max:512'],
@@ -39,6 +40,8 @@ class IdentitasAplikasiController extends Controller
             'logo_gelap' => 'logo untuk latar gelap',
             'latar' => 'gambar latar landing',
         ]);
+
+        $data['pendaftaran'] = $request->has('pendaftaran') ? $request->boolean('pendaftaran') : null;
 
         $this->identitas->simpan($data, [
             'logo' => $request->file('logo'),

@@ -198,7 +198,7 @@ Route::middleware(['auth', 'verified', 'role:'.Role::ADMIN_SISTEM])->prefix('sis
     });
 
     Route::controller(ImporController::class)->prefix('impor/{jenis}')->name('impor.')
-        ->whereIn('jenis', ['prodi', 'rumpun-ilmu'])->group(function () {
+        ->whereIn('jenis', ['prodi', 'rumpun-ilmu', 'pengguna'])->group(function () {
             Route::get('/', 'create')->name('create');
             Route::get('/templat', 'templat')->name('templat');
             Route::post('/periksa', 'periksa')->name('periksa');

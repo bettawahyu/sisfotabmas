@@ -7,6 +7,7 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
         <x-favicon />
+        <x-meta />
 
         {{-- Collapse the desktop sidebar before the first paint, so it does not jump. --}}
         <script>

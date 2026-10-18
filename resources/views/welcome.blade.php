@@ -8,6 +8,7 @@
 
         <title>{{ config('app.name') }}</title>
         <x-favicon />
+        <x-meta />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -37,7 +38,7 @@
                     <a href="{{ route('login') }}" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-indigo-700">
                         {{ __('Log in') }}
                     </a>
-                    @if (Route::has('register'))
+                    @if ($identitas->pendaftaranDibuka())
                         <a href="{{ route('register') }}" class="inline-flex items-center rounded-md border border-white/60 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-white/10">
                             {{ __('Register') }}
                         </a>
