@@ -158,7 +158,7 @@ Tata letak meniru [Dash UI TailwindCSS](https://github.com/codescandy/dashui-tai
 - **#10** Laporan akhir dengan laporan keuangan 100%, capaian dan validasi luaran, menu Verifikasi, pencairan termin 2, pengingat batas laporan, blokir pengusul yang menunggak laporan, dan syarat monev untuk usulan multitahun.
 - **#9** Logbook, laporan kemajuan, monev oleh satu reviewer tanpa identitas tim, dan menu Pemantauan untuk operator.
 - **#8** Pencatatan kontrak, pencairan termin 1 oleh keuangan, dan pengesahan yang dibatasi ke unit tiap kaprodi atau dekan.
-- **#6** Pengumuman dan templat dokumen, notifikasi di setiap langkah alur, penugasan dua reviewer dengan penilaian tanpa identitas tim, peringkat, penetapan pendanaan, dan SK.
+- **#7** Pengumuman dan templat dokumen, notifikasi di setiap langkah alur, penugasan dua reviewer dengan penilaian tanpa identitas tim, peringkat, penetapan pendanaan, dan SK.
 - **Sebelumnya** Rancangan basis data, peran pengguna, profil dosen, pengajuan proposal, pengesahan, dan seleksi administrasi.
 
 ## Tes
