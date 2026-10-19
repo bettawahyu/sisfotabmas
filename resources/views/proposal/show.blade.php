@@ -53,7 +53,7 @@
                             </x-primary-button>
                         </form>
                         @can('delete', $proposal)
-                            <form method="POST" action="{{ route('proposal.destroy', $proposal) }}" onsubmit="return confirm('Hapus draf ini?')">
+                            <form method="POST" action="{{ route('proposal.destroy', $proposal) }}" data-konfirmasi="Hapus draf ini?">
                                 @csrf
                                 @method('DELETE')
                                 <x-danger-button ikon="trash-2">Hapus draf</x-danger-button>
@@ -219,7 +219,7 @@
                                 <td class="py-2 pe-4">{{ $anggota->statusKonfirmasi() }}</td>
                                 <td class="py-2 text-end">
                                     @if ($bisaDiubah)
-                                        <form method="POST" action="{{ route('proposal.anggota.destroy', [$proposal, $anggota]) }}">
+                                        <form method="POST" action="{{ route('proposal.anggota.destroy', [$proposal, $anggota]) }}" data-konfirmasi="Hapus anggota ini dari tim?">
                                             @csrf
                                             @method('DELETE')
                                             <button class="text-red-600 hover:underline">Hapus</button>
@@ -256,7 +256,7 @@
                         <div class="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
                             <div><span class="font-medium">{{ $mitra->nama_mitra }}</span> <span class="text-gray-500">· {{ $mitra->jenis_mitra }} · {{ $mitra->alamat }}</span></div>
                             @if ($bisaDiubah)
-                                <form method="POST" action="{{ route('proposal.mitra.destroy', [$proposal, $mitra]) }}">
+                                <form method="POST" action="{{ route('proposal.mitra.destroy', [$proposal, $mitra]) }}" data-konfirmasi="Hapus mitra ini?">
                                     @csrf
                                     @method('DELETE')
                                     <button class="text-red-600 hover:underline">Hapus</button>
@@ -309,7 +309,7 @@
                                     <td class="py-2 pe-4 text-end"><x-rupiah :nilai="$item->total" /></td>
                                     <td class="py-2 text-end">
                                         @if ($bisaDiubah)
-                                            <form method="POST" action="{{ route('proposal.rab.destroy', [$proposal, $item]) }}">
+                                            <form method="POST" action="{{ route('proposal.rab.destroy', [$proposal, $item]) }}" data-konfirmasi="Hapus item anggaran ini?">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button class="text-red-600 hover:underline">Hapus</button>
@@ -351,7 +351,7 @@
                     <div class="flex items-center justify-between border-b border-gray-100 py-2 text-sm last:border-0">
                         <div><span class="font-medium">{{ $luaran->namaJenis() }}</span> <span class="text-gray-500">· {{ $luaran->kategori }}{{ $luaran->target_keterangan ? ' · '.$luaran->target_keterangan : '' }}</span></div>
                         @if ($bisaDiubah)
-                            <form method="POST" action="{{ route('proposal.luaran.destroy', [$proposal, $luaran]) }}">
+                            <form method="POST" action="{{ route('proposal.luaran.destroy', [$proposal, $luaran]) }}" data-konfirmasi="Hapus luaran ini?">
                                 @csrf
                                 @method('DELETE')
                                 <button class="text-red-600 hover:underline">Hapus</button>

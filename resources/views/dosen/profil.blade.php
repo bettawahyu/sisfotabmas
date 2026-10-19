@@ -83,7 +83,7 @@
                                         <td class="py-2 pe-4">{{ $r->tahun_lulus ?? '-' }}</td>
                                         <td class="py-2 text-end whitespace-nowrap">
                                             <a href="{{ route('profil-dosen.pendidikan.edit', $r) }}" class="text-indigo-700 hover:underline">Ubah</a>
-                                            <form method="POST" action="{{ route('profil-dosen.pendidikan.destroy', $r) }}" class="inline" onsubmit="return confirm('Hapus riwayat pendidikan ini?')">
+                                            <form method="POST" action="{{ route('profil-dosen.pendidikan.destroy', $r) }}" class="inline" data-konfirmasi="Hapus riwayat pendidikan ini?">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button class="ms-3 text-red-700 hover:underline">Hapus</button>

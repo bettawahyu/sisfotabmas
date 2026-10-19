@@ -48,7 +48,7 @@
                         @if ($pen)
                             <div class="mt-4 flex flex-wrap items-baseline gap-3 border-t border-gray-100 pt-4 text-sm">
                                 <p>Reviewer: <span class="font-medium">{{ $pen->reviewer->name }}</span> <span class="text-gray-500">· belum dikirim</span></p>
-                                <form method="POST" action="{{ route('admin.monev.destroy', [$p, $pen]) }}">
+                                <form method="POST" action="{{ route('admin.monev.destroy', [$p, $pen]) }}" data-konfirmasi="Batalkan penugasan reviewer monev ini?">
                                     @csrf
                                     @method('DELETE')
                                     <button class="text-red-700 hover:underline">Batalkan penugasan</button>

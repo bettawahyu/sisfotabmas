@@ -35,7 +35,7 @@
                                     </td>
                                     <td class="py-2 text-end whitespace-nowrap">
                                         <a href="{{ route('kelola.pengumuman.edit', $p) }}" class="text-indigo-700 hover:underline">Ubah</a>
-                                        <form method="POST" action="{{ route('kelola.pengumuman.destroy', $p) }}" class="inline" onsubmit="return confirm('Hapus pengumuman ini?')">
+                                        <form method="POST" action="{{ route('kelola.pengumuman.destroy', $p) }}" class="inline" data-konfirmasi="Hapus pengumuman ini?">
                                             @csrf
                                             @method('DELETE')
                                             <button class="ms-3 text-red-700 hover:underline">Hapus</button>

@@ -29,5 +29,7 @@
                 <p class="mt-6 text-center text-xs text-gray-500">Sistem informasi penelitian dan pengabdian kepada masyarakat</p>
             </div>
         </div>
+
+        <x-notifikasi />
     </body>
 </html>

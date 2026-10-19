@@ -17,7 +17,7 @@
                         <p class="mb-4 rounded-md bg-yellow-50 p-3 text-sm text-yellow-800">{{ $belumLengkap }} proposal belum dinilai lengkap oleh dua reviewer. Penetapan bisa dilakukan setelah semuanya selesai. <a href="{{ route('admin.review.index') }}" class="font-medium underline">Lihat penugasan reviewer</a>.</p>
                     @endif
                     <p class="mb-4 text-sm text-gray-600">Centang proposal yang didanai dan sesuaikan dana disetujui. Proposal yang tidak dicentang ditetapkan tidak didanai, dan semua ketua diberi tahu.</p>
-                    <form method="POST" action="{{ route('admin.penetapan.store', $periode) }}" onsubmit="return confirm('Tetapkan hasil untuk semua proposal di periode ini?')">
+                    <form method="POST" action="{{ route('admin.penetapan.store', $periode) }}" data-konfirmasi="Tetapkan hasil untuk semua proposal di periode ini?">
                         @csrf
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm">

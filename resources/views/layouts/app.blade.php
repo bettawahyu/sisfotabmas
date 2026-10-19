@@ -102,5 +102,8 @@
                 &copy; {{ now()->year }} {{ config('app.name') }} · LPPM
             </footer>
         </div>
+
+        <x-notifikasi />
+        <x-konfirmasi />
     </body>
 </html>
