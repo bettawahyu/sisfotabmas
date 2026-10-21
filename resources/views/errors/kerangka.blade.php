@@ -10,7 +10,7 @@
     try {
         $identitas = app(\App\Services\IdentitasAplikasi::class);
         $nama = $identitas->nama();
-        $logo = $identitas->url('logo-gelap');
+        $logo = $identitas->url('logo');
         $favicon = $identitas->url('favicon');
     } catch (\Throwable) {
         // Keep the defaults.
@@ -30,85 +30,92 @@
     <title>@yield('kode') · @yield('judul') · {{ $nama }}</title>
     <link rel="icon" href="{{ $favicon ?? asset('favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=fredoka:500,600,700|inter:400,500,600&display=swap" rel="stylesheet">
     <style>
-        :root { --aksen: @yield('aksen', '#7b68ff'); }
+        :root {
+            --aksen: @yield('aksen', '#7b68ff');
+            --aksen-tua: @yield('aksen_tua', '#5340d9');
+            --latar-1: @yield('latar_1', '#f3f0ff');
+            --latar-2: @yield('latar_2', '#e0f2fe');
+        }
         * { box-sizing: border-box; }
         html, body { margin: 0; min-height: 100%; }
         body {
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-            color: #f1f5f9;
-            background: #161c24;
-            -webkit-font-smoothing: antialiased;
+            color: #212b36; background: #ffffff; -webkit-font-smoothing: antialiased;
         }
         .halaman {
             position: relative; display: flex; min-height: 100vh; flex-direction: column; overflow: hidden;
-            background: linear-gradient(135deg, #212b36 0%, #2a2f5a 55%, #4533b8 100%);
+            background:
+                radial-gradient(circle at 1px 1px, rgba(33, 43, 54, .07) 1.5px, transparent 0) 0 0 / 22px 22px,
+                linear-gradient(160deg, var(--latar-1) 0%, #ffffff 55%, var(--latar-2) 100%);
         }
-        /* A soft glow in the page's accent colour behind the illustration. */
-        .halaman::before {
-            content: ''; position: absolute; top: 18%; left: 50%; width: 36rem; height: 36rem; max-width: 120vw;
-            transform: translateX(-50%); border-radius: 9999px;
-            background: radial-gradient(circle, color-mix(in srgb, var(--aksen) 35%, transparent) 0%, transparent 65%);
-            pointer-events: none;
-        }
-        .kepala { position: relative; display: flex; align-items: center; gap: .75rem; padding: 1.25rem 1.5rem; }
+        /* Soft coloured bubbles floating in the background. */
+        .gelembung { position: absolute; border-radius: 9999px; opacity: .55; pointer-events: none; }
+        .gelembung.a { width: 14rem; height: 14rem; top: -4rem; right: -3rem; background: var(--latar-2); }
+        .gelembung.b { width: 9rem; height: 9rem; bottom: 4rem; left: -2.5rem; background: var(--latar-1); }
+        .gelembung.c { width: 1.25rem; height: 1.25rem; top: 30%; left: 12%; background: var(--aksen); opacity: .35; }
+        .gelembung.d { width: .75rem; height: .75rem; top: 20%; right: 16%; background: #fbbf24; opacity: .6; }
+        .gelembung.e { width: 1rem; height: 1rem; bottom: 22%; right: 10%; background: #f472b6; opacity: .45; }
+        .kepala { position: relative; display: flex; align-items: center; padding: 1.25rem 1.5rem; }
         .kepala a { display: inline-flex; align-items: center; gap: .75rem; color: inherit; text-decoration: none; }
-        .kepala img, .kepala svg { width: 2.25rem; height: 2.25rem; object-fit: contain; fill: #7b68ff; flex-shrink: 0; }
-        .kepala span { font-weight: 700; letter-spacing: -.01em; }
-        main { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem 1rem 3rem; }
+        .kepala img, .kepala svg { width: 2.25rem; height: 2.25rem; object-fit: contain; fill: #624bff; flex-shrink: 0; }
+        .kepala span { font-weight: 600; letter-spacing: -.01em; }
+        main { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; padding: 1rem 1rem 3rem; }
         .isi { width: 100%; max-width: 34rem; text-align: center; }
-        .ikon {
-            display: inline-flex; align-items: center; justify-content: center; width: 7rem; height: 7rem;
-            border-radius: 9999px; color: var(--aksen);
-            background: color-mix(in srgb, var(--aksen) 14%, transparent);
-            border: 1px solid color-mix(in srgb, var(--aksen) 40%, transparent);
-            box-shadow: 0 0 0 10px color-mix(in srgb, var(--aksen) 6%, transparent);
-        }
-        .ikon svg { width: 3.5rem; height: 3.5rem; }
         .kode {
-            margin: 1.5rem 0 0; font-size: clamp(4.5rem, 18vw, 7.5rem); font-weight: 800; line-height: 1; letter-spacing: -.04em;
-            background: linear-gradient(180deg, #ffffff 10%, var(--aksen) 120%);
-            -webkit-background-clip: text; background-clip: text; color: transparent;
+            display: flex; align-items: center; justify-content: center; gap: .25rem; margin: 0;
+            font-family: Fredoka, Inter, ui-rounded, sans-serif; font-weight: 700; line-height: 1;
+            font-size: clamp(5.5rem, 24vw, 9rem); color: var(--aksen); text-shadow: 0 .35rem 0 var(--aksen-tua);
         }
+        .maskot { width: clamp(6rem, 26vw, 9.5rem); height: clamp(6rem, 26vw, 9.5rem); flex-shrink: 0; overflow: visible; }
         .label {
-            display: inline-block; margin-top: .75rem; padding: .25rem .75rem; border-radius: 9999px;
-            font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-            color: var(--aksen); background: color-mix(in srgb, var(--aksen) 14%, transparent);
+            display: inline-block; margin-top: 1.5rem; padding: .3rem .9rem; border-radius: 9999px;
+            font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+            color: var(--aksen-tua); background: color-mix(in srgb, var(--aksen) 16%, #ffffff);
         }
-        h1 { margin: 1rem 0 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -.01em; }
-        .pesan { margin: .75rem auto 0; max-width: 28rem; color: #c4cdd5; line-height: 1.6; }
+        h1 { margin: .9rem 0 0; font-family: Fredoka, Inter, sans-serif; font-size: 1.75rem; font-weight: 600; color: #161c24; }
+        .pesan { margin: .6rem auto 0; max-width: 28rem; color: #454f5b; line-height: 1.6; }
         .saran {
             margin: 1.5rem auto 0; max-width: 28rem; padding: 1rem 1.25rem; text-align: left;
-            border-radius: .75rem; border: 1px solid rgba(255, 255, 255, .12); background: rgba(22, 28, 36, .45);
-            color: #dfe3e8; font-size: .875rem; line-height: 1.6;
+            border-radius: 1rem; border: 2px dashed color-mix(in srgb, var(--aksen) 40%, #ffffff);
+            background: rgba(255, 255, 255, .8); color: #454f5b; font-size: .875rem; line-height: 1.6;
         }
         .saran ul { margin: .25rem 0 0; padding-left: 1.25rem; }
         .tombol { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 2rem; }
         .tombol a, .tombol button {
-            display: inline-flex; align-items: center; gap: .5rem; padding: .625rem 1.25rem; border-radius: .375rem;
+            display: inline-flex; align-items: center; gap: .5rem; padding: .7rem 1.4rem; border-radius: 9999px;
             font: inherit; font-size: .875rem; font-weight: 600; text-decoration: none; cursor: pointer;
-            transition: background-color .15s, border-color .15s;
+            transition: transform .15s, box-shadow .15s, background-color .15s;
         }
-        .utama { color: #fff; background: #624bff; border: 1px solid #624bff; }
-        .utama:hover { background: #5340d9; border-color: #5340d9; }
-        .kedua { color: #fff; background: transparent; border: 1px solid rgba(255, 255, 255, .45); }
-        .kedua:hover { background: rgba(255, 255, 255, .1); }
+        .tombol a:hover, .tombol button:hover { transform: translateY(-2px); }
+        .utama { color: #fff; background: #624bff; border: 2px solid #624bff; box-shadow: 0 4px 0 #4533b8; }
+        .utama:hover { box-shadow: 0 6px 0 #4533b8; }
+        .kedua { color: #454f5b; background: #fff; border: 2px solid #dfe3e8; box-shadow: 0 4px 0 #dfe3e8; }
         .tombol svg { width: 1rem; height: 1rem; }
-        footer { position: relative; padding: 1.25rem; text-align: center; font-size: .75rem; color: #919eab; }
+        footer { position: relative; padding: 1.25rem; text-align: center; font-size: .75rem; color: #637381; }
         @media (prefers-reduced-motion: no-preference) {
-            .ikon { animation: muncul .5s ease-out both; }
-            .ikon svg { animation: @yield('animasi', 'none'); }
+            .maskot { animation: @yield('animasi', 'melayang 3s ease-in-out infinite'); transform-origin: 50% 90%; }
+            .gerak-mata { animation: lirik 3s ease-in-out infinite; }
+            .gerak-putar { animation: putar 4s linear infinite; transform-origin: 60px 60px; }
+            .gerak-zzz { animation: zzz 2.4s ease-in-out infinite; }
+            .gerak-zzz.dua { animation-delay: .8s; }
+            .gerak-tanya { animation: melayang 1.6s ease-in-out infinite; }
         }
-        @keyframes muncul { from { opacity: 0; transform: translateY(8px) scale(.95); } to { opacity: 1; transform: none; } }
-        @keyframes goyang { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-8deg); } 40% { transform: rotate(6deg); } 60% { transform: rotate(-3deg); } 80% { transform: rotate(0); } }
+        @keyframes melayang { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes goyang { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-7deg); } 80% { transform: rotate(6deg); } 90% { transform: rotate(-3deg); } }
+        @keyframes pusing { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+        @keyframes napas { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04, .97); } }
+        @keyframes lirik { 0%, 20%, 100% { transform: translateX(0); } 35%, 55% { transform: translateX(-4px); } 70%, 90% { transform: translateX(4px); } }
         @keyframes putar { to { transform: rotate(360deg); } }
-        @keyframes cari { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(4px, -3px); } 50% { transform: translate(-3px, 2px); } 75% { transform: translate(2px, 3px); } }
-        @keyframes kedip { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+        @keyframes zzz { 0% { opacity: 0; transform: translate(0, 6px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(8px, -14px); } }
     </style>
 </head>
 <body>
 <div class="halaman">
+    <span class="gelembung a"></span><span class="gelembung b"></span><span class="gelembung c"></span>
+    <span class="gelembung d"></span><span class="gelembung e"></span>
+
     <header class="kepala">
         <a href="{{ url('/') }}">
             @if ($logo)
@@ -122,8 +129,12 @@
 
     <main>
         <div class="isi">
-            <div class="ikon" aria-hidden="true">@yield('ikon')</div>
-            <p class="kode">@yield('kode')</p>
+            {{-- The middle digit is drawn as the page's mascot. --}}
+            <p class="kode" aria-label="@yield('kode')">
+                <span aria-hidden="true">@yield('angka_kiri')</span>
+                <svg class="maskot" viewBox="0 0 120 120" aria-hidden="true">@yield('maskot')</svg>
+                <span aria-hidden="true">@yield('angka_kanan')</span>
+            </p>
             <span class="label">@yield('label')</span>
             <h1>@yield('judul')</h1>
             <p class="pesan">@yield('pesan')</p>

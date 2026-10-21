@@ -7,18 +7,28 @@
 @endphp
 
 @section('kode', '503')
-@section('aksen', '#38bdf8')
-@section('animasi', 'putar 8s linear infinite')
+@section('aksen', '#0ea5e9')
+@section('aksen_tua', '#0369a1')
+@section('latar_1', '#e0f2fe')
+@section('latar_2', '#dcfce7')
+@section('animasi', 'napas 3s ease-in-out infinite')
+@section('angka_kiri', '5')
+@section('angka_kanan', '3')
 @section('label', 'Sedang pemeliharaan')
-@section('judul', 'Sistem sedang dirawat sebentar')
-@section('pesan', 'Kami sedang melakukan pemeliharaan atau pembaruan agar sistem tetap lancar. Data Anda aman.')
+@section('judul', 'Sistem lagi istirahat sebentar')
+@section('pesan', 'Kami sedang merapikan dan memperbarui sistem. Data Anda aman, sebentar lagi kami bangun kembali.')
 
-@section('ikon')
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>
-        <circle cx="12" cy="12" r="5.2"/>
-        <circle cx="12" cy="12" r="2"/>
-    </svg>
+@section('maskot')
+    <circle cx="60" cy="66" r="46" fill="#38bdf8"/>
+    <path d="M18 50Q40 8 92 26L110 14Q78 -2 18 50Z" fill="#6366f1"/>
+    <path d="M16 52Q48 26 96 34" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="111" cy="13" r="7" fill="#fff"/>
+    <path d="M36 66q8 8 16 0M68 66q8 8 16 0" fill="none" stroke="#0c4a6e" stroke-width="3.5" stroke-linecap="round"/>
+    <ellipse cx="32" cy="82" rx="7" ry="4" fill="#f472b6" opacity=".5"/>
+    <ellipse cx="88" cy="82" rx="7" ry="4" fill="#f472b6" opacity=".5"/>
+    <ellipse cx="60" cy="90" rx="4" ry="5" fill="#0c4a6e"/>
+    <text class="gerak-zzz" x="102" y="40" font-family="Fredoka, sans-serif" font-size="24" font-weight="700" fill="#0369a1">Z</text>
+    <text class="gerak-zzz dua" x="116" y="22" font-family="Fredoka, sans-serif" font-size="17" font-weight="700" fill="#0369a1">z</text>
 @endsection
 
 @section('saran')

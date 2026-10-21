@@ -2,18 +2,30 @@
 
 @section('kode', '404')
 @section('aksen', '#7b68ff')
-@section('animasi', 'cari 2.4s ease-in-out .5s infinite')
+@section('aksen_tua', '#5340d9')
+@section('latar_1', '#ede9fe')
+@section('latar_2', '#dbeafe')
+@section('angka_kiri', '4')
+@section('angka_kanan', '4')
 @section('label', 'Tidak ditemukan')
-@section('judul', 'Halaman yang Anda cari tidak ada')
-@section('pesan', 'Alamatnya mungkin salah ketik, atau halaman dan data yang dituju sudah dipindahkan atau dihapus.')
+@section('judul', 'Ups, halamannya tidak ketemu!')
+@section('pesan', 'Kami sudah mencari ke mana-mana, tetapi halaman ini tidak ada. Mungkin alamatnya salah ketik, atau halamannya sudah dipindahkan.')
 
-@section('ikon')
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="10.5" cy="10.5" r="6.5"/>
-        <path d="m15.5 15.5 5 5"/>
-        <path d="M8.6 8.9a2 2 0 1 1 2.6 1.9c-.5.2-.7.6-.7 1.1v.4"/>
-        <path d="M10.5 14.1h.01"/>
-    </svg>
+@section('maskot')
+    <circle cx="60" cy="64" r="48" fill="#a78bfa"/>
+    <ellipse cx="42" cy="34" rx="14" ry="7" fill="#fff" opacity=".35" transform="rotate(-25 42 34)"/>
+    <g class="gerak-mata">
+        <circle cx="44" cy="60" r="11" fill="#fff"/>
+        <circle cx="76" cy="60" r="11" fill="#fff"/>
+        <circle cx="44" cy="61" r="5.5" fill="#161c24"/>
+        <circle cx="76" cy="61" r="5.5" fill="#161c24"/>
+        <circle cx="46" cy="59" r="1.8" fill="#fff"/>
+        <circle cx="78" cy="59" r="1.8" fill="#fff"/>
+    </g>
+    <ellipse cx="32" cy="80" rx="7" ry="4" fill="#f472b6" opacity=".55"/>
+    <ellipse cx="88" cy="80" rx="7" ry="4" fill="#f472b6" opacity=".55"/>
+    <ellipse cx="60" cy="88" rx="5" ry="6" fill="#4c1d95"/>
+    <text class="gerak-tanya" x="100" y="24" font-family="Fredoka, sans-serif" font-size="36" font-weight="700" fill="#5340d9">?</text>
 @endsection
 
 @section('saran')

@@ -10,7 +10,7 @@ test('an unknown address shows the custom not found page with the app name', fun
 
     $this->get('/alamat-yang-tidak-ada')
         ->assertNotFound()
-        ->assertSee('Halaman yang Anda cari tidak ada')
+        ->assertSee('Ups, halamannya tidak ketemu!')
         ->assertSee('SIMLITABMAS Poltekom')
         ->assertSee('Ke Beranda');
 });
@@ -21,7 +21,7 @@ test('a page outside the user role shows the custom forbidden page', function ()
 
     $this->actingAs($dosen)->get(route('sistem.identitas.edit'))
         ->assertForbidden()
-        ->assertSee('Halaman ini bukan untuk akun Anda')
+        ->assertSee('Eits, pintunya terkunci!')
         ->assertSee('Ke Dashboard');
 });
 
@@ -31,11 +31,11 @@ test('server errors and maintenance show their own pages', function () {
 
     $this->get('/uji-500')
         ->assertStatus(500)
-        ->assertSee('Terjadi kesalahan di sistem kami')
+        ->assertSee('Aduh, server kami pusing!')
         ->assertSee('Muat ulang');
 
     $this->get('/uji-503')
         ->assertStatus(503)
-        ->assertSee('Sistem sedang dirawat sebentar')
+        ->assertSee('Sistem lagi istirahat sebentar')
         ->assertSee('10 menit');
 });
