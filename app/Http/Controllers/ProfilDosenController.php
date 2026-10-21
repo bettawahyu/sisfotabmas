@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\JabatanFungsional;
 use App\Models\ProgramStudi;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -16,6 +18,7 @@ class ProfilDosenController extends Controller
         $dosen = $request->user()->dosen?->load('riwayatPendidikan');
 
         return view('dosen.profil', [
+            'user' => $request->user(),
             'dosen' => $dosen,
             'prodi' => ProgramStudi::aktifAtau($dosen?->prodi_id)->with('fakultas')->orderBy('nama')->get(),
         ]);
@@ -63,7 +66,15 @@ class ProfilDosenController extends Controller
             'tahun_pekerti' => ['nullable', 'integer', 'between:1980,'.now()->year],
             'applied_approach' => ['boolean'],
             'tahun_applied_approach' => ['nullable', 'integer', 'between:1980,'.now()->year],
+            // Personal details are kept on the account.
+            'alamat' => ['nullable', 'string', 'max:500'],
+            'no_telp' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+()\-\s]+$/'],
+            'tempat_lahir' => ['nullable', 'string', 'max:100'],
+            'tgl_lahir' => ['nullable', 'date', 'before:today'],
+            'jenis_kelamin' => ['nullable', Rule::in(array_keys(User::JENIS_KELAMIN))],
+            'status_pernikahan' => ['nullable', Rule::in(array_keys(User::STATUS_PERNIKAHAN))],
         ], [
+            'no_telp.regex' => 'Nomor telepon hanya berisi angka, spasi, +, -, atau tanda kurung.',
             'orcid.regex' => 'ORCID ditulis 0000-0000-0000-0000.',
             'no_serdos.required_if' => 'Isi nomor sertifikat pendidik bila sudah tersertifikasi.',
             'tahun_serdos.required_if' => 'Isi tahun sertifikasi bila sudah tersertifikasi.',
@@ -80,9 +91,12 @@ class ProfilDosenController extends Controller
             $data['tahun_applied_approach'] = null;
         }
 
-        // Saving the lecturer also renames the account (Dosen::booted).
-        $user->dosen()->updateOrCreate([], $data);
+        $pribadi = ['alamat', 'no_telp', 'tempat_lahir', 'tgl_lahir', 'jenis_kelamin', 'status_pernikahan'];
+        $user->update(Arr::only($data, $pribadi));
 
-        return redirect()->route('profil-dosen.edit')->with('status', 'Kualifikasi dosen tersimpan.');
+        // Saving the lecturer also renames the account (Dosen::booted).
+        $user->dosen()->updateOrCreate([], Arr::except($data, $pribadi));
+
+        return redirect()->route('profil-dosen.edit')->with('status', 'Profil dosen tersimpan.');
     }
 }

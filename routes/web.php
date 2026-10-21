@@ -58,11 +58,11 @@ Route::get('/dashboard', function (Request $request) {
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// The profile stays open before the email is verified, so a mistyped address can be fixed.
+// The account page (login email and password) stays open before the email is verified.
+// Users cannot delete their own account; admins switch accounts off instead.
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/akun', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::redirect('/profile', '/akun', 301);
     Route::post('/profile/foto', [ProfileController::class, 'updateFoto'])->name('profile.foto.update');
     Route::delete('/profile/foto', [ProfileController::class, 'destroyFoto'])->name('profile.foto.destroy');
     Route::get('/foto-profil/{user}', [ProfileController::class, 'foto'])->name('foto-profil.show');

@@ -18,7 +18,11 @@
                     <p class="text-sm text-indigo-100">Selamat datang, {{ $pengguna->name }}.</p>
                 </div>
             </div>
-            <x-tombol-tautan :href="route('profile.edit')" varian="kedua" ikon="user">Profil saya</x-tombol-tautan>
+            @if ($pengguna->hasRole(\App\Models\Role::DOSEN))
+                <x-tombol-tautan :href="route('profil-dosen.edit')" varian="kedua" ikon="user">Profil saya</x-tombol-tautan>
+            @else
+                <x-tombol-tautan :href="route('profile.edit')" varian="kedua" ikon="user">Akun saya</x-tombol-tautan>
+            @endif
         </div>
     </div>
 

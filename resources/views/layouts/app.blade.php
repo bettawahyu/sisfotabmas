@@ -67,10 +67,10 @@
                                 </div>
                             </div>
                             <div class="mb-2 border-b border-gray-300"></div>
-                            <x-dropdown-link :href="route('profile.edit')" ikon="user">{{ __('Profile') }}</x-dropdown-link>
                             @if ($pengguna->hasRole(\App\Models\Role::DOSEN))
-                                <x-dropdown-link :href="route('profil-dosen.edit')" ikon="award">Kualifikasi Dosen</x-dropdown-link>
+                                <x-dropdown-link :href="route('profil-dosen.edit')" ikon="award">Profil Dosen</x-dropdown-link>
                             @endif
+                            <x-dropdown-link :href="route('profile.edit')" ikon="user">Akun</x-dropdown-link>
                             <x-dropdown-link :href="route('notifikasi.index')" ikon="bell">Notifikasi</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

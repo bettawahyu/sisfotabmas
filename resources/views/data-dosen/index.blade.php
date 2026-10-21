@@ -142,7 +142,7 @@
                 <div class="flex items-start justify-between gap-4">
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800">{{ $d->namaLengkap() }}</h3>
-                        <p class="text-sm text-gray-600">Kualifikasi dosen</p>
+                        <p class="text-sm text-gray-600">Profil dosen</p>
                     </div>
                     <button type="button" class="text-gray-400 hover:text-gray-600" x-on:click="$dispatch('close')" aria-label="Tutup"><x-ikon nama="x" /></button>
                 </div>

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Kualifikasi Dosen</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Profil Dosen</h2>
     </x-slot>
 
     <div class="py-6">
@@ -11,15 +11,18 @@
                 <form method="POST" action="{{ route('profil-dosen.update') }}" class="grid gap-4 sm:grid-cols-2">
                     @csrf
                     @method('PUT')
+                    <div class="sm:col-span-2">
+                        <h4 class="text-sm font-semibold text-gray-800">Identitas</h4>
+                    </div>
                     <div>
                         <x-input-label for="nama" value="Nama (tanpa gelar)" ikon="user" />
                         <x-text-input id="nama" name="nama" class="mt-1 block w-full" :value="old('nama', $dosen?->nama ?? auth()->user()->name)" required />
-                        <p class="mt-1 text-xs text-gray-500">Nama akun di Profil ikut berubah.</p>
+                        <p class="mt-1 text-xs text-gray-500">Nama akun ikut berubah.</p>
                     </div>
                     <div>
                         <x-input-label value="Email" ikon="mail" />
                         <p class="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 break-all">{{ auth()->user()->email }}</p>
-                        <p class="mt-1 text-xs text-gray-500">Diambil dari akun; ubah lewat menu <a href="{{ route('profile.edit') }}" class="text-indigo-700 hover:underline">Profil</a>.</p>
+                        <p class="mt-1 text-xs text-gray-500">Email login akun; diubah oleh Admin Sistem.</p>
                     </div>
                     <div>
                         <x-input-label for="gelar_depan" value="Gelar depan" ikon="award" />
@@ -37,9 +40,45 @@
                         <x-input-label for="nuptk" value="NUPTK" ikon="hash" />
                         <x-text-input id="nuptk" name="nuptk" class="mt-1 block w-full" :value="old('nuptk', $dosen?->nuptk)" />
                     </div>
+                    <div class="sm:col-span-2 mt-2 border-t border-gray-200 pt-4">
+                        <h4 class="text-sm font-semibold text-gray-800">Data diri</h4>
+                    </div>
                     <div>
-                        <x-input-label for="sinta_id" value="ID SINTA" ikon="hash" />
-                        <x-text-input id="sinta_id" name="sinta_id" class="mt-1 block w-full" :value="old('sinta_id', $dosen?->sinta_id)" />
+                        <x-input-label for="jenis_kelamin" value="Jenis kelamin" ikon="user" />
+                        <x-select-input id="jenis_kelamin" name="jenis_kelamin" class="mt-1 block w-full">
+                            <option value="">-</option>
+                            @foreach (\App\Models\User::JENIS_KELAMIN as $kode => $label)
+                                <option value="{{ $kode }}" @selected(old('jenis_kelamin', $user->jenis_kelamin) === $kode)>{{ $label }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div>
+                        <x-input-label for="status_pernikahan" value="Status pernikahan" ikon="heart" />
+                        <x-select-input id="status_pernikahan" name="status_pernikahan" class="mt-1 block w-full">
+                            <option value="">-</option>
+                            @foreach (\App\Models\User::STATUS_PERNIKAHAN as $kode => $label)
+                                <option value="{{ $kode }}" @selected(old('status_pernikahan', $user->status_pernikahan) === $kode)>{{ $label }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div>
+                        <x-input-label for="tempat_lahir" value="Tempat lahir" ikon="map-pin" />
+                        <x-text-input id="tempat_lahir" name="tempat_lahir" class="mt-1 block w-full" :value="old('tempat_lahir', $user->tempat_lahir)" />
+                    </div>
+                    <div>
+                        <x-input-label for="tgl_lahir" value="Tanggal lahir" ikon="calendar" />
+                        <x-text-input id="tgl_lahir" name="tgl_lahir" type="date" class="mt-1 block w-full" :value="old('tgl_lahir', $user->tgl_lahir?->format('Y-m-d'))" />
+                    </div>
+                    <div>
+                        <x-input-label for="no_telp" value="No. telepon" ikon="phone" />
+                        <x-text-input id="no_telp" name="no_telp" type="tel" class="mt-1 block w-full" :value="old('no_telp', $user->no_telp)" autocomplete="tel" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="alamat" value="Alamat" ikon="home" />
+                        <textarea id="alamat" name="alamat" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('alamat', $user->alamat) }}</textarea>
+                    </div>
+                    <div class="sm:col-span-2 mt-2 border-t border-gray-200 pt-4">
+                        <h4 class="text-sm font-semibold text-gray-800">Kepegawaian dan akademik</h4>
                     </div>
                     <div>
                         <x-input-label for="jabatan_fungsional" value="Jabatan fungsional" ikon="briefcase" />
@@ -54,14 +93,6 @@
                         <x-input-label value="Pendidikan terakhir" ikon="book-open" />
                         <p class="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">{{ $dosen?->pendidikan_terakhir ?? 'Belum ada' }}</p>
                         <p class="mt-1 text-xs text-gray-500">Diambil dari jenjang tertinggi di riwayat pendidikan.</p>
-                    </div>
-                    <div>
-                        <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil)" ikon="link" />
-                        <x-text-input id="google_scholar_id" name="google_scholar_id" class="mt-1 block w-full" :value="old('google_scholar_id', $dosen?->google_scholar_id)" placeholder="https://scholar.google.com/citations?user=..." />
-                    </div>
-                    <div>
-                        <x-input-label for="orcid" value="ORCID" ikon="link" />
-                        <x-text-input id="orcid" name="orcid" class="mt-1 block w-full" :value="old('orcid', $dosen?->orcid)" placeholder="0000-0000-0000-0000" />
                     </div>
                     <div>
                         <x-input-label for="tmt_dosen" value="TMT sebagai dosen" ikon="calendar" />
@@ -81,6 +112,21 @@
                         </x-select-input>
                     </div>
 
+                    <div class="sm:col-span-2 mt-2 border-t border-gray-200 pt-4">
+                        <h4 class="text-sm font-semibold text-gray-800">ID peneliti</h4>
+                    </div>
+                    <div>
+                        <x-input-label for="sinta_id" value="ID SINTA" ikon="hash" />
+                        <x-text-input id="sinta_id" name="sinta_id" class="mt-1 block w-full" :value="old('sinta_id', $dosen?->sinta_id)" />
+                    </div>
+                    <div>
+                        <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil)" ikon="link" />
+                        <x-text-input id="google_scholar_id" name="google_scholar_id" class="mt-1 block w-full" :value="old('google_scholar_id', $dosen?->google_scholar_id)" placeholder="https://scholar.google.com/citations?user=..." />
+                    </div>
+                    <div>
+                        <x-input-label for="orcid" value="ORCID" ikon="link" />
+                        <x-text-input id="orcid" name="orcid" class="mt-1 block w-full" :value="old('orcid', $dosen?->orcid)" placeholder="0000-0000-0000-0000" />
+                    </div>
                     <div class="sm:col-span-2 mt-2 border-t border-gray-200 pt-4">
                         <h4 class="text-sm font-semibold text-gray-800">Sertifikasi dan pelatihan</h4>
                     </div>
@@ -151,7 +197,7 @@
                         <div class="sm:col-span-2"><x-primary-button ikon="plus">Tambah</x-primary-button></div>
                     </form>
                 @else
-                    <p class="text-sm text-gray-600">Simpan kualifikasi dosen di atas terlebih dahulu, lalu tambahkan riwayat pendidikan.</p>
+                    <p class="text-sm text-gray-600">Simpan profil dosen di atas terlebih dahulu, lalu tambahkan riwayat pendidikan.</p>
                 @endif
             </x-kartu>
         </div>

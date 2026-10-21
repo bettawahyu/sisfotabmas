@@ -50,48 +50,41 @@ test('a certified lecturer must give the certificate number and year, and ORCID 
     ])->assertSessionHasErrors(['no_serdos', 'tahun_serdos', 'orcid']);
 });
 
-test('the account name follows the lecturer name, and the profile shows it read-only', function () {
+test('the account name follows the lecturer name', function () {
     $user = akunDosenBaru();
     $this->actingAs($user)->put(route('profil-dosen.update'), ['nama' => 'Ani Lestari'])->assertSessionHasNoErrors();
 
     expect($user->fresh()->name)->toBe('Ani Lestari');
-
-    $this->actingAs($user->fresh())->get(route('profile.edit'))->assertOk()
-        ->assertSee('Ani Lestari')->assertSee('Kualifikasi Dosen')->assertDontSee('name="name"', false);
-
-    // A lecturer cannot rename the account from the profile page.
-    $this->actingAs($user->fresh())->patch(route('profile.update'), ['name' => 'Lain', 'email' => $user->email])
-        ->assertSessionHasErrors('name');
+    $this->actingAs($user->fresh())->get(route('profile.edit'))->assertOk()->assertSee('Profil Dosen');
 
     // A rename made elsewhere, such as by the system admin, reaches the lecturer too.
     $user->fresh()->update(['name' => 'Ani L.']);
     expect($user->fresh()->dosen->nama)->toBe('Ani L.');
 });
 
-test('every user keeps address, phone, birth, marital status and sex on the profile', function () {
-    $user = User::factory()->create();
-    $user->assignRole(Role::OPERATOR);
+test('the lecturer profile also keeps address, phone, birth, marital status and sex', function () {
+    $user = akunDosenBaru();
 
-    $this->actingAs($user)->get(route('profile.edit'))->assertOk()
-        ->assertSee('Alamat')->assertSee('Status pernikahan')->assertSee('Jenis kelamin')->assertSee('name="name"', false);
+    $this->actingAs($user)->get(route('profil-dosen.edit'))->assertOk()
+        ->assertSee('Profil Dosen')->assertSee('Alamat')->assertSee('Status pernikahan')->assertSee('Jenis kelamin');
 
-    $this->actingAs($user)->patch(route('profile.update'), [
-        'name' => 'Budi Operator', 'email' => $user->email,
+    $this->actingAs($user)->put(route('profil-dosen.update'), [
+        'nama' => 'Budi Santoso',
         'alamat' => 'Jl. Kaliurang 5, Sleman', 'no_telp' => '+62 812-3456-7890',
         'tempat_lahir' => 'Yogyakarta', 'tgl_lahir' => '1990-05-17',
         'status_pernikahan' => 'menikah', 'jenis_kelamin' => 'L',
-    ])->assertSessionHasNoErrors()->assertRedirect(route('profile.edit'));
+    ])->assertSessionHasNoErrors()->assertRedirect(route('profil-dosen.edit'));
 
     $user->refresh();
-    expect($user->name)->toBe('Budi Operator')
+    expect($user->name)->toBe('Budi Santoso')
         ->and($user->alamat)->toBe('Jl. Kaliurang 5, Sleman')
         ->and($user->no_telp)->toBe('+62 812-3456-7890')
         ->and($user->tgl_lahir->format('Y-m-d'))->toBe('1990-05-17')
         ->and($user->status_pernikahan)->toBe('menikah')
         ->and($user->jenis_kelamin)->toBe('L');
 
-    $this->actingAs($user)->patch(route('profile.update'), [
-        'name' => 'Budi', 'email' => $user->email, 'status_pernikahan' => 'janda', 'no_telp' => 'abc',
+    $this->actingAs($user)->put(route('profil-dosen.update'), [
+        'nama' => 'Budi', 'status_pernikahan' => 'janda', 'no_telp' => 'abc',
     ])->assertSessionHasErrors(['status_pernikahan', 'no_telp']);
 });
 

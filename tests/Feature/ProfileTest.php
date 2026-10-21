@@ -4,86 +4,24 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-test('profile page is displayed', function () {
+test('the account page shows the login email as text and the password form only', function () {
     $user = User::factory()->create();
 
-    $response = $this
-        ->actingAs($user)
-        ->get('/profile');
-
-    $response->assertOk();
+    $this->actingAs($user)->get('/profile')->assertRedirect('/akun');
+    $this->actingAs($user)->get(route('profile.edit'))->assertOk()
+        ->assertSee($user->email)
+        ->assertSee('update_password_current_password', false)
+        ->assertDontSee('name="email"', false)
+        ->assertDontSee('name="name"', false);
 });
 
-test('profile information can be updated', function () {
+test('users cannot change their name or email, nor delete their own account', function () {
     $user = User::factory()->create();
 
-    $response = $this
-        ->actingAs($user)
-        ->patch('/profile', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+    $this->actingAs($user)->patch('/akun', ['name' => 'Lain', 'email' => 'lain@example.com'])->assertStatus(405);
+    $this->actingAs($user)->delete('/akun', ['password' => 'password'])->assertStatus(405);
 
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
-
-    $user->refresh();
-
-    $this->assertSame('Test User', $user->name);
-    $this->assertSame('test@example.com', $user->email);
-    $this->assertNull($user->email_verified_at);
-});
-
-test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->patch('/profile', [
-            'name' => 'Test User',
-            'email' => $user->email,
-        ]);
-
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
-
-    $this->assertNotNull($user->refresh()->email_verified_at);
-});
-
-test('user can delete their account', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->delete('/profile', [
-            'password' => 'password',
-        ]);
-
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/');
-
-    $this->assertGuest();
-    $this->assertNull($user->fresh());
-});
-
-test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->from('/profile')
-        ->delete('/profile', [
-            'password' => 'wrong-password',
-        ]);
-
-    $response
-        ->assertSessionHasErrorsIn('userDeletion', 'password')
-        ->assertRedirect('/profile');
-
-    $this->assertNotNull($user->fresh());
+    expect($user->fresh())->not->toBeNull()->and($user->fresh()->email)->not->toBe('lain@example.com');
 });
 
 test('profile photo can be uploaded, shown, replaced and removed', function () {
@@ -95,11 +33,11 @@ test('profile photo can be uploaded, shown, replaced and removed', function () {
     $this->actingAs($user)
         ->post('/profile/foto', ['foto' => UploadedFile::fake()->image('foto.jpg', 300, 300)])
         ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
+        ->assertRedirect(route('profile.edit'));
 
     $pertama = $user->refresh()->foto_profil;
     Storage::assertExists($pertama);
-    $this->actingAs($user)->get('/profile')->assertSee(route('foto-profil.show', $user));
+    $this->actingAs($user)->get('/dashboard')->assertSee(route('foto-profil.show', $user));
     $this->actingAs(User::factory()->create())->get(route('foto-profil.show', $user))->assertOk();
 
     $this->actingAs($user)->post('/profile/foto', ['foto' => UploadedFile::fake()->image('baru.png', 200, 200)]);
@@ -107,7 +45,7 @@ test('profile photo can be uploaded, shown, replaced and removed', function () {
     Storage::assertExists($user->refresh()->foto_profil);
 
     $kedua = $user->foto_profil;
-    $this->actingAs($user)->delete('/profile/foto')->assertRedirect('/profile');
+    $this->actingAs($user)->delete('/profile/foto')->assertRedirect(route('profile.edit'));
     Storage::assertMissing($kedua);
     expect($user->refresh()->foto_profil)->toBeNull();
     $this->actingAs($user)->get(route('foto-profil.show', $user))->assertNotFound();
@@ -121,7 +59,7 @@ test('profile photo must be an image', function () {
         ->from('/profile')
         ->post('/profile/foto', ['foto' => UploadedFile::fake()->create('berkas.pdf', 100, 'application/pdf')])
         ->assertSessionHasErrors('foto')
-        ->assertRedirect('/profile');
+        ->assertRedirect(route('profile.edit'));
 
     expect($user->refresh()->foto_profil)->toBeNull();
 });

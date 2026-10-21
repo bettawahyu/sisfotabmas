@@ -21,7 +21,7 @@
             ['Proposal', 'proposal.index', ['proposal.*', 'undangan.*'], 'file-text'],
             $adaPelaksanaan ? ['Pelaksanaan', 'pelaksanaan.index', ['pelaksanaan.*'], 'activity'] : null,
             ['Publikasi & KI', 'karya.publikasi.index', ['karya.*'], 'book-open'],
-            ['Kualifikasi Dosen', 'profil-dosen.edit', ['profil-dosen.*'], 'award'],
+            ['Profil Dosen', 'profil-dosen.edit', ['profil-dosen.*'], 'award'],
         ])),
         'Reviewer' => $pengguna->hasRole(Role::REVIEWER) ? [
             ['Review', 'review.index', ['review.*'], 'check-square'],
