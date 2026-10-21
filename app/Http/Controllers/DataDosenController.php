@@ -4,12 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\JabatanFungsional;
 use App\Models\Dosen;
-use App\Models\ProgramStudi;
 use App\Models\Role;
-use App\Models\User;
 use App\Services\DataDosen;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -33,7 +29,7 @@ class DataDosenController extends Controller
         return view('data-dosen.index', [
             'dosen' => $data->query($request->user(), $filter)->withCount('publikasi')->get(),
             'filter' => $filter,
-            'prodi' => $this->prodi($request->user()),
+            'prodi' => $data->prodi($request->user()),
             'lihatSemua' => DataDosen::bolehLihatSemua($request->user()),
             'kelolaAkun' => $request->user()->hasRole(Role::ADMIN_LPPM),
         ]);
@@ -78,22 +74,6 @@ class DataDosenController extends Controller
             'jabatan_fungsional' => ['nullable', Rule::enum(JabatanFungsional::class)],
             'pendidikan_terakhir' => ['nullable', Rule::in(Dosen::PENDIDIKAN)],
         ]);
-    }
-
-    /**
-     * The programmes a viewer may filter by: a unit head sees only their own
-     * programme, or the programmes of their faculty.
-     *
-     * @return Collection<int, ProgramStudi>
-     */
-    private function prodi(User $user): Collection
-    {
-        $peran = DataDosen::bolehLihatSemua($user) ? null : $user->roles->firstWhere('kode', Role::PIMPINAN_UNIT);
-
-        return ProgramStudi::with('fakultas')
-            ->when($peran?->pivot->prodi_id, fn (Builder $q, $prodi) => $q->whereKey($prodi))
-            ->when($peran?->pivot->fakultas_id, fn (Builder $q, $fakultas) => $q->where('fakultas_id', $fakultas))
-            ->orderBy('nama')->get();
     }
 
     private function excel(FastExcel $excel, string $dasar): StreamedResponse

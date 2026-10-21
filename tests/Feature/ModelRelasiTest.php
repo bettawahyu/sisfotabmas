@@ -28,7 +28,7 @@ test('a lecturer reaches their publications, HKI and patents', function () {
 
 test('only entries LPPM marked valid count', function () {
     Publikasi::factory()->create();
-    Publikasi::factory()->create(['status_verifikasi' => Publikasi::DISETUJUI_KAPRODI]);
+    Publikasi::factory()->create(['status_verifikasi' => Publikasi::DITOLAK]);
     $valid = Publikasi::factory()->create();
     $valid->forceFill(['status_verifikasi' => Publikasi::VALID, 'diverifikasi_lppm_at' => now()])->save();
 

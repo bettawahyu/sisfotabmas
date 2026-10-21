@@ -16,7 +16,7 @@
             <x-pesan />
             <x-kartu>
                 @include('karya._tab')
-                <p class="mb-4 text-sm text-gray-600">Data yang Anda isi atau yang mencantumkan nama Anda. Setiap data diperiksa kaprodi, lalu divalidasi LPPM. Data yang sudah valid bisa ditautkan ke capaian luaran proposal di halaman pelaksanaan.</p>
+                <p class="mb-4 text-sm text-gray-600">Data yang Anda isi atau yang mencantumkan nama Anda. Setiap data diverifikasi LPPM atau operator. Data yang sudah valid bisa ditautkan ke capaian luaran proposal di halaman pelaksanaan.</p>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm" data-tabel-data>
                         <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Judul</th><th class="py-2 pe-4 font-medium">Jenis</th><th class="py-2 pe-4 font-medium">Status</th><th class="py-2 pe-4 font-medium">Verifikasi</th><th class="py-2 pe-4 font-medium">Luaran proposal</th><th></th></tr></thead>

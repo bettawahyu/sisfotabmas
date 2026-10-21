@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Lecturers keep their publications, HKI and patents; the kaprodi checks each
- * entry first, then LPPM marks it valid.
+ * Lecturers keep their publications, HKI and patents; LPPM or an operator
+ * checks each entry and marks it valid.
  */
 class AlurKarya
 {
@@ -57,7 +57,7 @@ class AlurKarya
 
     /**
      * Saves an entry with its contributors in the given order. Any change sends
-     * the entry back to the kaprodi.
+     * the entry back to LPPM.
      *
      * @param  array<string, mixed>  $data
      * @param  list<array{dosen_id?: int|string|null, nama?: string|null, afiliasi?: string|null, is_korespondensi?: bool}>  $kontributor
@@ -71,15 +71,13 @@ class AlurKarya
         $this->pastikan($baris !== [], 'Isi minimal satu nama.');
         $this->pastikan(collect($baris)->contains('dosen_id', $oleh->dosen->id), 'Cantumkan diri Anda pada daftar nama.');
 
-        return DB::transaction(function () use ($karya, $data, $baris, $oleh) {
+        $karya = DB::transaction(function () use ($karya, $data, $baris, $oleh) {
             $karya->fill($data);
             if (! $karya->exists) {
                 $karya->diinput_oleh = $oleh->id;
             }
             $karya->forceFill([
                 'status_verifikasi' => Hki::MENUNGGU,
-                'diverifikasi_kaprodi_oleh' => null,
-                'diverifikasi_kaprodi_at' => null,
                 'diverifikasi_lppm_oleh' => null,
                 'diverifikasi_lppm_at' => null,
             ])->save();
@@ -96,6 +94,12 @@ class AlurKarya
 
             return $karya->unsetRelation('kontributor');
         });
+
+        $label = self::LABEL[self::slug($karya)];
+        $this->pemberitahu->kePeran([Role::ADMIN_LPPM, Role::OPERATOR], $label.' menunggu verifikasi',
+            "{$oleh->dosen->namaLengkap()} mengisi \"{$karya->judul}\".", route('karya-dosen.index', ['tab' => self::slug($karya), 'status' => Hki::MENUNGGU]));
+
+        return $karya;
     }
 
     public function hapus(Publikasi|Hki|Paten $karya): void
@@ -107,40 +111,32 @@ class AlurKarya
     }
 
     /**
-     * The kaprodi approves entries waiting for them; LPPM validates entries the
-     * kaprodi approved. Either may reject with a note.
+     * LPPM or an operator validates an entry waiting for verification, or
+     * rejects it with a note.
      */
     public function verifikasi(Publikasi|Hki|Paten $karya, bool $setuju, ?string $catatan, User $oleh): void
     {
         $this->pastikan($setuju || filled($catatan), 'Tulis alasan data ditolak.');
+        $this->pastikan(self::bolehVerifikasi($oleh), 'Hanya LPPM atau operator yang memverifikasi data ini.');
+        $this->pastikan($karya->status_verifikasi === Hki::MENUNGGU, 'Data ini tidak sedang menunggu verifikasi.');
 
-        $tahapKaprodi = $karya->status_verifikasi === Hki::MENUNGGU
-            && $oleh->hasRole(Role::PIMPINAN_UNIT)
-            && $karya::query()->whereKey($karya->id)->dalamUnit($oleh)->exists();
-        $tahapLppm = $karya->status_verifikasi === Hki::DISETUJUI_KAPRODI && $oleh->hasRole(Role::ADMIN_LPPM);
-        $this->pastikan($tahapKaprodi || $tahapLppm, 'Data ini tidak sedang menunggu verifikasi Anda.');
-
-        $isian = ['catatan_verifikasi' => $setuju ? null : $catatan];
-        if (! $setuju) {
-            $isian['status_verifikasi'] = Hki::DITOLAK;
-        } elseif ($tahapKaprodi) {
-            $isian += ['status_verifikasi' => Hki::DISETUJUI_KAPRODI, 'diverifikasi_kaprodi_oleh' => $oleh->id, 'diverifikasi_kaprodi_at' => now()];
-        } else {
-            $isian += ['status_verifikasi' => Hki::VALID, 'diverifikasi_lppm_oleh' => $oleh->id, 'diverifikasi_lppm_at' => now()];
-        }
-        $karya->forceFill($isian)->save();
+        $karya->forceFill($setuju
+            ? ['status_verifikasi' => Hki::VALID, 'catatan_verifikasi' => null, 'diverifikasi_lppm_oleh' => $oleh->id, 'diverifikasi_lppm_at' => now()]
+            : ['status_verifikasi' => Hki::DITOLAK, 'catatan_verifikasi' => $catatan])->save();
 
         $slug = self::slug($karya);
-        if (! $setuju) {
-            $this->pemberitahu->keUser($karya->penginput, self::LABEL[$slug].' ditolak',
-                "\"{$karya->judul}\" ditolak saat verifikasi. Alasan: {$catatan}", route("karya.{$slug}.edit", $karya));
-        } elseif ($tahapKaprodi) {
-            $this->pemberitahu->kePeran([Role::ADMIN_LPPM], self::LABEL[$slug].' menunggu validasi',
-                "\"{$karya->judul}\" sudah disetujui kaprodi dan menunggu validasi LPPM.", route('verifikasi-karya.index'));
-        } else {
+        if ($setuju) {
             $this->pemberitahu->keUser($karya->penginput, self::LABEL[$slug].' tervalidasi',
                 "\"{$karya->judul}\" sudah divalidasi LPPM.", route("karya.{$slug}.index"));
+        } else {
+            $this->pemberitahu->keUser($karya->penginput, self::LABEL[$slug].' ditolak',
+                "\"{$karya->judul}\" ditolak saat verifikasi. Alasan: {$catatan}", route("karya.{$slug}.edit", $karya));
         }
+    }
+
+    public static function bolehVerifikasi(User $user): bool
+    {
+        return $user->hasRole(Role::ADMIN_LPPM, Role::OPERATOR);
     }
 
     /**

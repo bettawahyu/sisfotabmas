@@ -57,7 +57,7 @@ abstract class KaryaController extends Controller
         [$isian, $kontributor] = $this->validasi($request, null);
         $alur->simpan(new $model, $isian, $kontributor, $request->user());
 
-        return redirect()->route("karya.{$this->jenis}.index")->with('status', 'Data tersimpan dan menunggu verifikasi kaprodi.');
+        return redirect()->route("karya.{$this->jenis}.index")->with('status', 'Data tersimpan dan menunggu verifikasi LPPM.');
     }
 
     public function edit(Request $request, int $karya): View
@@ -71,7 +71,7 @@ abstract class KaryaController extends Controller
         [$isian, $kontributor] = $this->validasi($request, $entri->id);
         $alur->simpan($entri, $isian, $kontributor, $request->user());
 
-        return redirect()->route("karya.{$this->jenis}.index")->with('status', 'Perubahan tersimpan dan menunggu verifikasi kaprodi.');
+        return redirect()->route("karya.{$this->jenis}.index")->with('status', 'Perubahan tersimpan dan menunggu verifikasi LPPM.');
     }
 
     public function destroy(Request $request, int $karya, AlurKarya $alur): RedirectResponse

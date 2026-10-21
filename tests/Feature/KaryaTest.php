@@ -58,7 +58,7 @@ test('a lecturer records a publication with an outside co-author', function () {
         ->and($publikasi->penulis->first()->is_korespondensi)->toBeTrue();
 
     $this->actingAs($user)->get(route('karya.publikasi.index'))->assertOk()
-        ->assertSee($publikasi->judul)->assertSee('Rina Hartati')->assertSee('Menunggu kaprodi');
+        ->assertSee($publikasi->judul)->assertSee('Rina Hartati')->assertSee('Menunggu verifikasi');
 });
 
 test('a lecturer must be listed and only edits their own entries', function () {
@@ -80,33 +80,31 @@ test('a lecturer must be listed and only edits their own entries', function () {
     $this->actingAs($lain->user)->get(route('karya.paten.edit', $paten))->assertOk()->assertSee($paten->judul);
 });
 
-test('the kaprodi of the unit approves, then LPPM validates', function () {
+test('LPPM or an operator validates without the kaprodi', function () {
     Notification::fake();
+    $operator = pengguna(Role::OPERATOR);
     $this->actingAs($this->dosen->user)->post(route('karya.publikasi.store'), isianPublikasi([['dosen_id' => $this->dosen->id]]));
     $publikasi = Publikasi::sole();
-    $kaprodiTi = pimpinanUnit('prodi:'.$this->informatika->id);
-    $kaprodiTe = pimpinanUnit('prodi:'.$this->elektro->id);
-    $admin = pengguna(Role::ADMIN_LPPM);
+    Notification::assertSentTo($operator, Pemberitahuan::class);
+    $kaprodi = pimpinanUnit('prodi:'.$this->informatika->id);
 
-    $this->actingAs($kaprodiTe)->get(route('verifikasi-karya.index'))->assertOk()->assertDontSee($publikasi->judul);
-    $this->actingAs($kaprodiTe)->post(route('verifikasi-karya.store', ['publikasi', $publikasi->id]), ['aksi' => 'setujui'])
-        ->assertSessionHasErrors('karya');
-    $this->actingAs($admin)->get(route('verifikasi-karya.index'))->assertOk()->assertDontSee($publikasi->judul);
+    $this->actingAs($kaprodi)->get(route('karya-dosen.index'))->assertOk()
+        ->assertSee($publikasi->judul)->assertDontSee(route('karya-dosen.verifikasi', ['publikasi', $publikasi->id]), false);
+    $this->actingAs($kaprodi)->post(route('karya-dosen.verifikasi', ['publikasi', $publikasi->id]), ['aksi' => 'setujui'])
+        ->assertForbidden();
 
-    $this->actingAs($kaprodiTi)->get(route('verifikasi-karya.index'))->assertSee($publikasi->judul);
-    $this->actingAs($kaprodiTi)->post(route('verifikasi-karya.store', ['publikasi', $publikasi->id]), ['aksi' => 'setujui'])
-        ->assertSessionHasNoErrors();
-    expect($publikasi->fresh()->status_verifikasi)->toBe(Publikasi::DISETUJUI_KAPRODI);
-    Notification::assertSentTo($admin, Pemberitahuan::class);
-
-    $this->actingAs($admin)->get(route('verifikasi-karya.index'))->assertSee($publikasi->judul);
-    $this->actingAs($admin)->post(route('verifikasi-karya.store', ['publikasi', $publikasi->id]), ['aksi' => 'setujui'])
+    $this->actingAs($operator)->get(route('karya-dosen.index'))->assertOk()
+        ->assertSee($publikasi->judul)->assertSee(route('karya-dosen.verifikasi', ['publikasi', $publikasi->id]), false);
+    $this->actingAs($operator)->post(route('karya-dosen.verifikasi', ['publikasi', $publikasi->id]), ['aksi' => 'setujui'])
         ->assertSessionHasNoErrors();
     expect($publikasi->fresh())
         ->status_verifikasi->toBe(Publikasi::VALID)
-        ->diverifikasi_kaprodi_oleh->toBe($kaprodiTi->id)
-        ->diverifikasi_lppm_oleh->toBe($admin->id);
+        ->diverifikasi_lppm_oleh->toBe($operator->id);
     expect(Publikasi::valid()->count())->toBe(1);
+    Notification::assertSentTo($this->dosen->user, Pemberitahuan::class);
+
+    $this->actingAs(pengguna(Role::ADMIN_LPPM))->post(route('karya-dosen.verifikasi', ['publikasi', $publikasi->id]), ['aksi' => 'setujui'])
+        ->assertSessionHasErrors('karya');
 
     $this->actingAs($this->dosen->user)->put(route('karya.publikasi.update', $publikasi), isianPublikasi([['dosen_id' => $this->dosen->id]], ['judul' => 'Judul baru']))
         ->assertSessionHasErrors('karya');
@@ -114,15 +112,32 @@ test('the kaprodi of the unit approves, then LPPM validates', function () {
     expect($publikasi->fresh()->judul)->not->toBe('Judul baru');
 });
 
-test('a rejected entry tells the lecturer why and goes back to the kaprodi once fixed', function () {
+test('LPPM and operators see every lecturer\'s entries, a kaprodi only their programme\'s', function () {
+    $ti = Hki::factory()->create(['judul' => 'Aplikasi logbook Informatika']);
+    $ti->pencipta()->create(['dosen_id' => $this->dosen->id, 'nama' => $this->dosen->nama, 'urutan' => 1]);
+    $dosenTe = Dosen::factory()->create(['prodi_id' => $this->elektro->id]);
+    $te = Hki::factory()->create(['judul' => 'Desain panel surya Elektro']);
+    $te->pencipta()->create(['dosen_id' => $dosenTe->id, 'nama' => $dosenTe->nama, 'urutan' => 1]);
+
+    foreach ([pengguna(Role::ADMIN_LPPM), pengguna(Role::OPERATOR)] as $user) {
+        $this->actingAs($user)->get(route('karya-dosen.index', ['tab' => 'hki', 'status' => 'semua']))->assertOk()
+            ->assertSee($ti->judul)->assertSee($te->judul);
+    }
+    $this->actingAs(pimpinanUnit('prodi:'.$this->informatika->id))->get(route('karya-dosen.index', ['tab' => 'hki']))->assertOk()
+        ->assertSee($ti->judul)->assertDontSee($te->judul);
+    $this->actingAs($this->dosen->user)->get(route('karya-dosen.index'))->assertForbidden();
+    $this->actingAs(pengguna(Role::OPERATOR))->get('/verifikasi-karya')->assertRedirect('/karya-dosen');
+});
+
+test('a rejected entry tells the lecturer why and waits for verification again once fixed', function () {
     Notification::fake();
     $this->actingAs($this->dosen->user)->post(route('karya.publikasi.store'), isianPublikasi([['dosen_id' => $this->dosen->id]]));
     $publikasi = Publikasi::sole();
-    $kaprodi = pimpinanUnit('prodi:'.$this->informatika->id);
+    $admin = pengguna(Role::ADMIN_LPPM);
 
-    $this->actingAs($kaprodi)->post(route('verifikasi-karya.store', ['publikasi', $publikasi->id]), ['aksi' => 'tolak'])
+    $this->actingAs($admin)->post(route('karya-dosen.verifikasi', ['publikasi', $publikasi->id]), ['aksi' => 'tolak'])
         ->assertSessionHasErrors('karya');
-    $this->actingAs($kaprodi)->post(route('verifikasi-karya.store', ['publikasi', $publikasi->id]), ['aksi' => 'tolak', 'catatan' => 'DOI tidak ditemukan.']);
+    $this->actingAs($admin)->post(route('karya-dosen.verifikasi', ['publikasi', $publikasi->id]), ['aksi' => 'tolak', 'catatan' => 'DOI tidak ditemukan.']);
     expect($publikasi->fresh()->status_verifikasi)->toBe(Publikasi::DITOLAK);
     Notification::assertSentTo($this->dosen->user, Pemberitahuan::class);
     $this->actingAs($this->dosen->user)->get(route('karya.publikasi.index'))->assertSee('DOI tidak ditemukan.');
@@ -164,7 +179,7 @@ test('publications, HKI and patents sit in tabs', function () {
 
     $admin = User::factory()->create();
     $admin->assignRole(Role::ADMIN_LPPM);
-    $this->actingAs($admin)->get(route('verifikasi-karya.index'))->assertOk()
+    $this->actingAs($admin)->get(route('karya-dosen.index'))->assertOk()
         ->assertSee('role="tablist"', false)
         ->assertSee('role="tabpanel"', false);
 });

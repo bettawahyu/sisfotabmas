@@ -16,22 +16,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
- * Shared by publikasi, HKI and paten: the kaprodi checks an entry first, then
- * LPPM marks it valid. Only valid entries count in reports.
+ * Shared by publikasi, HKI and paten: LPPM or an operator checks each entry
+ * and marks it valid. Only valid entries count in reports.
  */
 trait MemilikiVerifikasi
 {
     public const MENUNGGU = 'menunggu';
-
-    public const DISETUJUI_KAPRODI = 'disetujui_kaprodi';
 
     public const VALID = 'valid';
 
     public const DITOLAK = 'ditolak';
 
     public const STATUS_VERIFIKASI = [
-        'menunggu' => 'Menunggu kaprodi',
-        'disetujui_kaprodi' => 'Menunggu LPPM',
+        'menunggu' => 'Menunggu verifikasi',
         'valid' => 'Valid',
         'ditolak' => 'Ditolak',
     ];
@@ -46,7 +43,6 @@ trait MemilikiVerifikasi
     public function initializeMemilikiVerifikasi(): void
     {
         $this->mergeCasts([
-            'diverifikasi_kaprodi_at' => 'datetime',
             'diverifikasi_lppm_at' => 'datetime',
         ]);
     }
@@ -57,14 +53,6 @@ trait MemilikiVerifikasi
     public function penginput(): BelongsTo
     {
         return $this->belongsTo(User::class, 'diinput_oleh');
-    }
-
-    /**
-     * @return BelongsTo<User, $this>
-     */
-    public function verifikatorKaprodi(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'diverifikasi_kaprodi_oleh');
     }
 
     /**

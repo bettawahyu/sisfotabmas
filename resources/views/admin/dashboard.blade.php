@@ -40,11 +40,11 @@
                     <span class="mt-1 block text-sm text-gray-600">Prodi atau fakultas yang proposalnya disahkan tiap kaprodi dan dekan.</span>
                 </span>
             </a>
-            <a href="{{ route('verifikasi-karya.index') }}" class="flex items-start gap-4 rounded-md bg-white p-5 shadow transition hover:shadow-md">
+            <a href="{{ route('karya-dosen.index') }}" class="flex items-start gap-4 rounded-md bg-white p-5 shadow transition hover:shadow-md">
                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-indigo-600/10 text-indigo-600"><x-ikon nama="shield" class="h-5 w-5" /></span>
                 <span>
-                    <span class="block font-semibold text-gray-800">Verifikasi publikasi, HKI, dan paten</span>
-                    <span class="mt-1 block text-sm text-gray-600">Data dosen yang sudah disetujui kaprodi dan menunggu validasi LPPM.</span>
+                    <span class="block font-semibold text-gray-800">Publikasi &amp; KI dosen</span>
+                    <span class="mt-1 block text-sm text-gray-600">Publikasi, HKI, dan paten semua dosen, dan yang menunggu validasi.</span>
                 </span>
             </a>
             <a href="{{ route('admin.seleksi.index') }}" class="flex items-start gap-4 rounded-md bg-white p-5 shadow transition hover:shadow-md">
