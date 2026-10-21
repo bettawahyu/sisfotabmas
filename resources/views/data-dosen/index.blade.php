@@ -1,7 +1,7 @@
 @php
     use App\Enums\JabatanFungsional;
     use App\Models\Dosen;
-    use App\Services\DataDosen;
+    use App\Models\User;
 
     $tersaring = array_filter($filter, fn ($nilai) => filled($nilai));
 @endphp
@@ -114,14 +114,19 @@
                 'NUPTK' => $d->nuptk,
                 'NIP' => $d->nip,
                 'Email' => $d->user?->email,
-                'No. HP' => $d->no_hp,
-                'Jenis kelamin' => DataDosen::JENIS_KELAMIN[$d->jenis_kelamin] ?? null,
-                'Tempat, tanggal lahir' => collect([$d->tempat_lahir, $d->tgl_lahir?->translatedFormat('d F Y')])->filter()->implode(', '),
+                'No. telepon' => $d->user?->no_telp,
+                'Jenis kelamin' => User::JENIS_KELAMIN[$d->user?->jenis_kelamin] ?? null,
+                'Tempat, tanggal lahir' => collect([$d->user?->tempat_lahir, $d->user?->tgl_lahir?->translatedFormat('d F Y')])->filter()->implode(', '),
+                'Status pernikahan' => User::STATUS_PERNIKAHAN[$d->user?->status_pernikahan] ?? null,
                 'Program studi' => $d->prodi ? trim("{$d->prodi->jenjang} {$d->prodi->nama}") : null,
                 'Fakultas' => $d->prodi?->fakultas?->nama,
                 'Jabatan fungsional' => $d->jabatan_fungsional?->label(),
                 'Pendidikan terakhir' => $d->pendidikan_terakhir,
                 'Bidang keahlian' => $d->bidang_keahlian,
+                'TMT sebagai dosen' => $d->tmt_dosen?->translatedFormat('d F Y'),
+                'Sertifikasi dosen' => $d->sertifikasi_dosen ? trim('Sudah '.collect([$d->tahun_serdos, $d->no_serdos ? "No. {$d->no_serdos}" : null])->filter()->implode(' · ')) : 'Belum',
+                'Pekerti' => $d->pekerti ? trim("Sudah {$d->tahun_pekerti}") : 'Belum',
+                'Applied Approach (AA)' => $d->applied_approach ? trim("Sudah {$d->tahun_applied_approach}") : 'Belum',
                 'SINTA ID' => $d->sinta_id,
                 'Skor SINTA' => $d->skor_sinta,
                 'Scopus ID' => $d->scopus_author_id,
@@ -129,6 +134,7 @@
                 'ORCID' => $d->orcid,
                 'H-index Scopus / Scholar' => collect([$d->h_index_scopus, $d->h_index_scholar])->every(fn ($n) => $n === null) ? null : ($d->h_index_scopus ?? '–').' / '.($d->h_index_scholar ?? '–'),
                 'Jumlah publikasi' => $d->publikasi_count,
+                'Alamat' => $d->user?->alamat,
             ];
         @endphp
         <x-modal name="dosen-{{ $d->id }}" maxWidth="2xl" focusable>

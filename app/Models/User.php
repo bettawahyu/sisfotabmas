@@ -14,12 +14,34 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'alamat', 'no_telp', 'tempat_lahir', 'tgl_lahir', 'jenis_kelamin', 'status_pernikahan'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public const JENIS_KELAMIN = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
+
+    public const STATUS_PERNIKAHAN = [
+        'belum_menikah' => 'Belum menikah',
+        'menikah' => 'Menikah',
+        'cerai_hidup' => 'Cerai hidup',
+        'cerai_mati' => 'Cerai mati',
+    ];
+
+    /**
+     * A lecturer's account carries the lecturer's name, so a rename made on
+     * either side reaches the other.
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (User $user) {
+            if ($user->wasChanged('name') && $user->dosen !== null && $user->dosen->nama !== $user->name) {
+                $user->dosen->update(['nama' => $user->name]);
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -32,6 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'wajib_ganti_password' => 'boolean',
+            'tgl_lahir' => 'date',
         ];
     }
 

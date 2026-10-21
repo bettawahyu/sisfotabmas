@@ -11,9 +11,15 @@
                 <form method="POST" action="{{ route('profil-dosen.update') }}" class="grid gap-4 sm:grid-cols-2">
                     @csrf
                     @method('PUT')
-                    <div class="sm:col-span-2">
+                    <div>
                         <x-input-label for="nama" value="Nama (tanpa gelar)" ikon="user" />
                         <x-text-input id="nama" name="nama" class="mt-1 block w-full" :value="old('nama', $dosen?->nama ?? auth()->user()->name)" required />
+                        <p class="mt-1 text-xs text-gray-500">Nama akun di Profil ikut berubah.</p>
+                    </div>
+                    <div>
+                        <x-input-label value="Email" ikon="mail" />
+                        <p class="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 break-all">{{ auth()->user()->email }}</p>
+                        <p class="mt-1 text-xs text-gray-500">Diambil dari akun; ubah lewat menu <a href="{{ route('profile.edit') }}" class="text-indigo-700 hover:underline">Profil</a>.</p>
                     </div>
                     <div>
                         <x-input-label for="gelar_depan" value="Gelar depan" ikon="award" />
@@ -49,9 +55,21 @@
                         <p class="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">{{ $dosen?->pendidikan_terakhir ?? 'Belum ada' }}</p>
                         <p class="mt-1 text-xs text-gray-500">Diambil dari jenjang tertinggi di riwayat pendidikan.</p>
                     </div>
-                    <div class="sm:col-span-2">
-                        <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil, opsional)" ikon="link" />
+                    <div>
+                        <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil)" ikon="link" />
                         <x-text-input id="google_scholar_id" name="google_scholar_id" class="mt-1 block w-full" :value="old('google_scholar_id', $dosen?->google_scholar_id)" placeholder="https://scholar.google.com/citations?user=..." />
+                    </div>
+                    <div>
+                        <x-input-label for="orcid" value="ORCID" ikon="link" />
+                        <x-text-input id="orcid" name="orcid" class="mt-1 block w-full" :value="old('orcid', $dosen?->orcid)" placeholder="0000-0000-0000-0000" />
+                    </div>
+                    <div>
+                        <x-input-label for="tmt_dosen" value="TMT sebagai dosen" ikon="calendar" />
+                        <x-text-input id="tmt_dosen" name="tmt_dosen" type="date" class="mt-1 block w-full" :value="old('tmt_dosen', $dosen?->tmt_dosen?->format('Y-m-d'))" />
+                    </div>
+                    <div>
+                        <x-input-label for="bidang_keahlian" value="Bidang keahlian" ikon="target" />
+                        <x-text-input id="bidang_keahlian" name="bidang_keahlian" class="mt-1 block w-full" :value="old('bidang_keahlian', $dosen?->bidang_keahlian)" placeholder="Contoh: Kecerdasan buatan, sistem informasi" />
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="prodi_id" value="Program studi (homebase)" ikon="book" />
@@ -62,6 +80,35 @@
                             @endforeach
                         </x-select-input>
                     </div>
+
+                    <div class="sm:col-span-2 mt-2 border-t border-gray-200 pt-4">
+                        <h4 class="text-sm font-semibold text-gray-800">Sertifikasi dan pelatihan</h4>
+                    </div>
+                    @foreach ([
+                        ['sertifikasi_dosen', 'Sertifikasi dosen (serdos)', 'tahun_serdos'],
+                        ['pekerti', 'Pekerti', 'tahun_pekerti'],
+                        ['applied_approach', 'Applied Approach (AA)', 'tahun_applied_approach'],
+                    ] as [$kolom, $label, $tahun])
+                        <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2 rounded-md border border-gray-200 p-4" x-data="{ sudah: @js((bool) old($kolom, $dosen?->{$kolom})) }">
+                            <div>
+                                <x-input-label :for="$kolom" :value="$label" ikon="check-circle" />
+                                <x-select-input :id="$kolom" :name="$kolom" class="mt-1 block w-full" x-on:change="sudah = $event.target.value === '1'">
+                                    <option value="0" @selected(! old($kolom, $dosen?->{$kolom}))>Belum</option>
+                                    <option value="1" @selected((bool) old($kolom, $dosen?->{$kolom}))>Sudah</option>
+                                </x-select-input>
+                            </div>
+                            <div x-show="sudah" x-cloak>
+                                <x-input-label :for="$tahun" value="Tahun" ikon="calendar" />
+                                <x-text-input :id="$tahun" :name="$tahun" type="number" min="1980" :max="now()->year" class="mt-1 block w-full" :value="old($tahun, $dosen?->{$tahun})" />
+                            </div>
+                            @if ($kolom === 'sertifikasi_dosen')
+                                <div class="sm:col-span-2" x-show="sudah" x-cloak>
+                                    <x-input-label for="no_serdos" value="Nomor sertifikat pendidik" ikon="hash" />
+                                    <x-text-input id="no_serdos" name="no_serdos" class="mt-1 block w-full" :value="old('no_serdos', $dosen?->no_serdos)" />
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
                     <div class="sm:col-span-2">
                         <x-primary-button ikon="save">Simpan</x-primary-button>
                     </div>

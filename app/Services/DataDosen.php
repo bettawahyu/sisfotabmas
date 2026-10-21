@@ -17,8 +17,6 @@ use Illuminate\Support\Collection;
  */
 class DataDosen
 {
-    public const JENIS_KELAMIN = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
-
     /**
      * Operators and LPPM see every lecturer; a unit head only their unit's.
      */
@@ -136,15 +134,25 @@ class DataDosen
             'NUPTK' => $d->nuptk,
             'NIP' => $d->nip,
             'Email' => $d->user?->email,
-            'No. HP' => $d->no_hp,
-            'Jenis kelamin' => self::JENIS_KELAMIN[$d->jenis_kelamin] ?? null,
-            'Tempat lahir' => $d->tempat_lahir,
-            'Tanggal lahir' => $d->tgl_lahir?->format('Y-m-d'),
+            'No. telepon' => $d->user?->no_telp,
+            'Jenis kelamin' => User::JENIS_KELAMIN[$d->user?->jenis_kelamin] ?? null,
+            'Tempat lahir' => $d->user?->tempat_lahir,
+            'Tanggal lahir' => $d->user?->tgl_lahir?->format('Y-m-d'),
+            'Status pernikahan' => User::STATUS_PERNIKAHAN[$d->user?->status_pernikahan] ?? null,
+            'Alamat' => $d->user?->alamat,
             'Program studi' => $d->prodi ? trim("{$d->prodi->jenjang} {$d->prodi->nama}") : null,
             'Fakultas' => $d->prodi?->fakultas?->nama,
             'Jabatan fungsional' => $d->jabatan_fungsional?->label(),
             'Pendidikan terakhir' => $d->pendidikan_terakhir,
             'Bidang keahlian' => $d->bidang_keahlian,
+            'TMT dosen' => $d->tmt_dosen?->format('Y-m-d'),
+            'Sertifikasi dosen' => $d->sertifikasi_dosen ? 'Sudah' : 'Belum',
+            'No. sertifikat pendidik' => $d->no_serdos,
+            'Tahun serdos' => $d->tahun_serdos,
+            'Pekerti' => $d->pekerti ? 'Sudah' : 'Belum',
+            'Tahun Pekerti' => $d->tahun_pekerti,
+            'Applied Approach (AA)' => $d->applied_approach ? 'Sudah' : 'Belum',
+            'Tahun AA' => $d->tahun_applied_approach,
             'SINTA ID' => $d->sinta_id,
             'Skor SINTA' => $d->skor_sinta === null ? null : (float) $d->skor_sinta,
             'Scopus ID' => $d->scopus_author_id,
