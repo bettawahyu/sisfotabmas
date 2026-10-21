@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\PimpinanUnitController;
 use App\Http\Controllers\Admin\SeleksiController;
 use App\Http\Controllers\Admin\SkemaHibahController;
 use App\Http\Controllers\Admin\TemplateDokumenController as KelolaTemplateController;
+use App\Http\Controllers\DataDosenController;
 use App\Http\Controllers\Kelola\PengumumanController as KelolaPengumumanController;
 use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PelaksanaanController;
@@ -91,6 +92,13 @@ Route::middleware(['auth', 'verified', 'can:unduh-data'])->prefix('unduh-data')-
     Route::get('/', 'index')->name('index');
     Route::get('/proposal', 'proposal')->name('proposal');
     Route::get('/publikasi-ki', 'karya')->name('karya');
+});
+
+// Lecturers' full qualifications; unit heads see only their unit's lecturers.
+Route::middleware(['auth', 'verified', 'can:lihat-data-dosen'])->prefix('data-dosen')->name('data-dosen.')->controller(DataDosenController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/unduh', 'unduh')->name('unduh');
+    Route::get('/unduh-semua', 'unduhSemua')->name('unduh-semua');
 });
 
 Route::middleware(['auth', 'verified', 'role:'.Role::DOSEN])->group(function () {
