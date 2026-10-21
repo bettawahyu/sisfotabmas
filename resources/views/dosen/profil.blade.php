@@ -6,6 +6,9 @@
     <div class="py-6">
         <div class="max-w-3xl px-4 sm:px-6 lg:px-8">
             <x-pesan />
+            <x-kartu judul="Foto profil" ikon="camera" class="mb-6">
+                @include('profile.partials.update-photo-form', ['user' => auth()->user()])
+            </x-kartu>
             <x-kartu>
                 <p class="text-sm text-gray-600 mb-6">NIDN atau NUPTK dan ID SINTA wajib diisi sebelum mengirim proposal.</p>
                 <form method="POST" action="{{ route('profil-dosen.update') }}" class="grid gap-4 sm:grid-cols-2">
@@ -47,8 +50,8 @@
                         <x-input-label for="jenis_kelamin" value="Jenis kelamin" ikon="user" />
                         <x-select-input id="jenis_kelamin" name="jenis_kelamin" class="mt-1 block w-full">
                             <option value="">-</option>
-                            @foreach (\App\Models\User::JENIS_KELAMIN as $kode => $label)
-                                <option value="{{ $kode }}" @selected(old('jenis_kelamin', $user->jenis_kelamin) === $kode)>{{ $label }}</option>
+                            @foreach (\App\Models\Dosen::JENIS_KELAMIN as $kode => $label)
+                                <option value="{{ $kode }}" @selected(old('jenis_kelamin', $dosen?->jenis_kelamin) === $kode)>{{ $label }}</option>
                             @endforeach
                         </x-select-input>
                     </div>
@@ -56,26 +59,26 @@
                         <x-input-label for="status_pernikahan" value="Status pernikahan" ikon="heart" />
                         <x-select-input id="status_pernikahan" name="status_pernikahan" class="mt-1 block w-full">
                             <option value="">-</option>
-                            @foreach (\App\Models\User::STATUS_PERNIKAHAN as $kode => $label)
-                                <option value="{{ $kode }}" @selected(old('status_pernikahan', $user->status_pernikahan) === $kode)>{{ $label }}</option>
+                            @foreach (\App\Models\Dosen::STATUS_PERNIKAHAN as $kode => $label)
+                                <option value="{{ $kode }}" @selected(old('status_pernikahan', $dosen?->status_pernikahan) === $kode)>{{ $label }}</option>
                             @endforeach
                         </x-select-input>
                     </div>
                     <div>
                         <x-input-label for="tempat_lahir" value="Tempat lahir" ikon="map-pin" />
-                        <x-text-input id="tempat_lahir" name="tempat_lahir" class="mt-1 block w-full" :value="old('tempat_lahir', $user->tempat_lahir)" />
+                        <x-text-input id="tempat_lahir" name="tempat_lahir" class="mt-1 block w-full" :value="old('tempat_lahir', $dosen?->tempat_lahir)" />
                     </div>
                     <div>
                         <x-input-label for="tgl_lahir" value="Tanggal lahir" ikon="calendar" />
-                        <x-text-input id="tgl_lahir" name="tgl_lahir" type="date" class="mt-1 block w-full" :value="old('tgl_lahir', $user->tgl_lahir?->format('Y-m-d'))" />
+                        <x-text-input id="tgl_lahir" name="tgl_lahir" type="date" class="mt-1 block w-full" :value="old('tgl_lahir', $dosen?->tgl_lahir?->format('Y-m-d'))" />
                     </div>
                     <div>
-                        <x-input-label for="no_telp" value="No. telepon" ikon="phone" />
-                        <x-text-input id="no_telp" name="no_telp" type="tel" class="mt-1 block w-full" :value="old('no_telp', $user->no_telp)" autocomplete="tel" />
+                        <x-input-label for="no_hp" value="No. telepon" ikon="phone" />
+                        <x-text-input id="no_hp" name="no_hp" type="tel" class="mt-1 block w-full" :value="old('no_hp', $dosen?->no_hp)" autocomplete="tel" />
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="alamat" value="Alamat" ikon="home" />
-                        <textarea id="alamat" name="alamat" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('alamat', $user->alamat) }}</textarea>
+                        <textarea id="alamat" name="alamat" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('alamat', $dosen?->alamat) }}</textarea>
                     </div>
                     <div class="sm:col-span-2 mt-2 border-t border-gray-200 pt-4">
                         <h4 class="text-sm font-semibold text-gray-800">Kepegawaian dan akademik</h4>

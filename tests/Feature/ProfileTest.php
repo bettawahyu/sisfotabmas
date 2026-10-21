@@ -30,10 +30,10 @@ test('profile photo can be uploaded, shown, replaced and removed', function () {
 
     $this->actingAs($user)->get('/dashboard')->assertSee('RH');
 
-    $this->actingAs($user)
+    $this->actingAs($user)->from(route('profil-dosen.edit'))
         ->post('/profile/foto', ['foto' => UploadedFile::fake()->image('foto.jpg', 300, 300)])
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('profile.edit'));
+        ->assertRedirect(route('profil-dosen.edit'));
 
     $pertama = $user->refresh()->foto_profil;
     Storage::assertExists($pertama);
@@ -45,7 +45,7 @@ test('profile photo can be uploaded, shown, replaced and removed', function () {
     Storage::assertExists($user->refresh()->foto_profil);
 
     $kedua = $user->foto_profil;
-    $this->actingAs($user)->delete('/profile/foto')->assertRedirect(route('profile.edit'));
+    $this->actingAs($user)->from(route('profil-dosen.edit'))->delete('/profile/foto')->assertRedirect(route('profil-dosen.edit'));
     Storage::assertMissing($kedua);
     expect($user->refresh()->foto_profil)->toBeNull();
     $this->actingAs($user)->get(route('foto-profil.show', $user))->assertNotFound();
@@ -59,7 +59,7 @@ test('profile photo must be an image', function () {
         ->from('/profile')
         ->post('/profile/foto', ['foto' => UploadedFile::fake()->create('berkas.pdf', 100, 'application/pdf')])
         ->assertSessionHasErrors('foto')
-        ->assertRedirect(route('profile.edit'));
+        ->assertRedirect('/profile');
 
     expect($user->refresh()->foto_profil)->toBeNull();
 });

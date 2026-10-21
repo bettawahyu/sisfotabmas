@@ -70,28 +70,30 @@ test('the lecturer profile also keeps address, phone, birth, marital status and 
 
     $this->actingAs($user)->put(route('profil-dosen.update'), [
         'nama' => 'Budi Santoso',
-        'alamat' => 'Jl. Kaliurang 5, Sleman', 'no_telp' => '+62 812-3456-7890',
+        'alamat' => 'Jl. Kaliurang 5, Sleman', 'no_hp' => '+62 812-3456-7890',
         'tempat_lahir' => 'Yogyakarta', 'tgl_lahir' => '1990-05-17',
         'status_pernikahan' => 'menikah', 'jenis_kelamin' => 'L',
     ])->assertSessionHasNoErrors()->assertRedirect(route('profil-dosen.edit'));
 
-    $user->refresh();
-    expect($user->name)->toBe('Budi Santoso')
-        ->and($user->alamat)->toBe('Jl. Kaliurang 5, Sleman')
-        ->and($user->no_telp)->toBe('+62 812-3456-7890')
-        ->and($user->tgl_lahir->format('Y-m-d'))->toBe('1990-05-17')
-        ->and($user->status_pernikahan)->toBe('menikah')
-        ->and($user->jenis_kelamin)->toBe('L');
+    // Kept on the lecturer, which every transaction reads; the account only takes the name.
+    $dosen = $user->fresh()->dosen;
+    expect($user->fresh()->name)->toBe('Budi Santoso')
+        ->and($dosen->alamat)->toBe('Jl. Kaliurang 5, Sleman')
+        ->and($dosen->no_hp)->toBe('+62 812-3456-7890')
+        ->and($dosen->tempat_lahir)->toBe('Yogyakarta')
+        ->and($dosen->tgl_lahir->format('Y-m-d'))->toBe('1990-05-17')
+        ->and($dosen->status_pernikahan)->toBe('menikah')
+        ->and($dosen->jenis_kelamin)->toBe('L');
 
     $this->actingAs($user)->put(route('profil-dosen.update'), [
-        'nama' => 'Budi', 'status_pernikahan' => 'janda', 'no_telp' => 'abc',
-    ])->assertSessionHasErrors(['status_pernikahan', 'no_telp']);
+        'nama' => 'Budi', 'status_pernikahan' => 'janda', 'no_hp' => 'abc',
+    ])->assertSessionHasErrors(['status_pernikahan', 'no_hp']);
 });
 
 test('Data Dosen and its Excel carry the new profile and qualification fields', function () {
     $user = akunDosenBaru();
-    $user->update(['no_telp' => '08123', 'tempat_lahir' => 'Solo', 'tgl_lahir' => '1985-01-02', 'status_pernikahan' => 'menikah', 'jenis_kelamin' => 'P', 'alamat' => 'Jl. Merapi 1']);
-    Dosen::factory()->for($user)->create(['nama' => 'Citra', 'sertifikasi_dosen' => true, 'no_serdos' => 'SD-1', 'tahun_serdos' => 2019,
+    Dosen::factory()->for($user)->create(['nama' => 'Citra', 'no_hp' => '08123', 'tempat_lahir' => 'Solo', 'tgl_lahir' => '1985-01-02',
+        'status_pernikahan' => 'menikah', 'jenis_kelamin' => 'P', 'alamat' => 'Jl. Merapi 1', 'sertifikasi_dosen' => true, 'no_serdos' => 'SD-1', 'tahun_serdos' => 2019,
         'pekerti' => true, 'tahun_pekerti' => 2014, 'tmt_dosen' => '2012-09-01']);
     $operator = User::factory()->create();
     $operator->assignRole(Role::OPERATOR);
@@ -109,4 +111,17 @@ test('Data Dosen and its Excel carry the new profile and qualification fields', 
         ->and($baris['Pekerti'])->toBe('Sudah')
         ->and($baris['Applied Approach (AA)'])->toBe('Belum')
         ->and($baris['TMT dosen'])->toBe('2012-09-01');
+});
+
+test('the lecturer profile carries the photo upload; the account page keeps only email and password', function () {
+    $user = akunDosenBaru();
+
+    $this->actingAs($user)->get(route('profil-dosen.edit'))->assertSee(route('profile.foto.update'), false);
+    $this->actingAs($user)->get(route('profile.edit'))->assertDontSee(route('profile.foto.update'), false)
+        ->assertSee($user->email)->assertSee('update_password_current_password', false);
+
+    // Staff without a lecturer record still change their photo on the account page.
+    $operator = User::factory()->create();
+    $operator->assignRole(Role::OPERATOR);
+    $this->actingAs($operator)->get(route('profile.edit'))->assertSee(route('profile.foto.update'), false);
 });

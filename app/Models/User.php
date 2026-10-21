@@ -14,21 +14,30 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'email', 'password', 'alamat', 'no_telp', 'tempat_lahir', 'tgl_lahir', 'jenis_kelamin', 'status_pernikahan'])]
+#[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    public const JENIS_KELAMIN = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
+    public const PESAN_NONAKTIF = 'Akun Anda dinonaktifkan. Hubungi Admin LPPM atau Admin Sistem.';
 
-    public const STATUS_PERNIKAHAN = [
-        'belum_menikah' => 'Belum menikah',
-        'menikah' => 'Menikah',
-        'cerai_hidup' => 'Cerai hidup',
-        'cerai_mati' => 'Cerai mati',
-    ];
+    /**
+     * New accounts are active until an admin switches them off.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = ['is_active' => true];
+
+    /**
+     * Switch the account on or off; a switched-off account keeps its records
+     * but cannot sign in (AkunAktif, LoginRequest).
+     */
+    public function aturAktif(bool $aktif): void
+    {
+        $this->forceFill(['is_active' => $aktif])->save();
+    }
 
     /**
      * A lecturer's account carries the lecturer's name, so a rename made on
@@ -54,7 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'wajib_ganti_password' => 'boolean',
-            'tgl_lahir' => 'date',
+            'is_active' => 'boolean',
         ];
     }
 

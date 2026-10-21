@@ -1,7 +1,6 @@
 @php
     use App\Enums\JabatanFungsional;
     use App\Models\Dosen;
-    use App\Models\User;
 
     $tersaring = array_filter($filter, fn ($nilai) => filled($nilai));
 @endphp
@@ -86,6 +85,9 @@
                                 <tr class="border-b border-gray-100 last:border-0">
                                     <td class="py-2 pe-4">
                                         <button type="button" class="text-start font-medium text-indigo-700 hover:underline" x-data x-on:click="$dispatch('open-modal', 'dosen-{{ $d->id }}')">{{ $d->namaLengkap() }}</button>
+                                        @if ($d->user && ! $d->user->is_active)
+                                            <x-status-aktif :aktif="false" />
+                                        @endif
                                     </td>
                                     <td class="py-2 pe-4">{{ $d->nidn ?? $d->nuptk ?? '–' }}</td>
                                     <td class="py-2 pe-4">{{ $d->prodi?->nama ?? '–' }}</td>
@@ -114,10 +116,10 @@
                 'NUPTK' => $d->nuptk,
                 'NIP' => $d->nip,
                 'Email' => $d->user?->email,
-                'No. telepon' => $d->user?->no_telp,
-                'Jenis kelamin' => User::JENIS_KELAMIN[$d->user?->jenis_kelamin] ?? null,
-                'Tempat, tanggal lahir' => collect([$d->user?->tempat_lahir, $d->user?->tgl_lahir?->translatedFormat('d F Y')])->filter()->implode(', '),
-                'Status pernikahan' => User::STATUS_PERNIKAHAN[$d->user?->status_pernikahan] ?? null,
+                'No. telepon' => $d->no_hp,
+                'Jenis kelamin' => Dosen::JENIS_KELAMIN[$d->jenis_kelamin] ?? null,
+                'Tempat, tanggal lahir' => collect([$d->tempat_lahir, $d->tgl_lahir?->translatedFormat('d F Y')])->filter()->implode(', '),
+                'Status pernikahan' => Dosen::STATUS_PERNIKAHAN[$d->status_pernikahan] ?? null,
                 'Program studi' => $d->prodi ? trim("{$d->prodi->jenjang} {$d->prodi->nama}") : null,
                 'Fakultas' => $d->prodi?->fakultas?->nama,
                 'Jabatan fungsional' => $d->jabatan_fungsional?->label(),
@@ -134,7 +136,7 @@
                 'ORCID' => $d->orcid,
                 'H-index Scopus / Scholar' => collect([$d->h_index_scopus, $d->h_index_scholar])->every(fn ($n) => $n === null) ? null : ($d->h_index_scopus ?? '–').' / '.($d->h_index_scholar ?? '–'),
                 'Jumlah publikasi' => $d->publikasi_count,
-                'Alamat' => $d->user?->alamat,
+                'Alamat' => $d->alamat,
             ];
         @endphp
         <x-modal name="dosen-{{ $d->id }}" maxWidth="2xl" focusable>
@@ -180,7 +182,25 @@
                     </div>
                 @endif
 
-                <div class="mt-6 flex justify-end">
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 text-sm">
+                        @if ($d->user)
+                            <span class="text-gray-500">Akun</span> <x-status-aktif :aktif="$d->user->is_active" />
+                            @if ($kelolaAkun && ! $d->user->is(auth()->user()))
+                                <form method="POST" action="{{ route('data-dosen.aktif', $d) }}"
+                                    data-konfirmasi="{{ $d->user->is_active ? 'Nonaktifkan akun '.$d->namaLengkap().'? Dosen tidak bisa login, datanya tetap tersimpan.' : 'Aktifkan kembali akun '.$d->namaLengkap().'?' }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="aktif" value="{{ $d->user->is_active ? 0 : 1 }}">
+                                    @if ($d->user->is_active)
+                                        <x-danger-button ikon="user-x">Nonaktifkan</x-danger-button>
+                                    @else
+                                        <x-primary-button ikon="user-check">Aktifkan</x-primary-button>
+                                    @endif
+                                </form>
+                            @endif
+                        @endif
+                    </div>
                     <x-secondary-button type="button" x-on:click="$dispatch('close')">Tutup</x-secondary-button>
                 </div>
             </div>

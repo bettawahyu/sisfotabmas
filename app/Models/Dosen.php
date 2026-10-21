@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['user_id', 'prodi_id', 'nidn', 'nuptk', 'nip', 'nama', 'gelar_depan', 'gelar_belakang', 'jabatan_fungsional', 'sinta_id',
-    'pendidikan_terakhir', 'bidang_keahlian', 'foto_berkas_id', 'tmt_dosen',
+    'jenis_kelamin', 'tempat_lahir', 'tgl_lahir', 'pendidikan_terakhir', 'bidang_keahlian', 'no_hp', 'foto_berkas_id',
+    'alamat', 'status_pernikahan', 'tmt_dosen',
     'sertifikasi_dosen', 'no_serdos', 'tahun_serdos', 'pekerti', 'tahun_pekerti', 'applied_approach', 'tahun_applied_approach',
     'scopus_author_id', 'google_scholar_id', 'orcid', 'skor_sinta', 'h_index_scopus', 'h_index_scholar',
     'sitasi_scopus', 'sitasi_scholar', 'sinkron_terakhir_at'])]
@@ -26,6 +27,15 @@ class Dosen extends Model
     /** Highest degree, lowest first, so a scheme can ask for a minimum. */
     public const PENDIDIKAN = ['S1', 'S2', 'S3'];
 
+    public const JENIS_KELAMIN = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
+
+    public const STATUS_PERNIKAHAN = [
+        'belum_menikah' => 'Belum menikah',
+        'menikah' => 'Menikah',
+        'cerai_hidup' => 'Cerai hidup',
+        'cerai_mati' => 'Cerai mati',
+    ];
+
     protected $table = 'dosen';
 
     /**
@@ -35,6 +45,7 @@ class Dosen extends Model
     {
         return [
             'jabatan_fungsional' => JabatanFungsional::class,
+            'tgl_lahir' => 'date',
             'tmt_dosen' => 'date',
             'sertifikasi_dosen' => 'boolean',
             'pekerti' => 'boolean',

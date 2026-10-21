@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AkunAktif;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\WajibGantiPassword;
 use Illuminate\Database\QueryException;
@@ -19,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
         ]);
-        $middleware->web(append: [WajibGantiPassword::class]);
+        $middleware->web(append: [AkunAktif::class, WajibGantiPassword::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

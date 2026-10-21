@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\DataDosen;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\Rule;
@@ -34,6 +35,7 @@ class DataDosenController extends Controller
             'filter' => $filter,
             'prodi' => $this->prodi($request->user()),
             'lihatSemua' => DataDosen::bolehLihatSemua($request->user()),
+            'kelolaAkun' => $request->user()->hasRole(Role::ADMIN_LPPM),
         ]);
     }
 
@@ -49,6 +51,20 @@ class DataDosenController extends Controller
         $dosen = $data->query($request->user())->get();
 
         return $this->excel(new FastExcel($data->sheetLengkap($dosen)), 'data-dosen-lengkap');
+    }
+
+    /**
+     * LPPM switches a lecturer's account off or back on; the records stay.
+     */
+    public function aktif(Request $request, Dosen $dosen): RedirectResponse
+    {
+        abort_if($dosen->user === null, 404);
+        if (! $request->boolean('aktif') && $dosen->user->is($request->user())) {
+            return back()->with('gagal', 'Anda tidak bisa menonaktifkan akun sendiri.');
+        }
+        $dosen->user->aturAktif($request->boolean('aktif'));
+
+        return back()->with('status', "Akun {$dosen->namaLengkap()} ".($dosen->user->is_active ? 'diaktifkan.' : 'dinonaktifkan.'));
     }
 
     /**

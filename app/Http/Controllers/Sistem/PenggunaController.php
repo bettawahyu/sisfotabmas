@@ -79,6 +79,19 @@ class PenggunaController extends Controller
     }
 
     /**
+     * Accounts are switched off rather than deleted, so their records stay.
+     */
+    public function aktif(Request $request, User $pengguna): RedirectResponse
+    {
+        if (! $request->boolean('aktif') && $pengguna->is($request->user())) {
+            return back()->with('gagal', 'Anda tidak bisa menonaktifkan akun sendiri.');
+        }
+        $pengguna->aturAktif($request->boolean('aktif'));
+
+        return back()->with('status', "Akun {$pengguna->name} ".($pengguna->is_active ? 'diaktifkan.' : 'dinonaktifkan.'));
+    }
+
+    /**
      * @return array{name: string, email: string, password: ?string, peran: list<string>}
      */
     private function validasi(Request $request, ?User $pengguna = null): array

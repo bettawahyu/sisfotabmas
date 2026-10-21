@@ -99,6 +99,7 @@ Route::middleware(['auth', 'verified', 'can:lihat-data-dosen'])->prefix('data-do
     Route::get('/', 'index')->name('index');
     Route::get('/unduh', 'unduh')->name('unduh');
     Route::get('/unduh-semua', 'unduhSemua')->name('unduh-semua');
+    Route::patch('/{dosen}/aktif', 'aktif')->middleware('role:'.Role::ADMIN_LPPM)->name('aktif');
 });
 
 Route::middleware(['auth', 'verified', 'role:'.Role::DOSEN])->group(function () {
@@ -188,6 +189,8 @@ Route::middleware(['auth', 'verified', 'role:'.Role::ADMIN_SISTEM])->prefix('sis
     Route::redirect('/', '/sistem/pengguna')->name('dashboard');
     Route::resource('pengguna', PenggunaController::class)->except(['show', 'destroy'])
         ->parameters(['pengguna' => 'pengguna']);
+    // Accounts are switched off, never deleted.
+    Route::patch('pengguna/{pengguna}/aktif', [PenggunaController::class, 'aktif'])->name('pengguna.aktif');
 
     // Reference data is switched off rather than deleted, so there is no destroy.
     Route::resource('unit', FakultasController::class)->except(['show', 'destroy'])

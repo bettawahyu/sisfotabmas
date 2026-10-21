@@ -18,11 +18,18 @@
                 </dl>
                 <p class="mt-4 text-xs text-gray-500">
                     Email dan nama akun diubah oleh Admin Sistem.
-                    @if ($user->dosen)
+                    @if ($user->hasRole(\App\Models\Role::DOSEN))
                         Nama dan data diri dosen diisi di menu <a href="{{ route('profil-dosen.edit') }}" class="text-indigo-700 hover:underline">Profil Dosen</a>.
                     @endif
                 </p>
             </x-kartu>
+
+            {{-- Lecturers change their photo on the lecturer profile. --}}
+            @unless ($user->hasRole(\App\Models\Role::DOSEN))
+                <x-kartu judul="Foto profil" ikon="camera">
+                    @include('profile.partials.update-photo-form')
+                </x-kartu>
+            @endunless
 
             <x-kartu :judul="__('Update Password')" ikon="lock">
                 @include('profile.partials.update-password-form')

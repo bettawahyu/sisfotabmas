@@ -41,7 +41,7 @@ class ProfileController extends Controller
             Storage::delete($lama);
         }
 
-        return Redirect::route('profile.edit')->with('status', 'foto-updated');
+        return Redirect::back()->with('status', 'foto-updated');
     }
 
     /**
@@ -57,7 +57,7 @@ class ProfileController extends Controller
             $user->save();
         }
 
-        return Redirect::route('profile.edit')->with('status', 'foto-deleted');
+        return Redirect::back()->with('status', 'foto-deleted');
     }
 
     /**
