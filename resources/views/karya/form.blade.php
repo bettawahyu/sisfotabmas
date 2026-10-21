@@ -12,7 +12,7 @@
                 @csrf
                 @if ($karya->exists)
                     @method('PUT')
-                    <p class="text-sm text-gray-600">Setelah disimpan, data kembali menunggu verifikasi kaprodi.</p>
+                    <p class="text-sm text-gray-600">Setelah disimpan, data kembali menunggu verifikasi LPPM.</p>
                 @endif
                 <x-kartu>
                     <div class="grid gap-4 sm:grid-cols-2">

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Dosen;
+use App\Models\ProgramStudi;
 use App\Models\Publikasi;
 use App\Models\RiwayatPendidikan;
 use App\Models\Role;
@@ -43,6 +44,22 @@ class DataDosen
             ->when($filter['pendidikan_terakhir'] ?? null, fn (Builder $q, $jenjang) => $q->where('pendidikan_terakhir', $jenjang))
             ->with(['user', 'prodi.fakultas', 'riwayatPendidikan'])
             ->orderBy('nama');
+    }
+
+    /**
+     * The programmes a viewer may filter by: a unit head sees only their own
+     * programme, or the programmes of their faculty.
+     *
+     * @return EloquentCollection<int, ProgramStudi>
+     */
+    public function prodi(User $user): EloquentCollection
+    {
+        $peran = self::bolehLihatSemua($user) ? null : $user->roles->firstWhere('kode', Role::PIMPINAN_UNIT);
+
+        return ProgramStudi::with('fakultas')
+            ->when($peran?->pivot->prodi_id, fn (Builder $q, $prodi) => $q->whereKey($prodi))
+            ->when($peran?->pivot->fakultas_id, fn (Builder $q, $fakultas) => $q->where('fakultas_id', $fakultas))
+            ->orderBy('nama')->get();
     }
 
     /**

@@ -28,7 +28,7 @@
         ] : [],
         'Pimpinan Unit' => $pengguna->hasRole(Role::PIMPINAN_UNIT) ? [
             ['Pengesahan', 'pengesahan.index', ['pengesahan.*'], 'pen-tool'],
-            ['Verifikasi Karya', 'verifikasi-karya.index', ['verifikasi-karya.*'], 'shield'],
+            $adminLppm || $pengguna->hasRole(Role::OPERATOR) ? null : ['Publikasi & KI Dosen', 'karya-dosen.index', ['karya-dosen.*'], 'shield'],
         ] : [],
         'Keuangan' => $pengguna->hasRole(Role::KEUANGAN) && ! $adminLppm ? [
             ['Pencairan', 'pencairan.index', ['pencairan.*'], 'dollar-sign'],
@@ -36,6 +36,7 @@
         'Operator' => $pengguna->hasRole(Role::OPERATOR) && ! $adminLppm ? [
             ['Pemantauan', 'pemantauan.index', ['pemantauan.*'], 'monitor'],
             ['Verifikasi', 'verifikasi.index', ['verifikasi.*'], 'clipboard'],
+            ['Publikasi & KI Dosen', 'karya-dosen.index', ['karya-dosen.*'], 'shield'],
         ] : [],
         'Admin LPPM' => $adminLppm ? [
             ['Ringkasan Admin', 'admin.dashboard', ['admin.dashboard'], 'grid'],
@@ -55,10 +56,10 @@
                 ['Pemantauan', 'pemantauan.index', ['pemantauan.*'], 'monitor'],
                 ['Monev', 'admin.monev.index', ['admin.monev.*'], 'trending-up'],
             ]],
-            'Laporan & Luaran' => ['clipboard', array_values(array_filter([
+            'Laporan & Luaran' => ['clipboard', [
                 ['Verifikasi Laporan', 'verifikasi.index', ['verifikasi.*'], 'clipboard'],
-                $pengguna->hasRole(Role::PIMPINAN_UNIT) ? null : ['Verifikasi Karya', 'verifikasi-karya.index', ['verifikasi-karya.*'], 'shield'],
-            ]))],
+                ['Publikasi & KI Dosen', 'karya-dosen.index', ['karya-dosen.*'], 'shield'],
+            ]],
             'Pengaturan LPPM' => ['sliders', [
                 ['Unit Pimpinan', 'admin.pimpinan-unit.index', ['admin.pimpinan-unit.*'], 'briefcase'],
                 ['Kelola Pengumuman', 'kelola.pengumuman.index', ['kelola.pengumuman.*'], 'edit'],
