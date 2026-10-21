@@ -17,8 +17,6 @@ use Illuminate\Support\Collection;
  */
 class DataDosen
 {
-    public const JENIS_KELAMIN = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
-
     /**
      * Operators and LPPM see every lecturer; a unit head only their unit's.
      */
@@ -136,15 +134,25 @@ class DataDosen
             'NUPTK' => $d->nuptk,
             'NIP' => $d->nip,
             'Email' => $d->user?->email,
-            'No. HP' => $d->no_hp,
-            'Jenis kelamin' => self::JENIS_KELAMIN[$d->jenis_kelamin] ?? null,
+            'No. telepon' => $d->no_hp,
+            'Jenis kelamin' => Dosen::JENIS_KELAMIN[$d->jenis_kelamin] ?? null,
             'Tempat lahir' => $d->tempat_lahir,
             'Tanggal lahir' => $d->tgl_lahir?->format('Y-m-d'),
+            'Status pernikahan' => Dosen::STATUS_PERNIKAHAN[$d->status_pernikahan] ?? null,
+            'Alamat' => $d->alamat,
             'Program studi' => $d->prodi ? trim("{$d->prodi->jenjang} {$d->prodi->nama}") : null,
             'Fakultas' => $d->prodi?->fakultas?->nama,
             'Jabatan fungsional' => $d->jabatan_fungsional?->label(),
             'Pendidikan terakhir' => $d->pendidikan_terakhir,
             'Bidang keahlian' => $d->bidang_keahlian,
+            'TMT dosen' => $d->tmt_dosen?->format('Y-m-d'),
+            'Sertifikasi dosen' => $d->sertifikasi_dosen ? 'Sudah' : 'Belum',
+            'No. sertifikat pendidik' => $d->no_serdos,
+            'Tahun serdos' => $d->tahun_serdos,
+            'Pekerti' => $d->pekerti ? 'Sudah' : 'Belum',
+            'Tahun Pekerti' => $d->tahun_pekerti,
+            'Applied Approach (AA)' => $d->applied_approach ? 'Sudah' : 'Belum',
+            'Tahun AA' => $d->tahun_applied_approach,
             'SINTA ID' => $d->sinta_id,
             'Skor SINTA' => $d->skor_sinta === null ? null : (float) $d->skor_sinta,
             'Scopus ID' => $d->scopus_author_id,

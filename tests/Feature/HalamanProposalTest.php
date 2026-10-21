@@ -42,7 +42,7 @@ test('a lecturer saves a Google Scholar profile URL as its ID', function () {
     $user = akun(Role::DOSEN);
 
     $this->actingAs($user)->get(route('profil-dosen.edit'))->assertOk()
-        ->assertSee('Kualifikasi Dosen')->assertSee('Google Scholar');
+        ->assertSee('Profil Dosen')->assertSee('Google Scholar');
 
     $this->actingAs($user)->put(route('profil-dosen.update'), [
         'nama' => 'Ani Lestari',

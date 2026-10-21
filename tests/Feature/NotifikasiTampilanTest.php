@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\DB;
@@ -27,13 +28,13 @@ test('validation errors show a notice that points to the fields', function () {
         ->assertSee('tandaiKolomSalah', false);
 });
 
-test('pages carry the shared confirmation dialog and the account deletion form skips it', function () {
+test('pages carry the shared confirmation dialog, used by the photo removal', function () {
     $user = User::factory()->create(['foto_profil' => 'foto-profil/contoh.jpg']);
+    $user->assignRole(Role::DOSEN);
 
-    $this->actingAs($user)->get(route('profile.edit'))
+    $this->actingAs($user)->get(route('profil-dosen.edit'))
         ->assertSee('$store.konfirmasi.buka', false)
-        ->assertSee('data-konfirmasi="Hapus foto profil?"', false)
-        ->assertSee('data-tanpa-konfirmasi', false);
+        ->assertSee('data-konfirmasi="Hapus foto profil?"', false);
 });
 
 test('a delete blocked by other records goes back with a failure notice', function () {

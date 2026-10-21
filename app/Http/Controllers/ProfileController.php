@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -22,22 +20,6 @@ class ProfileController extends Controller
         return view('profile.edit', [
             'user' => $request->user(),
         ]);
-    }
-
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
-    {
-        $request->user()->fill($request->validated());
-
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
@@ -59,7 +41,7 @@ class ProfileController extends Controller
             Storage::delete($lama);
         }
 
-        return Redirect::route('profile.edit')->with('status', 'foto-updated');
+        return Redirect::back()->with('status', 'foto-updated');
     }
 
     /**
@@ -75,7 +57,7 @@ class ProfileController extends Controller
             $user->save();
         }
 
-        return Redirect::route('profile.edit')->with('status', 'foto-deleted');
+        return Redirect::back()->with('status', 'foto-deleted');
     }
 
     /**
@@ -86,30 +68,5 @@ class ProfileController extends Controller
         abort_if($user->foto_profil === null || ! Storage::exists($user->foto_profil), 404);
 
         return Storage::response($user->foto_profil, headers: ['Cache-Control' => 'private, max-age=604800']);
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
-
-        $user = $request->user();
-
-        Auth::logout();
-
-        if ($user->foto_profil !== null) {
-            Storage::delete($user->foto_profil);
-        }
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
     }
 }

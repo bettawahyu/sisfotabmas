@@ -58,11 +58,11 @@ Route::get('/dashboard', function (Request $request) {
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// The profile stays open before the email is verified, so a mistyped address can be fixed.
+// The account page (login email and password) stays open before the email is verified.
+// Users cannot delete their own account; admins switch accounts off instead.
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/akun', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::redirect('/profile', '/akun', 301);
     Route::post('/profile/foto', [ProfileController::class, 'updateFoto'])->name('profile.foto.update');
     Route::delete('/profile/foto', [ProfileController::class, 'destroyFoto'])->name('profile.foto.destroy');
     Route::get('/foto-profil/{user}', [ProfileController::class, 'foto'])->name('foto-profil.show');
@@ -99,6 +99,7 @@ Route::middleware(['auth', 'verified', 'can:lihat-data-dosen'])->prefix('data-do
     Route::get('/', 'index')->name('index');
     Route::get('/unduh', 'unduh')->name('unduh');
     Route::get('/unduh-semua', 'unduhSemua')->name('unduh-semua');
+    Route::patch('/{dosen}/aktif', 'aktif')->middleware('role:'.Role::ADMIN_LPPM)->name('aktif');
 });
 
 Route::middleware(['auth', 'verified', 'role:'.Role::DOSEN])->group(function () {
@@ -188,6 +189,8 @@ Route::middleware(['auth', 'verified', 'role:'.Role::ADMIN_SISTEM])->prefix('sis
     Route::redirect('/', '/sistem/pengguna')->name('dashboard');
     Route::resource('pengguna', PenggunaController::class)->except(['show', 'destroy'])
         ->parameters(['pengguna' => 'pengguna']);
+    // Accounts are switched off, never deleted.
+    Route::patch('pengguna/{pengguna}/aktif', [PenggunaController::class, 'aktif'])->name('pengguna.aktif');
 
     // Reference data is switched off rather than deleted, so there is no destroy.
     Route::resource('unit', FakultasController::class)->except(['show', 'destroy'])

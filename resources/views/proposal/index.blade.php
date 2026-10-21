@@ -37,7 +37,7 @@
                                     </ul>
                                     <div class="mt-6 flex justify-end gap-3">
                                         <x-secondary-button type="button" x-on:click="$dispatch('close')">Tutup</x-secondary-button>
-                                        <x-tombol-tautan href="{{ route('profil-dosen.edit') }}" ikon="award">Perbarui kualifikasi</x-tombol-tautan>
+                                        <x-tombol-tautan href="{{ route('profil-dosen.edit') }}" ikon="award">Perbarui profil dosen</x-tombol-tautan>
                                     </div>
                                 </div>
                             </x-modal>

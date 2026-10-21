@@ -1,7 +1,6 @@
 @php
     use App\Enums\JabatanFungsional;
     use App\Models\Dosen;
-    use App\Services\DataDosen;
 
     $tersaring = array_filter($filter, fn ($nilai) => filled($nilai));
 @endphp
@@ -86,6 +85,9 @@
                                 <tr class="border-b border-gray-100 last:border-0">
                                     <td class="py-2 pe-4">
                                         <button type="button" class="text-start font-medium text-indigo-700 hover:underline" x-data x-on:click="$dispatch('open-modal', 'dosen-{{ $d->id }}')">{{ $d->namaLengkap() }}</button>
+                                        @if ($d->user && ! $d->user->is_active)
+                                            <x-status-aktif :aktif="false" />
+                                        @endif
                                     </td>
                                     <td class="py-2 pe-4">{{ $d->nidn ?? $d->nuptk ?? '–' }}</td>
                                     <td class="py-2 pe-4">{{ $d->prodi?->nama ?? '–' }}</td>
@@ -114,14 +116,19 @@
                 'NUPTK' => $d->nuptk,
                 'NIP' => $d->nip,
                 'Email' => $d->user?->email,
-                'No. HP' => $d->no_hp,
-                'Jenis kelamin' => DataDosen::JENIS_KELAMIN[$d->jenis_kelamin] ?? null,
+                'No. telepon' => $d->no_hp,
+                'Jenis kelamin' => Dosen::JENIS_KELAMIN[$d->jenis_kelamin] ?? null,
                 'Tempat, tanggal lahir' => collect([$d->tempat_lahir, $d->tgl_lahir?->translatedFormat('d F Y')])->filter()->implode(', '),
+                'Status pernikahan' => Dosen::STATUS_PERNIKAHAN[$d->status_pernikahan] ?? null,
                 'Program studi' => $d->prodi ? trim("{$d->prodi->jenjang} {$d->prodi->nama}") : null,
                 'Fakultas' => $d->prodi?->fakultas?->nama,
                 'Jabatan fungsional' => $d->jabatan_fungsional?->label(),
                 'Pendidikan terakhir' => $d->pendidikan_terakhir,
                 'Bidang keahlian' => $d->bidang_keahlian,
+                'TMT sebagai dosen' => $d->tmt_dosen?->translatedFormat('d F Y'),
+                'Sertifikasi dosen' => $d->sertifikasi_dosen ? trim('Sudah '.collect([$d->tahun_serdos, $d->no_serdos ? "No. {$d->no_serdos}" : null])->filter()->implode(' · ')) : 'Belum',
+                'Pekerti' => $d->pekerti ? trim("Sudah {$d->tahun_pekerti}") : 'Belum',
+                'Applied Approach (AA)' => $d->applied_approach ? trim("Sudah {$d->tahun_applied_approach}") : 'Belum',
                 'SINTA ID' => $d->sinta_id,
                 'Skor SINTA' => $d->skor_sinta,
                 'Scopus ID' => $d->scopus_author_id,
@@ -129,6 +136,7 @@
                 'ORCID' => $d->orcid,
                 'H-index Scopus / Scholar' => collect([$d->h_index_scopus, $d->h_index_scholar])->every(fn ($n) => $n === null) ? null : ($d->h_index_scopus ?? '–').' / '.($d->h_index_scholar ?? '–'),
                 'Jumlah publikasi' => $d->publikasi_count,
+                'Alamat' => $d->alamat,
             ];
         @endphp
         <x-modal name="dosen-{{ $d->id }}" maxWidth="2xl" focusable>
@@ -136,7 +144,7 @@
                 <div class="flex items-start justify-between gap-4">
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800">{{ $d->namaLengkap() }}</h3>
-                        <p class="text-sm text-gray-600">Kualifikasi dosen</p>
+                        <p class="text-sm text-gray-600">Profil dosen</p>
                     </div>
                     <button type="button" class="text-gray-400 hover:text-gray-600" x-on:click="$dispatch('close')" aria-label="Tutup"><x-ikon nama="x" /></button>
                 </div>
@@ -174,7 +182,25 @@
                     </div>
                 @endif
 
-                <div class="mt-6 flex justify-end">
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 text-sm">
+                        @if ($d->user)
+                            <span class="text-gray-500">Akun</span> <x-status-aktif :aktif="$d->user->is_active" />
+                            @if ($kelolaAkun && ! $d->user->is(auth()->user()))
+                                <form method="POST" action="{{ route('data-dosen.aktif', $d) }}"
+                                    data-konfirmasi="{{ $d->user->is_active ? 'Nonaktifkan akun '.$d->namaLengkap().'? Dosen tidak bisa login, datanya tetap tersimpan.' : 'Aktifkan kembali akun '.$d->namaLengkap().'?' }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="aktif" value="{{ $d->user->is_active ? 0 : 1 }}">
+                                    @if ($d->user->is_active)
+                                        <x-danger-button ikon="user-x">Nonaktifkan</x-danger-button>
+                                    @else
+                                        <x-primary-button ikon="user-check">Aktifkan</x-primary-button>
+                                    @endif
+                                </form>
+                            @endif
+                        @endif
+                    </div>
                     <x-secondary-button type="button" x-on:click="$dispatch('close')">Tutup</x-secondary-button>
                 </div>
             </div>

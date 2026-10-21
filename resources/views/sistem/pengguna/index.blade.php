@@ -24,17 +24,29 @@
                 </form>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm" data-tabel-data>
-                        <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Nama</th><th class="py-2 pe-4 font-medium">Email</th><th class="py-2 pe-4 font-medium">Peran</th><th></th></tr></thead>
+                        <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pe-4 font-medium">Nama</th><th class="py-2 pe-4 font-medium">Email</th><th class="py-2 pe-4 font-medium">Peran</th><th class="py-2 pe-4 font-medium">Status</th><th></th></tr></thead>
                         <tbody>
                             @forelse ($pengguna as $u)
                                 <tr class="border-b border-gray-100 last:border-0">
                                     <td class="py-2 pe-4">{{ $u->name }}</td>
                                     <td class="py-2 pe-4">{{ $u->email }}</td>
                                     <td class="py-2 pe-4">{{ $u->roles->map(fn ($r) => \App\Models\Role::ALL[$r->kode] ?? $r->nama)->implode(', ') ?: 'Tanpa peran' }}</td>
-                                    <td class="py-2 text-end"><a href="{{ route('sistem.pengguna.edit', $u) }}" class="text-indigo-700 hover:underline">Ubah</a></td>
+                                    <td class="py-2 pe-4"><x-status-aktif :aktif="$u->is_active" /></td>
+                                    <td class="py-2 text-end whitespace-nowrap">
+                                        <a href="{{ route('sistem.pengguna.edit', $u) }}" class="text-indigo-700 hover:underline">Ubah</a>
+                                        @unless ($u->is(auth()->user()))
+                                            <form method="POST" action="{{ route('sistem.pengguna.aktif', $u) }}" class="inline"
+                                                data-konfirmasi="{{ $u->is_active ? "Nonaktifkan akun {$u->name}? Akun tidak bisa login, datanya tetap tersimpan." : "Aktifkan kembali akun {$u->name}?" }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="aktif" value="{{ $u->is_active ? 0 : 1 }}">
+                                                <button class="ms-3 {{ $u->is_active ? 'text-red-700' : 'text-green-700' }} hover:underline">{{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</button>
+                                            </form>
+                                        @endunless
+                                    </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="py-4 text-gray-600">Tidak ada pengguna yang cocok.</td></tr>
+                                <tr><td colspan="5" class="py-4 text-gray-600">Tidak ada pengguna yang cocok.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

@@ -21,6 +21,37 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public const PESAN_NONAKTIF = 'Akun Anda dinonaktifkan. Hubungi Admin LPPM atau Admin Sistem.';
+
+    /**
+     * New accounts are active until an admin switches them off.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = ['is_active' => true];
+
+    /**
+     * Switch the account on or off; a switched-off account keeps its records
+     * but cannot sign in (AkunAktif, LoginRequest).
+     */
+    public function aturAktif(bool $aktif): void
+    {
+        $this->forceFill(['is_active' => $aktif])->save();
+    }
+
+    /**
+     * A lecturer's account carries the lecturer's name, so a rename made on
+     * either side reaches the other.
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (User $user) {
+            if ($user->wasChanged('name') && $user->dosen !== null && $user->dosen->nama !== $user->name) {
+                $user->dosen->update(['nama' => $user->name]);
+            }
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -32,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'wajib_ganti_password' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
