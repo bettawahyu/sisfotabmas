@@ -29,5 +29,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('unduh-data', fn (User $user) => $user->hasRole(
             Role::ADMIN_LPPM, Role::OPERATOR, Role::KEUANGAN, Role::PIMPINAN, Role::PIMPINAN_UNIT,
         ));
+        Gate::define('lihat-data-dosen', fn (User $user) => $user->hasRole(Role::ADMIN_LPPM, Role::OPERATOR, Role::PIMPINAN_UNIT));
     }
 }

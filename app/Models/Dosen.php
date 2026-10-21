@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\JabatanFungsional;
 use Database\Factories\DosenFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,6 +54,22 @@ class Dosen extends Model
     public function prodi(): BelongsTo
     {
         return $this->belongsTo(ProgramStudi::class, 'prodi_id');
+    }
+
+    /**
+     * Lecturers of a faculty or programme head's unit: the programme, every
+     * programme of the faculty, or everyone when no unit is set.
+     */
+    public function scopeDalamUnit(Builder $query, User $pimpinan): void
+    {
+        $peran = $pimpinan->roles->firstWhere('kode', Role::PIMPINAN_UNIT);
+        if ($peran === null) {
+            $query->whereRaw('1 = 0');
+        } elseif ($peran->pivot->prodi_id !== null) {
+            $query->where('prodi_id', $peran->pivot->prodi_id);
+        } elseif ($peran->pivot->fakultas_id !== null) {
+            $query->whereHas('prodi', fn (Builder $q) => $q->where('fakultas_id', $peran->pivot->fakultas_id));
+        }
     }
 
     /**
