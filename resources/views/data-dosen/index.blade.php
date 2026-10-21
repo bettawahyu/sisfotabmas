@@ -76,7 +76,7 @@
                                 <th class="py-2 pe-4 font-medium">Program studi</th>
                                 <th class="py-2 pe-4 font-medium">Jabatan fungsional</th>
                                 <th class="py-2 pe-4 font-medium">Pendidikan</th>
-                                <th class="py-2 pe-4 font-medium">Publikasi</th>
+                                <th class="py-2 pe-4 font-medium">Publikasi & HKI</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -93,7 +93,7 @@
                                     <td class="py-2 pe-4">{{ $d->prodi?->nama ?? '–' }}</td>
                                     <td class="py-2 pe-4">{{ $d->jabatan_fungsional?->label() ?? '–' }}</td>
                                     <td class="py-2 pe-4">{{ $d->pendidikan_terakhir ?? '–' }}</td>
-                                    <td class="py-2 pe-4">{{ $d->publikasi_count }}</td>
+                                    <td class="py-2 pe-4">{{ $d->publikasi_count + $d->hki_count }}</td>
                                     <td class="py-2 text-end">
                                         <button type="button" class="text-indigo-700 hover:underline" x-data x-on:click="$dispatch('open-modal', 'dosen-{{ $d->id }}')">Detail</button>
                                     </td>

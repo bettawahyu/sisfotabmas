@@ -50,7 +50,7 @@
         {{-- Konten utama --}}
         <div class="relative w-full max-w-2xl text-white">
             <div class="text-center">
-                <x-logo-aplikasi gelap class="mx-auto h-30 w-30 fill-current text-indigo-500" />
+                <x-logo-aplikasi gelap class="mx-auto h-20 w-20 fill-current text-indigo-500" />
                 <h1 class="mt-6 text-3xl font-bold tracking-tight sm:text-4xl">{{ config('app.name') }}</h1>
             </div>
 

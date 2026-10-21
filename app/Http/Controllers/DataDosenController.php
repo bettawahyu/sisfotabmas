@@ -27,7 +27,7 @@ class DataDosenController extends Controller
         $filter = $this->filter($request);
 
         return view('data-dosen.index', [
-            'dosen' => $data->query($request->user(), $filter)->withCount('publikasi')->get(),
+            'dosen' => $data->query($request->user(), $filter)->withCount('publikasi')->withCount('hki')->get(),
             'filter' => $filter,
             'prodi' => $data->prodi($request->user()),
             'lihatSemua' => DataDosen::bolehLihatSemua($request->user()),
