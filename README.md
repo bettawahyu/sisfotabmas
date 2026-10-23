@@ -1,5 +1,6 @@
 # sisfotabmas
-<img width="1366" height="643" alt="LENTERA-WEB" src="https://github.com/user-attachments/assets/8e819fcf-8de3-450b-9fd0-7c8187f0ce78" />
+<img width="1366" height="643" alt="LENTERA-WEB" src="https://github.com/user-attachments/assets/1a41d577-c2ee-4553-987f-0f578c7e0eb7" />
+
 
 Sistem informasi penelitian dan pengabdian kepada masyarakat (PkM) dosen. Aplikasi ini mendata profil dosen, publikasi, HKI, dan paten, serta menjalankan seluruh alur hibah LPPM: pengumuman, pengajuan proposal, pengesahan, seleksi, review, penetapan dan SK, kontrak, pencairan dana, logbook, monitoring dan evaluasi (monev), sampai laporan akhir.
 
