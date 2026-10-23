@@ -1,10 +1,11 @@
-# LENTERA (LAYANAN TERPADU PENELITIAN dan PENGABDIAN KEPADA MASYARAKAT)
-<img width="1366" height="643" alt="LENTERA-WEB" src="https://github.com/user-attachments/assets/1a41d577-c2ee-4553-987f-0f578c7e0eb7" />
-
+<p align="center"> <img width="312" height="312" align="center" alt="lentera logo" src="https://github.com/user-attachments/assets/8cc8cd5d-e898-43cb-94d1-32d12599c1b4" /> </p>
 
 LENTERA merupakan sistem informasi penelitian dan pengabdian kepada masyarakat (PkM) dosen. Aplikasi ini mendata profil dosen, publikasi, HKI, dan paten, serta menjalankan seluruh alur hibah LPPM: pengumuman, pengajuan proposal, pengesahan, seleksi, review, penetapan dan SK, kontrak, pencairan dana, logbook, monitoring dan evaluasi (monev), sampai laporan akhir.
 
 Dibangun dengan Laravel 13, Blade (Breeze), Tailwind CSS, dan Pest.
+<br>
+
+<img width="1366" height="643" alt="LENTERA-WEB" src="https://github.com/user-attachments/assets/1a41d577-c2ee-4553-987f-0f578c7e0eb7" />
 
 ## Fitur
 
