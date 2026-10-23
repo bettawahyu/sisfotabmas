@@ -177,6 +177,9 @@ class DataDosen
             'ORCID' => $d->orcid,
             'H-index Scopus' => $d->h_index_scopus,
             'H-index Scholar' => $d->h_index_scholar,
+            'Sitasi Scopus' => $d->sitasi_scopus,
+            'Sitasi Scholar' => $d->sitasi_scholar,
+            'Sinkron SINTA terakhir' => $d->sinkron_terakhir_at?->format('Y-m-d'),
         ];
     }
 }

@@ -135,6 +135,8 @@
                 'Google Scholar ID' => $d->google_scholar_id,
                 'ORCID' => $d->orcid,
                 'H-index Scopus / Scholar' => collect([$d->h_index_scopus, $d->h_index_scholar])->every(fn ($n) => $n === null) ? null : ($d->h_index_scopus ?? '–').' / '.($d->h_index_scholar ?? '–'),
+                'Sitasi Scopus / Scholar' => collect([$d->sitasi_scopus, $d->sitasi_scholar])->every(fn ($n) => $n === null) ? null : ($d->sitasi_scopus ?? '–').' / '.($d->sitasi_scholar ?? '–'),
+                'Sinkron SINTA terakhir' => $d->sinkron_terakhir_at?->translatedFormat('d F Y'),
                 'Jumlah publikasi' => $d->publikasi_count,
                 'Alamat' => $d->alamat,
             ];
