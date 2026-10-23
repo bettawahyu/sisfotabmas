@@ -119,8 +119,8 @@
                         <h4 class="text-sm font-semibold text-gray-800">ID peneliti</h4>
                     </div>
                     <div>
-                        <x-input-label for="sinta_id" value="ID SINTA" ikon="hash" />
-                        <x-text-input id="sinta_id" name="sinta_id" class="mt-1 block w-full" :value="old('sinta_id', $dosen?->sinta_id)" />
+                        <x-input-label for="sinta_id" value="ID SINTA (ID atau URL profil)" ikon="hash" />
+                        <x-text-input id="sinta_id" name="sinta_id" class="mt-1 block w-full" :value="old('sinta_id', $dosen?->sinta_id)" placeholder="https://sinta.kemdiktisaintek.go.id/authors/profile/..." />
                     </div>
                     <div>
                         <x-input-label for="google_scholar_id" value="Google Scholar (ID atau URL profil)" ikon="link" />
@@ -162,6 +162,44 @@
                         <x-primary-button ikon="save">Simpan</x-primary-button>
                     </div>
                 </form>
+            </x-kartu>
+
+            <x-kartu judul="Metrik SINTA" ikon="bar-chart-2" class="mt-6">
+                @if ($dosen?->sinta_id)
+                    <p class="mb-4 text-sm text-gray-600">
+                        Diambil dari <a href="{{ \App\Services\Sinta::urlProfil($dosen->sinta_id) }}" target="_blank" rel="noopener" class="text-indigo-700 hover:underline">profil SINTA Anda</a>, termasuk h-index dan sitasi Google Scholar yang tercatat di SINTA.
+                        @if ($dosen->sinkron_terakhir_at)
+                            Terakhir diperbarui {{ $dosen->sinkron_terakhir_at->translatedFormat('d F Y H:i') }}.
+                        @endif
+                    </p>
+                    <dl class="grid grid-cols-2 gap-4 sm:grid-cols-5">
+                        @foreach ([
+                            'Skor SINTA' => $dosen->skor_sinta === null ? null : number_format((float) $dosen->skor_sinta, 2, ',', '.'),
+                            'H-index Scopus' => $dosen->h_index_scopus,
+                            'Sitasi Scopus' => $dosen->sitasi_scopus === null ? null : number_format($dosen->sitasi_scopus, 0, ',', '.'),
+                            'H-index Scholar' => $dosen->h_index_scholar,
+                            'Sitasi Scholar' => $dosen->sitasi_scholar === null ? null : number_format($dosen->sitasi_scholar, 0, ',', '.'),
+                        ] as $label => $nilai)
+                            <div class="rounded-md border border-gray-200 p-3">
+                                <dt class="text-xs text-gray-500">{{ $label }}</dt>
+                                <dd class="mt-1 text-lg font-semibold text-gray-800">{{ $nilai ?? '–' }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                    <div class="mt-4">
+                        @if ($berikutnya = $dosen->sinkronSintaBerikutnya())
+                            <p class="text-sm text-gray-600">Sinkron berikutnya tersedia mulai {{ $berikutnya->translatedFormat('d F Y') }}.</p>
+                        @else
+                            <form method="POST" action="{{ route('profil-dosen.sinkron-sinta') }}">
+                                @csrf
+                                <x-primary-button ikon="refresh-cw">Perbarui dari SINTA</x-primary-button>
+                            </form>
+                            <p class="mt-2 text-xs text-gray-500">Setelah diperbarui, tombol ini tersedia lagi {{ \App\Models\Dosen::JEDA_SINKRON_SINTA }} hari kemudian.</p>
+                        @endif
+                    </div>
+                @else
+                    <p class="text-sm text-gray-600">Isi dan simpan ID SINTA di atas untuk mengambil skor SINTA, h-index, dan sitasi dari SINTA.</p>
+                @endif
             </x-kartu>
 
             <x-kartu judul="Riwayat Pendidikan" ikon="book-open" class="mt-6">

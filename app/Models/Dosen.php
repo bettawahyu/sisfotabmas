@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 #[Fillable(['user_id', 'prodi_id', 'nidn', 'nuptk', 'nip', 'nama', 'gelar_depan', 'gelar_belakang', 'jabatan_fungsional', 'sinta_id',
     'jenis_kelamin', 'tempat_lahir', 'tgl_lahir', 'pendidikan_terakhir', 'bidang_keahlian', 'no_hp', 'foto_berkas_id',
@@ -35,6 +36,9 @@ class Dosen extends Model
         'cerai_hidup' => 'Cerai hidup',
         'cerai_mati' => 'Cerai mati',
     ];
+
+    /** Days a lecturer waits between two SINTA syncs, to go easy on SINTA. */
+    public const JEDA_SINKRON_SINTA = 14;
 
     protected $table = 'dosen';
 
@@ -105,6 +109,16 @@ class Dosen extends Model
     public function proposalSebagaiKetua(): HasMany
     {
         return $this->hasMany(Proposal::class, 'ketua_id');
+    }
+
+    /**
+     * When the lecturer may sync from SINTA again; null when they may now.
+     */
+    public function sinkronSintaBerikutnya(): ?Carbon
+    {
+        $berikutnya = $this->sinkron_terakhir_at?->copy()->addDays(self::JEDA_SINKRON_SINTA);
+
+        return $berikutnya?->isFuture() ? $berikutnya : null;
     }
 
     public function namaLengkap(): string

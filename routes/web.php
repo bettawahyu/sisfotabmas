@@ -105,6 +105,7 @@ Route::middleware(['auth', 'verified', 'can:lihat-data-dosen'])->prefix('data-do
 Route::middleware(['auth', 'verified', 'role:'.Role::DOSEN])->group(function () {
     Route::get('/profil-dosen', [ProfilDosenController::class, 'edit'])->name('profil-dosen.edit');
     Route::put('/profil-dosen', [ProfilDosenController::class, 'update'])->name('profil-dosen.update');
+    Route::post('/profil-dosen/sinkron-sinta', [ProfilDosenController::class, 'sinkronSinta'])->name('profil-dosen.sinkron-sinta');
     Route::resource('profil-dosen/pendidikan', RiwayatPendidikanController::class)->only(['store', 'edit', 'update', 'destroy'])
         ->parameters(['pendidikan' => 'riwayat'])->names('profil-dosen.pendidikan');
 
