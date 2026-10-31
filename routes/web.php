@@ -263,4 +263,5 @@ Route::middleware(['auth', 'verified', 'role:'.Role::ADMIN_LPPM])->prefix('admin
 });
 
 require __DIR__.'/karya.php';
+require __DIR__.'/riwayat.php';
 require __DIR__.'/auth.php';
