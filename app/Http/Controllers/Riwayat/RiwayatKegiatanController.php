@@ -13,6 +13,7 @@ use App\Models\Mitra;
 use App\Models\RiwayatKegiatan;
 use App\Services\AlurKarya;
 use App\Services\AlurRiwayat;
+use App\Services\EksporRiwayat;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,18 @@ class RiwayatKegiatanController extends Controller
             'jenis' => $jenis,
             'daftar' => $dosen === null ? ['berlangsung' => collect(), 'selesai' => collect()] : $alur->milikDosen($dosen, AlurRiwayat::JENIS[$jenis]),
         ]);
+    }
+
+    /**
+     * The lecturer's own list, grants included, as an Excel file.
+     */
+    public function ekspor(Request $request, string $jenis, AlurRiwayat $alur, EksporRiwayat $ekspor): StreamedResponse
+    {
+        $dosen = $request->user()->dosen ?? abort(404);
+        $kegiatan = AlurRiwayat::JENIS[$jenis];
+        $daftar = $alur->milikDosen($dosen, $kegiatan);
+
+        return $ekspor->unduh($ekspor->milikDosen($daftar, $kegiatan), "riwayat-{$jenis}");
     }
 
     public function create(Request $request, string $jenis): View

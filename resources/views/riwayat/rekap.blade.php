@@ -13,12 +13,15 @@
 @endphp
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Rekap Penelitian &amp; PkM</h2>
-            <p class="mt-1 text-sm text-gray-600">
-                Hibah LPPM (didanai sampai selesai) ditambah riwayat di luar hibah yang sudah divalidasi, menurut tahun mulai kegiatan.
-                @unless ($lihatSemua) Hanya dosen di unit Anda. @endunless
-            </p>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">Rekap Penelitian &amp; PkM</h2>
+                <p class="mt-1 text-sm text-gray-600">
+                    Hibah LPPM (didanai sampai selesai) ditambah riwayat di luar hibah yang sudah divalidasi, menurut tahun mulai kegiatan.
+                    @unless ($lihatSemua) Hanya dosen di unit Anda. @endunless
+                </p>
+            </div>
+            <x-tombol-tautan :href="route('rekap-riwayat.ekspor', [$jenis, ...request()->query()])" varian="kedua" ikon="download">Unduh Excel</x-tombol-tautan>
         </div>
     </x-slot>
 
