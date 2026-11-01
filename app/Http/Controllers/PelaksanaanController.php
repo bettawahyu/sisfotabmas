@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -129,9 +130,29 @@ class PelaksanaanController extends Controller
             'persentase_capaian' => ['required', 'integer', 'between:0,100'],
             'laporan' => ['required', 'file', 'mimes:pdf', 'max:10240'],
             'keuangan' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            // Community service only; AlurPelaksanaan says which are required.
+            'catatan_dampak' => ['nullable', 'string', 'max:5000'],
+            'tautan_video' => ['nullable', 'url', 'max:255'],
+            'tautan_media' => ['nullable', 'string', 'max:3000'],
+            'foto' => ['nullable', 'array', 'max:10'],
+            'foto.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'surat_mitra' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ]);
 
-        $alur->kirimLaporanAkhir($proposal, $data, $request->file('laporan'), $request->file('keuangan'), $request->user());
+        $media = array_values(array_filter(array_map('trim', preg_split('/\R/', (string) ($data['tautan_media'] ?? '')))));
+        foreach ($media as $tautan) {
+            if (filter_var($tautan, FILTER_VALIDATE_URL) === false) {
+                throw ValidationException::withMessages(['tautan_media' => "Tautan media \"{$tautan}\" tidak valid."]);
+            }
+        }
+
+        $alur->kirimLaporanAkhir($proposal, $data, $request->file('laporan'), $request->file('keuangan'), $request->user(), [
+            'catatan_dampak' => $data['catatan_dampak'] ?? null,
+            'tautan_video' => $data['tautan_video'] ?? null,
+            'tautan_media' => $media ? implode("\n", $media) : null,
+            'foto' => $request->file('foto') ?? [],
+            'surat_mitra' => $request->file('surat_mitra'),
+        ]);
 
         return back()->with('status', 'Laporan akhir terkirim dan menunggu verifikasi operator.');
     }

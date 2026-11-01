@@ -8,6 +8,7 @@ use App\Models\KabupatenKota;
 use App\Models\Mitra;
 use App\Models\PeriodeHibah;
 use App\Models\Proposal;
+use App\Models\Publikasi;
 use App\Models\RiwayatKegiatan;
 use App\Models\Role;
 use App\Models\SkemaHibah;
@@ -37,6 +38,7 @@ function isianRiwayat(Dosen $ketua, array $ubah = []): array
         ],
         'ketua' => 0,
         'abaikan_ganda' => 1,
+        'laporan' => UploadedFile::fake()->create('laporan-akhir.pdf', 50, 'application/pdf'),
     ];
 }
 
@@ -78,7 +80,7 @@ test('a lecturer records self-funded research that waits for LPPM', function () 
         ->and($riwayat->diinput_oleh)->toBe($user->id)
         ->and($riwayat->anggota->pluck('nama')->all())->toBe([$this->dosen->namaLengkap(), 'Ayu Lestari'])
         ->and($riwayat->ketua()->dosen_id)->toBe($this->dosen->id)
-        ->and($riwayat->berkas->sole()->kategori)->toBe(RiwayatKegiatan::BERKAS_BUKTI);
+        ->and($riwayat->berkas->pluck('kategori')->sort()->values()->all())->toBe([RiwayatKegiatan::BERKAS_BUKTI, RiwayatKegiatan::BERKAS_LAPORAN]);
     Notification::assertSentTo($operator, Pemberitahuan::class);
 
     $this->actingAs($user)->get(route('riwayat.index', 'penelitian'))->assertOk()
@@ -164,7 +166,7 @@ test('finished community service needs documentation, the partner letter and an 
     ])->assertSessionHasNoErrors();
 
     $riwayat = RiwayatKegiatan::sole();
-    expect($riwayat->berkas->pluck('kategori')->sort()->values()->all())->toBe([RiwayatKegiatan::BERKAS_FOTO, RiwayatKegiatan::BERKAS_SURAT_MITRA])
+    expect($riwayat->berkas->pluck('kategori')->sort()->values()->all())->toBe([RiwayatKegiatan::BERKAS_FOTO, RiwayatKegiatan::BERKAS_LAPORAN, RiwayatKegiatan::BERKAS_SURAT_MITRA])
         ->and($riwayat->daftarTautanMedia())->toHaveCount(2);
 
     $foto = $riwayat->berkas->firstWhere('kategori', RiwayatKegiatan::BERKAS_FOTO);
@@ -264,4 +266,64 @@ test('the sidebar links the new pages', function () {
         ->assertSee('Riwayat Penelitian')->assertSee('Riwayat PkM');
     $this->actingAs(pengguna(Role::ADMIN_LPPM))->get(route('mitra.index'))
         ->assertSee(route('riwayat-dosen.index', 'penelitian'))->assertSee(route('mitra.index'));
+});
+
+test('a finished activity needs its final report, one still running does not', function () {
+    $user = $this->dosen->user;
+    $isian = isianRiwayat($this->dosen);
+    unset($isian['laporan']);
+
+    $this->actingAs($user)->post(route('riwayat.store', 'penelitian'), $isian)
+        ->assertSessionHasErrors(['riwayat' => 'Kegiatan yang sudah selesai wajib dilengkapi laporan akhir.']);
+    $this->actingAs($user)->post(route('riwayat.store', 'penelitian'), ['status_kegiatan' => RiwayatKegiatan::BERJALAN] + $isian)->assertSessionHasNoErrors();
+    $riwayat = RiwayatKegiatan::sole();
+
+    // Marking it finished later asks for the report then.
+    $this->actingAs($user)->put(route('riwayat.update', ['penelitian', $riwayat]), $isian)->assertSessionHasErrors('riwayat');
+    $this->actingAs($user)->put(route('riwayat.update', ['penelitian', $riwayat]), isianRiwayat($this->dosen))->assertSessionHasNoErrors();
+    expect($riwayat->fresh()->status_kegiatan)->toBe(RiwayatKegiatan::SELESAI);
+});
+
+test('a record links to the team\'s publications, HKI and patents', function () {
+    $user = $this->dosen->user;
+    $milikSendiri = Publikasi::factory()->olehDosen($this->dosen)->create(['judul' => 'Kualitas air sumur di lereng Merapi']);
+    $milikLain = Publikasi::factory()->olehDosen(Dosen::factory()->create())->create(['judul' => 'Artikel dosen lain']);
+
+    $this->actingAs($user)->get(route('riwayat.create', 'penelitian'))->assertSee($milikSendiri->judul)->assertDontSee($milikLain->judul);
+    $this->actingAs($user)->post(route('riwayat.store', 'penelitian'), isianRiwayat($this->dosen, ['luaran' => ["publikasi:{$milikLain->id}"]]))
+        ->assertSessionHasErrors(['riwayat' => 'Luaran yang ditautkan harus milik dosen yang tercantum pada tim.']);
+    $this->actingAs($user)->post(route('riwayat.store', 'penelitian'), isianRiwayat($this->dosen, ['luaran' => ["publikasi:{$milikSendiri->id}"]]))
+        ->assertSessionHasNoErrors();
+
+    $riwayat = RiwayatKegiatan::sole();
+    expect($riwayat->publikasi->pluck('id')->all())->toBe([$milikSendiri->id])
+        ->and($riwayat->karyaTertaut())->toHaveCount(1);
+    $this->actingAs($user)->get(route('riwayat.index', 'penelitian'))->assertSee($milikSendiri->judul);
+
+    $this->actingAs($user)->put(route('riwayat.update', ['penelitian', $riwayat]), isianRiwayat($this->dosen, ['luaran' => []]));
+    expect($riwayat->fresh()->publikasi)->toHaveCount(0);
+});
+
+test('a proposal picks its partner from the register or proposes a new one', function () {
+    $periode = PeriodeHibah::factory()->create(['skema_id' => SkemaHibah::factory()->pkm()]);
+    $proposal = Proposal::factory()->create(['periode_id' => $periode->id, 'ketua_id' => $this->dosen->id]);
+    $master = mitraMaster();
+    $user = $this->dosen->user;
+
+    $this->actingAs($user)->get(route('proposal.show', $proposal))->assertOk()->assertSee('Kelompok Tani Makmur');
+    $this->actingAs($user)->post(route('proposal.mitra.store', $proposal), ['mitra_id' => $master->id, 'jenis_mitra' => 'Kelompok masyarakat', 'dana_pendamping' => 500000])
+        ->assertSessionHasNoErrors();
+    $this->actingAs($user)->post(route('proposal.mitra.store', $proposal), ['mitra_id' => $master->id, 'jenis_mitra' => 'Kelompok masyarakat'])
+        ->assertSessionHasErrors('mitra_id');
+    $this->actingAs($user)->post(route('proposal.mitra.store', $proposal), ['jenis_mitra' => 'UMKM'])->assertSessionHasErrors(['nama_mitra', 'bidang']);
+    $this->actingAs($user)->post(route('proposal.mitra.store', $proposal), [
+        'nama_mitra' => 'UMKM Keripik Salak', 'bidang' => 'Olahan pangan', 'jenis_mitra' => 'UMKM', 'kontak' => '0813000222',
+    ])->assertSessionHasNoErrors();
+
+    $baru = Mitra::where('nama', 'UMKM Keripik Salak')->sole();
+    expect($baru->status)->toBe(Mitra::USULAN)
+        ->and($baru->diusulkan_oleh)->toBe($user->id)
+        ->and($proposal->mitra()->pluck('mitra_id')->all())->toBe([$master->id, $baru->id])
+        ->and($proposal->mitra()->first()->dana_pendamping)->toBe(500000);
+    $this->actingAs(pengguna(Role::ADMIN_LPPM))->get(route('mitra.index', ['status' => Mitra::USULAN]))->assertSee('UMKM Keripik Salak');
 });

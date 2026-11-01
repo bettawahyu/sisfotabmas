@@ -257,7 +257,7 @@
 
                 <x-kartu ikon="paperclip" judul="Berkas pendukung">
                     <div class="grid gap-4 sm:grid-cols-2">
-                        @foreach (['bukti' => [RiwayatKegiatan::BERKAS_BUKTI, 'SK, surat tugas, atau kontrak (PDF)'], 'laporan' => [RiwayatKegiatan::BERKAS_LAPORAN, 'Laporan akhir (PDF)']] as $nama => [$kategori, $label])
+                        @foreach (['bukti' => [RiwayatKegiatan::BERKAS_BUKTI, 'SK, surat tugas, atau kontrak (PDF)'], 'laporan' => [RiwayatKegiatan::BERKAS_LAPORAN, 'Laporan akhir (PDF, wajib bila kegiatan selesai)']] as $nama => [$kategori, $label])
                             <div>
                                 <x-input-label :for="$nama" :value="$label" ikon="file" />
                                 <input id="{{ $nama }}" name="{{ $nama }}" type="file" accept="application/pdf" class="mt-1 block w-full text-sm">
@@ -267,6 +267,28 @@
                             </div>
                         @endforeach
                     </div>
+                </x-kartu>
+
+                <x-kartu ikon="award" judul="Luaran terkait">
+                    <p class="mb-4 text-sm text-gray-600">
+                        Opsional. Tautkan publikasi, HKI, atau paten hasil kegiatan ini dari menu Publikasi &amp; KI dosen yang tercantum. Luaran tidak menggantikan laporan akhir.
+                        @if ($lppm && ! $riwayat->exists) Pilihan luaran muncul setelah data disimpan dan timnya tercatat. @endif
+                    </p>
+                    @php($adaKarya = collect($pilihanKarya)->flatten()->isNotEmpty())
+                    @if ($adaKarya)
+                        <div class="space-y-2 text-sm">
+                            @foreach ($pilihanKarya as $slug => $daftarKarya)
+                                @foreach ($daftarKarya as $k)
+                                    <label class="flex items-start gap-2">
+                                        <input type="checkbox" name="luaran[]" value="{{ $slug }}:{{ $k->id }}" @checked(in_array($slug.':'.$k->id, $luaranTerpilih, true)) class="mt-0.5 rounded border-gray-300">
+                                        <x-karya-tertaut :karya="$k" />
+                                    </label>
+                                @endforeach
+                            @endforeach
+                        </div>
+                    @elseif ($riwayat->exists || ! $lppm)
+                        <p class="text-sm text-gray-500">Belum ada publikasi, HKI, atau paten. Tambahkan dulu di <a href="{{ route('karya.publikasi.index') }}" class="text-indigo-700 hover:underline">Publikasi &amp; KI</a>.</p>
+                    @endif
                 </x-kartu>
 
                 <x-primary-button ikon="save">Simpan</x-primary-button>

@@ -32,6 +32,20 @@ class Berkas extends Model
 
     public const LAPORAN_AKHIR = 'laporan_akhir';
 
+    /** Community service evidence, on a final report or a record outside the grants. */
+    public const FOTO_DOKUMENTASI = 'foto_dokumentasi';
+
+    public const SURAT_KETERANGAN_MITRA = 'surat_keterangan_mitra';
+
+    /** How a report's files are named on screen. */
+    public const LABEL = [
+        'laporan_akhir' => 'Laporan akhir',
+        'laporan_keuangan' => 'Laporan keuangan',
+        'laporan_kemajuan' => 'Laporan kemajuan',
+        'foto_dokumentasi' => 'Foto dokumentasi',
+        'surat_keterangan_mitra' => 'Surat keterangan mitra',
+    ];
+
     protected $table = 'berkas';
 
     /**
@@ -40,5 +54,10 @@ class Berkas extends Model
     public function pemilik(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function namaKategori(): string
+    {
+        return self::LABEL[$this->kategori] ?? $this->kategori;
     }
 }

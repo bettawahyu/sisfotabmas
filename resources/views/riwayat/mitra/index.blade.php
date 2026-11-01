@@ -47,7 +47,7 @@
                                         {{ collect([$m->alamat, $m->kabupatenKota?->namaLengkap()])->filter()->join(', ') }}
                                         @if ($m->kontak) <p class="text-gray-500">{{ $m->kontak }}</p> @endif
                                     </td>
-                                    <td class="py-2 pe-4 text-end">{{ $m->riwayat_kegiatan_count }}</td>
+                                    <td class="py-2 pe-4 text-end">{{ $m->riwayat_kegiatan_count + $m->proposal_mitra_count }}</td>
                                     <td class="py-2 pe-4"><x-status-aktif :aktif="$m->is_active" /></td>
                                     <td class="py-2 text-end whitespace-nowrap">
                                         @if ($m->status === Mitra::USULAN)

@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\JenisKegiatan;
 use App\Enums\StatusProposal;
+use App\Models\Berkas;
 use App\Models\Laporan;
 use App\Models\Luaran;
 use App\Models\PencairanDana;
@@ -178,4 +180,39 @@ test('a next-year proposal needs a monev result that is not troubled', function 
     $lanjutan = Proposal::factory()->lengkap()->create(['ketua_id' => $induk->ketua_id, 'proposal_induk_id' => $induk->id, 'tahun_ke' => 2]);
 
     expect(kekurangan($lanjutan))->toContain('Hasil monev tahun sebelumnya Bermasalah, sehingga usulan tahun berikutnya tidak bisa dikirim.');
+});
+
+test('a community service final report carries documentation, the partner letter and an impact note', function () {
+    $proposal = proposalSudahDimonev();
+    $proposal->periode->skema->update(['jenis_kegiatan' => JenisKegiatan::Pkm]);
+    $ketua = $proposal->ketua->user;
+
+    $this->actingAs($ketua)->get(route('pelaksanaan.show', $proposal))->assertSee('Surat keterangan mitra')->assertSee('Catatan dampak bagi mitra');
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())
+        ->assertSessionHasErrors(['pelaksanaan' => 'Laporan akhir PkM wajib dilengkapi foto dokumentasi atau tautan video YouTube.']);
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir() + ['tautan_video' => 'https://youtu.be/xyz'])
+        ->assertSessionHasErrors(['pelaksanaan' => 'Laporan akhir PkM wajib dilengkapi surat keterangan mitra.']);
+    expect($proposal->laporan()->where('jenis', Laporan::AKHIR)->count())->toBe(0);
+
+    $this->actingAs($ketua)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir() + [
+        'foto' => [UploadedFile::fake()->create('pelatihan.jpg', 200, 'image/jpeg')],
+        'surat_mitra' => UploadedFile::fake()->create('surat-mitra.pdf', 50, 'application/pdf'),
+        'catatan_dampak' => 'Omzet kelompok naik setelah pelatihan pemasaran daring.',
+        'tautan_media' => 'https://koran.example/berita',
+    ])->assertSessionHasNoErrors();
+
+    $laporan = app(AlurPelaksanaan::class)->laporanAkhir($proposal);
+    expect($laporan->catatan_dampak)->toBe('Omzet kelompok naik setelah pelatihan pemasaran daring.')
+        ->and($laporan->berkas->pluck('kategori')->sort()->values()->all())
+        ->toBe([Berkas::FOTO_DOKUMENTASI, Berkas::LAPORAN_AKHIR, Berkas::LAPORAN_KEUANGAN, Berkas::SURAT_KETERANGAN_MITRA]);
+    $this->actingAs(pengguna(Role::OPERATOR))->get(route('verifikasi.index'))->assertOk()
+        ->assertSee('Omzet kelompok naik')->assertSee('Surat keterangan mitra')->assertSee('https://koran.example/berita');
+});
+
+test('a research final report needs no community service fields', function () {
+    $proposal = proposalSudahDimonev();
+
+    $this->actingAs($proposal->ketua->user)->get(route('pelaksanaan.show', $proposal))->assertDontSee('Surat keterangan mitra');
+    $this->actingAs($proposal->ketua->user)->post(route('pelaksanaan.laporan-akhir.store', $proposal), isianLaporanAkhir())->assertSessionHasNoErrors();
+    expect(app(AlurPelaksanaan::class)->laporanAkhir($proposal)->catatan_dampak)->toBeNull();
 });

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A community service or research partner. LPPM keeps the register; a partner
@@ -65,6 +66,39 @@ class Mitra extends Model
     public function riwayatKegiatan(): BelongsToMany
     {
         return $this->belongsToMany(RiwayatKegiatan::class, 'riwayat_kegiatan_mitra');
+    }
+
+    /**
+     * @return HasMany<ProposalMitra, $this>
+     */
+    public function proposalMitra(): HasMany
+    {
+        return $this->hasMany(ProposalMitra::class);
+    }
+
+    /**
+     * A partner typed in a form. The same name already open to the user is
+     * reused; otherwise LPPM's go straight into the register and a lecturer's
+     * wait for LPPM but can be used at once.
+     *
+     * @param  array{nama: string, bidang?: string|null, alamat?: string|null, kontak?: string|null, kabupaten_kota_kode?: string|null}  $data
+     */
+    public static function usulkan(array $data, User $oleh, bool $langsungMaster): self
+    {
+        $ada = self::bisaDipilih($oleh)->whereRaw('lower(trim(nama)) = ?', [mb_strtolower(trim($data['nama']))])->first();
+        if ($ada !== null) {
+            return $ada;
+        }
+
+        $mitra = new self($data);
+        $mitra->forceFill([
+            'status' => $langsungMaster ? self::MASTER : self::USULAN,
+            'diusulkan_oleh' => $oleh->id,
+            'diverifikasi_oleh' => $langsungMaster ? $oleh->id : null,
+            'diverifikasi_at' => $langsungMaster ? now() : null,
+        ])->save();
+
+        return $mitra;
     }
 
     /**

@@ -47,7 +47,7 @@ class RiwayatDosenController extends Controller
             ->when($filter['cari'] ?? null, fn (Builder $q, $cari) => $q->where(fn (Builder $w) => $w->where('judul', 'like', "%{$cari}%")
                 ->orWhereHas('anggota', fn (Builder $a) => $a->where('nama', 'like', "%{$cari}%"))))
             ->when($filter['prodi_id'] ?? null, fn (Builder $q, $prodi) => $q->whereHas('anggota.dosen', fn (Builder $d) => $d->where('prodi_id', $prodi)))
-            ->with(['anggota', 'mitra', 'kabupatenKota.provinsi', 'berkas', 'penginput', 'verifikatorLppm'])
+            ->with(['anggota', 'mitra', 'kabupatenKota.provinsi', 'berkas', 'penginput', 'verifikatorLppm', 'publikasi', 'hki', 'paten'])
             ->orderByDesc('tahun_mulai')->latest('updated_at')
             ->paginate(25)->withQueryString();
 

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 /**
  * Research or community service a lecturer did outside the LPPM grant cycle:
@@ -66,9 +67,9 @@ class RiwayatKegiatan extends Model
 
     public const BERKAS_LAPORAN = 'laporan_kegiatan';
 
-    public const BERKAS_SURAT_MITRA = 'surat_keterangan_mitra';
+    public const BERKAS_SURAT_MITRA = Berkas::SURAT_KETERANGAN_MITRA;
 
-    public const BERKAS_FOTO = 'foto_dokumentasi';
+    public const BERKAS_FOTO = Berkas::FOTO_DOKUMENTASI;
 
     protected $table = 'riwayat_kegiatan';
 
@@ -99,6 +100,40 @@ class RiwayatKegiatan extends Model
     public function mitra(): BelongsToMany
     {
         return $this->belongsToMany(Mitra::class, 'riwayat_kegiatan_mitra')->orderBy('nama');
+    }
+
+    /**
+     * Outputs the record is reported with, from the lecturers' Publikasi & KI.
+     *
+     * @return BelongsToMany<Publikasi, $this>
+     */
+    public function publikasi(): BelongsToMany
+    {
+        return $this->belongsToMany(Publikasi::class, 'riwayat_kegiatan_luaran', 'riwayat_kegiatan_id', 'karya_id')->withPivotValue('jenis_karya', 'publikasi');
+    }
+
+    /**
+     * @return BelongsToMany<Hki, $this>
+     */
+    public function hki(): BelongsToMany
+    {
+        return $this->belongsToMany(Hki::class, 'riwayat_kegiatan_luaran', 'riwayat_kegiatan_id', 'karya_id')->withPivotValue('jenis_karya', 'hki');
+    }
+
+    /**
+     * @return BelongsToMany<Paten, $this>
+     */
+    public function paten(): BelongsToMany
+    {
+        return $this->belongsToMany(Paten::class, 'riwayat_kegiatan_luaran', 'riwayat_kegiatan_id', 'karya_id')->withPivotValue('jenis_karya', 'paten');
+    }
+
+    /**
+     * @return Collection<int, Publikasi|Hki|Paten>
+     */
+    public function karyaTertaut(): Collection
+    {
+        return collect([...$this->publikasi, ...$this->hki, ...$this->paten]);
     }
 
     /**

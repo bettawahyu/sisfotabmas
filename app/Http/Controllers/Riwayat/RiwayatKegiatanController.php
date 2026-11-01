@@ -11,6 +11,7 @@ use App\Models\Dosen;
 use App\Models\KabupatenKota;
 use App\Models\Mitra;
 use App\Models\RiwayatKegiatan;
+use App\Services\AlurKarya;
 use App\Services\AlurRiwayat;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -53,11 +54,11 @@ class RiwayatKegiatanController extends Controller
     public function store(Request $request, string $jenis, AlurRiwayat $alur): RedirectResponse
     {
         $this->pastikanBolehInput($request);
-        [$data, $anggota, $mitra, $berkas] = $this->validasi($request, $jenis);
+        [$data, $anggota, $mitra, $berkas, $luaran] = $this->validasi($request, $jenis);
         if ($ganda = $this->periksaGanda($request, $alur, $data, null)) {
             return $ganda;
         }
-        $alur->simpan(new RiwayatKegiatan, $data, $anggota, $mitra, $berkas, $request->user());
+        $alur->simpan(new RiwayatKegiatan, $data, $anggota, $mitra, $berkas, $request->user(), $luaran);
 
         return $this->kembali($request, $jenis, 'Data tersimpan.');
     }
@@ -66,17 +67,17 @@ class RiwayatKegiatanController extends Controller
     {
         $this->temukan($request, $jenis, $riwayat);
 
-        return $this->form($request, $jenis, $riwayat->load(['anggota', 'mitra', 'berkas', 'kabupatenKota']));
+        return $this->form($request, $jenis, $riwayat->load(['anggota', 'mitra', 'berkas', 'kabupatenKota', 'publikasi', 'hki', 'paten']));
     }
 
     public function update(Request $request, string $jenis, RiwayatKegiatan $riwayat, AlurRiwayat $alur): RedirectResponse
     {
         $this->temukan($request, $jenis, $riwayat);
-        [$data, $anggota, $mitra, $berkas] = $this->validasi($request, $jenis);
+        [$data, $anggota, $mitra, $berkas, $luaran] = $this->validasi($request, $jenis);
         if ($ganda = $this->periksaGanda($request, $alur, $data, $riwayat->id)) {
             return $ganda;
         }
-        $alur->simpan($riwayat, $data, $anggota, $mitra, $berkas, $request->user());
+        $alur->simpan($riwayat, $data, $anggota, $mitra, $berkas, $request->user(), $luaran);
 
         return $this->kembali($request, $jenis, 'Perubahan tersimpan.');
     }
@@ -121,6 +122,9 @@ class RiwayatKegiatanController extends Controller
             : [['tipe' => TipeAnggota::Dosen->value, 'dosen_id' => $lppm ? null : $user->dosen?->id, 'nama' => null, 'keterangan' => null, 'peran' => RiwayatKegiatan::KETUA]];
 
         $terpilih = $riwayat->exists ? $riwayat->mitra->pluck('id')->all() : [];
+        // Outputs to link come from the team's lecturers; a new record by LPPM offers them once saved.
+        $dosenTim = $riwayat->exists ? $riwayat->anggota->pluck('dosen_id')->filter()->values()->all() : array_filter([$user->dosen?->id]);
+        $luaranTerpilih = old('luaran', $riwayat->exists ? $riwayat->karyaTertaut()->map(fn ($k) => AlurKarya::slug($k).':'.$k->id)->all() : []);
 
         return view('riwayat.form', [
             'jenis' => $jenis,
@@ -132,11 +136,13 @@ class RiwayatKegiatanController extends Controller
             'wilayah' => KabupatenKota::pilihan(),
             'mitra' => Mitra::bisaDipilih($user, $terpilih)->orderBy('nama')->get(['id', 'nama', 'bidang', 'status']),
             'mitraTerpilih' => array_map('intval', old('mitra', $terpilih)),
+            'pilihanKarya' => AlurRiwayat::pilihanKarya(array_values($dosenTim), $riwayat),
+            'luaranTerpilih' => $luaranTerpilih,
         ]);
     }
 
     /**
-     * @return array{array<string, mixed>, list<array<string, mixed>>, list<int>, array<string, mixed>}
+     * @return array{array<string, mixed>, list<array<string, mixed>>, list<int>, array<string, mixed>, list<string>}
      */
     private function validasi(Request $request, string $jenis): array
     {
@@ -168,6 +174,8 @@ class RiwayatKegiatanController extends Controller
             'ketua' => ['required', 'integer'],
             'mitra' => ['nullable', 'array', 'max:20'],
             'mitra.*' => ['integer'],
+            'luaran' => ['nullable', 'array', 'max:50'],
+            'luaran.*' => ['string', 'regex:/^(publikasi|hki|paten):\d+$/'],
 
             'bukti' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
             'laporan' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
@@ -205,7 +213,7 @@ class RiwayatKegiatanController extends Controller
             'hapus_foto' => array_map('intval', $data['hapus_foto'] ?? []),
         ];
 
-        return [$isian, $anggota, array_map('intval', $data['mitra'] ?? []), $berkas];
+        return [$isian, $anggota, array_map('intval', $data['mitra'] ?? []), $berkas, array_values($data['luaran'] ?? [])];
     }
 
     /**

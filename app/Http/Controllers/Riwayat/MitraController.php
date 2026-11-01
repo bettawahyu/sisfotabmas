@@ -33,7 +33,7 @@ class MitraController extends Controller
             'mitra' => Mitra::where('status', $filter['status'])
                 ->when($filter['cari'] ?? null, fn ($q, $cari) => $q->where('nama', 'like', "%{$cari}%"))
                 ->with(['kabupatenKota.provinsi', 'pengusul'])
-                ->withCount('riwayatKegiatan')
+                ->withCount(['riwayatKegiatan', 'proposalMitra'])
                 ->orderBy('nama')->paginate(25)->withQueryString(),
         ]);
     }
@@ -89,24 +89,10 @@ class MitraController extends Controller
     public function usulan(Request $request): JsonResponse
     {
         abort_unless(AlurRiwayat::petugasLppm($request->user()) || $request->user()->dosen !== null, 403);
-        $lppm = AlurRiwayat::petugasLppm($request->user());
 
-        $data = $this->validasi($request);
-        // The same name typed again picks the partner already there.
-        $ada = Mitra::bisaDipilih($request->user())->whereRaw('lower(trim(nama)) = ?', [mb_strtolower(trim($data['nama']))])->first();
-        if ($ada !== null) {
-            return response()->json(['id' => $ada->id, 'nama' => $ada->nama, 'bidang' => $ada->bidang, 'status' => $ada->status]);
-        }
+        $mitra = Mitra::usulkan($this->validasi($request), $request->user(), AlurRiwayat::petugasLppm($request->user()));
 
-        $mitra = new Mitra($data);
-        $mitra->forceFill([
-            'status' => $lppm ? Mitra::MASTER : Mitra::USULAN,
-            'diusulkan_oleh' => $request->user()->id,
-            'diverifikasi_oleh' => $lppm ? $request->user()->id : null,
-            'diverifikasi_at' => $lppm ? now() : null,
-        ])->save();
-
-        return response()->json(['id' => $mitra->id, 'nama' => $mitra->nama, 'bidang' => $mitra->bidang, 'status' => $mitra->status], 201);
+        return response()->json(['id' => $mitra->id, 'nama' => $mitra->nama, 'bidang' => $mitra->bidang, 'status' => $mitra->status], $mitra->wasRecentlyCreated ? 201 : 200);
     }
 
     private function form(Mitra $mitra): View

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\JenisKegiatan;
 use App\Enums\StatusProposal;
 use App\Enums\TipeAnggota;
 use App\Models\Berkas;
@@ -187,9 +188,13 @@ class AlurPelaksanaan
      * After the monev result is out, the lead sends the final report with the
      * full spending report. A returned report is replaced by a new one.
      *
+     * A community service report also carries photos or a video, the
+     * partner's statement and a note on the impact; press links are optional.
+     *
      * @param  array{ringkasan: string, persentase_capaian: int|string}  $data
+     * @param  array{catatan_dampak?: ?string, tautan_video?: ?string, tautan_media?: ?string, foto?: list<UploadedFile>, surat_mitra?: ?UploadedFile}  $pkm
      */
-    public function kirimLaporanAkhir(Proposal $proposal, array $data, UploadedFile $laporan, UploadedFile $keuangan, User $oleh): Laporan
+    public function kirimLaporanAkhir(Proposal $proposal, array $data, UploadedFile $laporan, UploadedFile $keuangan, User $oleh, array $pkm = []): Laporan
     {
         $this->pastikan($proposal->isKetua($oleh->dosen), 'Laporan akhir dikirim oleh ketua.');
         $this->pastikan($proposal->status === StatusProposal::Dimonev, 'Laporan akhir dikirim setelah laporan kemajuan.');
@@ -197,17 +202,33 @@ class AlurPelaksanaan
         $terakhir = $this->laporanAkhir($proposal);
         $this->pastikan($terakhir === null || $terakhir->status === Laporan::DIKEMBALIKAN, 'Laporan akhir sudah dikirim.');
 
-        $hasil = DB::transaction(function () use ($proposal, $data, $laporan, $keuangan, $oleh) {
+        $isPkm = $proposal->periode->skema->jenis_kegiatan === JenisKegiatan::Pkm;
+        if ($isPkm) {
+            $this->pastikan(! empty($pkm['foto']) || filled($pkm['tautan_video'] ?? null), 'Laporan akhir PkM wajib dilengkapi foto dokumentasi atau tautan video YouTube.');
+            $this->pastikan(! empty($pkm['surat_mitra']), 'Laporan akhir PkM wajib dilengkapi surat keterangan mitra.');
+            $this->pastikan(filled($pkm['catatan_dampak'] ?? null), 'Laporan akhir PkM wajib diisi catatan dampak bagi mitra.');
+        }
+
+        $hasil = DB::transaction(function () use ($proposal, $data, $laporan, $keuangan, $oleh, $isPkm, $pkm) {
             $hasil = $proposal->laporan()->create([
                 'jenis' => Laporan::AKHIR,
                 'ringkasan' => $data['ringkasan'],
                 'persentase_capaian' => (int) $data['persentase_capaian'],
                 'persentase_anggaran_terpakai' => 100,
+                'catatan_dampak' => $isPkm ? $pkm['catatan_dampak'] : null,
+                'tautan_video' => $isPkm ? ($pkm['tautan_video'] ?? null) : null,
+                'tautan_media' => $isPkm ? ($pkm['tautan_media'] ?? null) : null,
                 'status' => Laporan::DIAJUKAN,
                 'diajukan_at' => now(),
             ]);
             $this->simpanBerkas($hasil, Berkas::LAPORAN_AKHIR, $laporan, "laporan/{$proposal->id}", $oleh);
             $this->simpanBerkas($hasil, Berkas::LAPORAN_KEUANGAN, $keuangan, "laporan/{$proposal->id}", $oleh);
+            if ($isPkm) {
+                $this->simpanBerkas($hasil, Berkas::SURAT_KETERANGAN_MITRA, $pkm['surat_mitra'], "laporan/{$proposal->id}", $oleh);
+                foreach ($pkm['foto'] ?? [] as $foto) {
+                    $this->simpanBerkas($hasil, Berkas::FOTO_DOKUMENTASI, $foto, "laporan/{$proposal->id}", $oleh);
+                }
+            }
 
             return $hasil;
         });

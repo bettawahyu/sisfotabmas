@@ -7,8 +7,11 @@ use App\Enums\StatusProposal;
 use App\Enums\TipeAnggota;
 use App\Models\Berkas;
 use App\Models\Dosen;
+use App\Models\Hki;
 use App\Models\Mitra;
+use App\Models\Paten;
 use App\Models\Proposal;
+use App\Models\Publikasi;
 use App\Models\RiwayatKegiatan;
 use App\Models\Role;
 use App\Models\User;
@@ -82,8 +85,9 @@ class AlurRiwayat
      * @param  list<array<string, mixed>>  $anggota
      * @param  list<int>  $mitra
      * @param  array{bukti?: ?UploadedFile, laporan?: ?UploadedFile, surat_mitra?: ?UploadedFile, foto?: list<UploadedFile>, hapus_foto?: list<int>}  $berkas
+     * @param  list<string>  $luaran  "publikasi:12", "hki:3" and the like
      */
-    public function simpan(RiwayatKegiatan $riwayat, array $data, array $anggota, array $mitra, array $berkas, User $oleh): RiwayatKegiatan
+    public function simpan(RiwayatKegiatan $riwayat, array $data, array $anggota, array $mitra, array $berkas, User $oleh, array $luaran = []): RiwayatKegiatan
     {
         $lppm = self::petugasLppm($oleh);
         $this->pastikan($lppm || $oleh->dosen !== null, 'Lengkapi profil dosen terlebih dahulu.');
@@ -105,11 +109,17 @@ class AlurRiwayat
             ->whereIn('id', $mitra)->pluck('id');
         $this->pastikan($mitraSah->count() === count(array_unique($mitra)), 'Mitra yang dipilih tidak tersedia.');
 
-        if ($jenis === JenisKegiatan::Pkm && $data['status_kegiatan'] === RiwayatKegiatan::SELESAI) {
-            $this->syaratPkmSelesai($riwayat, $data, $berkas);
+        if ($data['status_kegiatan'] === RiwayatKegiatan::SELESAI) {
+            // A finished activity always has a final report, grant or not.
+            $this->pastikan(! empty($berkas['laporan']) || ($riwayat->exists && $riwayat->berkas()->where('kategori', RiwayatKegiatan::BERKAS_LAPORAN)->exists()),
+                'Kegiatan yang sudah selesai wajib dilengkapi laporan akhir.');
+            if ($jenis === JenisKegiatan::Pkm) {
+                $this->syaratPkmSelesai($riwayat, $data, $berkas);
+            }
         }
+        $karya = $this->karyaSah($luaran, $dosenTim->all(), $riwayat);
 
-        $riwayat = DB::transaction(function () use ($riwayat, $data, $baris, $mitraSah, $berkas, $oleh, $lppm) {
+        $riwayat = DB::transaction(function () use ($riwayat, $data, $baris, $mitraSah, $karya, $berkas, $oleh, $lppm) {
             $riwayat->fill($data);
             if (! $riwayat->exists) {
                 $riwayat->diinput_oleh = $oleh->id;
@@ -125,9 +135,13 @@ class AlurRiwayat
                 $riwayat->anggota()->create($b + ['urutan' => $i + 1]);
             }
             $riwayat->mitra()->sync($mitraSah->all());
+            foreach ($karya as $slug => $id) {
+                $riwayat->{$slug}()->sync($id);
+            }
             $this->simpanBerkas($riwayat, $berkas, $oleh);
 
-            return $riwayat->unsetRelation('anggota')->unsetRelation('mitra');
+            return $riwayat->unsetRelation('anggota')->unsetRelation('mitra')
+                ->unsetRelation('publikasi')->unsetRelation('hki')->unsetRelation('paten');
         });
 
         if (! $lppm) {
@@ -216,7 +230,7 @@ class AlurRiwayat
     public function milikDosen(Dosen $dosen, JenisKegiatan $jenis): array
     {
         $riwayat = RiwayatKegiatan::jenis($jenis)->milikDosen($dosen)
-            ->with(['anggota', 'mitra', 'kabupatenKota.provinsi', 'berkas'])
+            ->with(['anggota', 'mitra', 'kabupatenKota.provinsi', 'berkas', 'publikasi', 'hki', 'paten'])
             ->orderByDesc('tahun_mulai')->latest('updated_at')->get();
 
         $hibah = Proposal::timDosen($dosen)
@@ -231,6 +245,48 @@ class AlurRiwayat
             'selesai' => $hibah->where('status', StatusProposal::Selesai)
                 ->concat($riwayat->where('status_kegiatan', RiwayatKegiatan::SELESAI))->values(),
         ];
+    }
+
+    /**
+     * Publications, HKI and patents a form may offer: those with a listed
+     * lecturer among their authors, plus the ones already linked.
+     *
+     * @param  list<int>  $dosen
+     * @return array<string, \Illuminate\Database\Eloquent\Collection<int, Publikasi|Hki|Paten>>
+     */
+    public static function pilihanKarya(array $dosen, ?RiwayatKegiatan $riwayat = null): array
+    {
+        $pilihan = [];
+        foreach (AlurKarya::JENIS as $slug => $model) {
+            $tertaut = $riwayat?->exists ? $riwayat->{$slug}()->pluck($model::make()->getTable().'.id')->all() : [];
+            $pilihan[$slug] = $model::query()
+                ->where(fn (Builder $q) => $q->whereHas('kontributor', fn (Builder $k) => $k->whereIn('dosen_id', $dosen ?: [0]))
+                    ->orWhereIn('id', $tertaut ?: [0]))
+                ->orderByDesc('updated_at')->get();
+        }
+
+        return $pilihan;
+    }
+
+    /**
+     * The chosen outputs by kind, each one checked against what the team may link.
+     *
+     * @param  list<string>  $luaran
+     * @param  list<int>  $dosen
+     * @return array<string, list<int>>
+     */
+    private function karyaSah(array $luaran, array $dosen, RiwayatKegiatan $riwayat): array
+    {
+        $pilihan = self::pilihanKarya($dosen, $riwayat);
+        $sah = array_fill_keys(array_keys(AlurKarya::JENIS), []);
+        foreach (array_unique($luaran) as $kunci) {
+            [$slug, $id] = array_pad(explode(':', $kunci, 2), 2, null);
+            $this->pastikan(isset($pilihan[$slug]) && $pilihan[$slug]->contains('id', (int) $id),
+                'Luaran yang ditautkan harus milik dosen yang tercantum pada tim.');
+            $sah[$slug][] = (int) $id;
+        }
+
+        return $sah;
     }
 
     public static function normalkan(string $judul): string
