@@ -23,6 +23,7 @@
             ['Pengumuman', 'pengumuman.index', ['pengumuman.*'], 'volume-2'],
             ['Notifikasi', 'notifikasi.index', ['notifikasi.*'], 'bell'],
             $pengguna->can('lihat-data-dosen') ? ['Data Dosen', 'data-dosen.index', ['data-dosen.*'], 'users'] : null,
+            $pengguna->can('lihat-rekap-riwayat') ? ['Rekap Penelitian & PkM', ['rekap-riwayat.index', 'penelitian'], ['rekap-riwayat.*'], 'pie-chart'] : null,
             $pengguna->can('unduh-data') ? ['Unduh Data', 'unduh-data.index', ['unduh-data.*'], 'download'] : null,
         ],
         'Dosen' => ! $pengguna->hasRole(Role::DOSEN) ? [] : array_values(array_filter([
