@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Riwayat\MitraController;
+use App\Http\Controllers\Riwayat\RekapRiwayatController;
 use App\Http\Controllers\Riwayat\RiwayatDosenController;
 use App\Http\Controllers\Riwayat\RiwayatKegiatanController;
 use App\Models\Role;
@@ -43,3 +44,7 @@ Route::middleware(['auth', 'verified', 'role:'.Role::ADMIN_LPPM.','.Role::OPERAT
     Route::resource('mitra', MitraController::class)->except(['show', 'destroy'])->parameters(['mitra' => 'mitra']);
     Route::post('/mitra/{mitra}/verifikasi', [MitraController::class, 'verifikasi'])->name('mitra.verifikasi');
 });
+
+// The summary: everyone's for LPPM, operators and the heads; a unit head's own unit.
+Route::middleware(['auth', 'verified', 'can:lihat-rekap-riwayat'])->get('/rekap-riwayat/{jenis}', [RekapRiwayatController::class, 'index'])
+    ->whereIn('jenis', $jenis)->name('rekap-riwayat.index');
