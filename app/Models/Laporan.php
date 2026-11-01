@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 /**
  * A progress, spending or final report.
  */
-#[Fillable(['jenis', 'ringkasan', 'persentase_capaian', 'persentase_anggaran_terpakai', 'status', 'diajukan_at', 'diverifikasi_oleh', 'diverifikasi_at', 'catatan_verifikasi'])]
+#[Fillable(['jenis', 'ringkasan', 'persentase_capaian', 'persentase_anggaran_terpakai', 'catatan_dampak', 'tautan_video', 'tautan_media', 'status', 'diajukan_at', 'diverifikasi_oleh', 'diverifikasi_at', 'catatan_verifikasi'])]
 class Laporan extends Model
 {
     /** @use HasFactory<LaporanFactory> */
@@ -76,5 +76,15 @@ class Laporan extends Model
     public function berkas(): MorphMany
     {
         return $this->morphMany(Berkas::class, 'pemilik');
+    }
+
+    /**
+     * Press coverage of a community service, one link per line.
+     *
+     * @return list<string>
+     */
+    public function daftarTautanMedia(): array
+    {
+        return array_values(array_filter(array_map('trim', preg_split('/\R/', (string) $this->tautan_media))));
     }
 }

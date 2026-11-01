@@ -5,6 +5,7 @@
     use App\Models\Luaran;
 
     $periode = $proposal->periode;
+    $isPkm = $periode->skema->jenis_kegiatan === \App\Enums\JenisKegiatan::Pkm;
     $bisaLaporLuaran = $isKetua && in_array($proposal->status, [StatusProposal::Berjalan, StatusProposal::Dimonev], true);
 @endphp
 <x-app-layout>
@@ -84,9 +85,10 @@
                             <div><dt class="text-gray-500">Status</dt><dd class="font-medium">{{ $laporanAkhir->status === Laporan::DIVERIFIKASI ? 'Diverifikasi '.$laporanAkhir->diverifikasi_at->translatedFormat('j M Y') : 'Menunggu verifikasi operator' }}</dd></div>
                             <div class="sm:col-span-3"><dt class="text-gray-500">Ringkasan</dt><dd class="whitespace-pre-line">{{ $laporanAkhir->ringkasan }}</dd></div>
                         </dl>
+                        @include('pelaksanaan.partials.dampak-pkm', ['laporan' => $laporanAkhir])
                         <ul class="mt-4 space-y-1 text-sm">
                             @foreach ($laporanAkhir->berkas as $berkas)
-                                <li><a class="text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : 'Laporan akhir' }}</a> <span class="text-gray-500">· {{ $berkas->nama_asli }}</span></li>
+                                <li><a class="text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : $berkas->namaKategori() }}</a> <span class="text-gray-500">· {{ $berkas->nama_asli }}</span></li>
                             @endforeach
                         </ul>
                     @else
@@ -105,6 +107,20 @@
                                 <div></div>
                                 <div><x-input-label for="laporan_akhir" value="Laporan akhir (PDF)" ikon="paperclip" /><input id="laporan_akhir" name="laporan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
                                 <div><x-input-label for="keuangan_akhir" value="Laporan keuangan 100% (PDF)" ikon="paperclip" /><input id="keuangan_akhir" name="keuangan" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required></div>
+                                @if ($isPkm)
+                                    <p class="sm:col-span-2 mt-2 text-sm text-gray-600">Khusus PkM: wajib foto dokumentasi atau tautan video YouTube, surat keterangan mitra, dan catatan dampak. Publikasi media massa opsional.</p>
+                                    <div><x-input-label for="foto_akhir" value="Foto dokumentasi (JPG/PNG, maks. 5 MB per foto)" ikon="image" /><input id="foto_akhir" name="foto[]" type="file" multiple accept="image/jpeg,image/png,image/webp" class="mt-1 block w-full text-sm"></div>
+                                    <div><x-input-label for="video_akhir" value="Tautan video YouTube" ikon="youtube" /><x-text-input id="video_akhir" name="tautan_video" type="url" class="mt-1 block w-full" :value="old('tautan_video')" placeholder="https://youtu.be/..." /></div>
+                                    <div class="sm:col-span-2"><x-input-label for="surat_mitra_akhir" value="Surat keterangan mitra (PDF atau gambar)" ikon="file" /><input id="surat_mitra_akhir" name="surat_mitra" type="file" accept="application/pdf,image/jpeg,image/png" class="mt-1 block w-full text-sm" required></div>
+                                    <div class="sm:col-span-2">
+                                        <x-input-label for="dampak_akhir" value="Catatan dampak bagi mitra" ikon="trending-up" />
+                                        <textarea id="dampak_akhir" name="catatan_dampak" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Kondisi mitra sebelum dan sesudah kegiatan" required>{{ old('catatan_dampak') }}</textarea>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <x-input-label for="media_akhir" value="Publikasi media massa (opsional, satu tautan per baris)" ikon="link" />
+                                        <textarea id="media_akhir" name="tautan_media" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('tautan_media') }}</textarea>
+                                    </div>
+                                @endif
                                 <div class="sm:col-span-2"><x-primary-button ikon="send">Kirim laporan akhir</x-primary-button></div>
                             </form>
                         @else

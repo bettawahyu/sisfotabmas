@@ -27,6 +27,9 @@
             <a href="{{ $tautan }}" class="block text-indigo-700 underline break-all" target="_blank" rel="noopener noreferrer">{{ $tautan }}</a>
         @endforeach
     @endif
+    @foreach ($r->karyaTertaut() as $karya)
+        <x-karya-tertaut :karya="$karya" />
+    @endforeach
     @if ($r->berkas->isNotEmpty())
         <p class="flex flex-wrap gap-x-4 gap-y-1">
             @foreach ($r->berkas as $b)

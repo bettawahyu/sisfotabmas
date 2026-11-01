@@ -267,18 +267,30 @@
                         <p class="text-sm text-gray-600">Belum ada mitra.</p>
                     @endforelse
                     @if ($bisaDiubah)
-                        <form method="POST" action="{{ route('proposal.mitra.store', $proposal) }}" class="mt-6 grid gap-3 sm:grid-cols-3">
+                        <form method="POST" action="{{ route('proposal.mitra.store', $proposal) }}" class="mt-6 grid gap-3 sm:grid-cols-3" x-data="{ mitra: @js((string) old('mitra_id', '')) }">
                             @csrf
-                            <x-text-input name="nama_mitra" placeholder="Nama mitra" required />
-                            <x-select-input name="jenis_mitra" required>
+                            <x-select-input name="mitra_id" x-model="mitra" class="sm:col-span-2" aria-label="Mitra">
+                                <option value="">Mitra baru (belum ada di daftar)</option>
+                                @foreach ($pilihanMitra as $m)
+                                    <option value="{{ $m->id }}">{{ $m->nama }}{{ $m->bidang ? ' ('.$m->bidang.')' : '' }}{{ $m->status === \App\Models\Mitra::USULAN ? ' · usulan' : '' }}</option>
+                                @endforeach
+                            </x-select-input>
+                            <x-select-input name="jenis_mitra" required aria-label="Jenis mitra">
                                 @foreach (['Kelompok masyarakat', 'UMKM', 'Sekolah', 'Pemerintah daerah', 'Industri'] as $jenis)
                                     <option>{{ $jenis }}</option>
                                 @endforeach
                             </x-select-input>
-                            <x-text-input name="alamat" placeholder="Alamat" />
-                            <x-text-input name="kontak" placeholder="Kontak" />
+                            <template x-if="! mitra">
+                                <div class="contents">
+                                    <x-text-input name="nama_mitra" placeholder="Nama mitra" :value="old('nama_mitra')" />
+                                    <x-text-input name="bidang" placeholder="Bergerak di bidang" :value="old('bidang')" />
+                                    <x-text-input name="alamat" placeholder="Alamat" :value="old('alamat')" />
+                                    <x-text-input name="kontak" placeholder="Telepon atau email" :value="old('kontak')" />
+                                </div>
+                            </template>
                             <x-text-input name="dana_pendamping" type="number" min="0" placeholder="Dana pendamping (Rp)" />
                             <div><x-secondary-button type="submit" ikon="plus">Tambah mitra</x-secondary-button></div>
+                            <p class="sm:col-span-3 text-xs text-gray-500">Pilih dari data master mitra LPPM. Bila belum ada, isi data mitra baru; mitra itu langsung tercantum di proposal ini dan diusulkan ke LPPM untuk masuk data master.</p>
                         </form>
                     @endif
                 </x-kartu>

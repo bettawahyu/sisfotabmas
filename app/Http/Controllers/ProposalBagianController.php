@@ -9,6 +9,7 @@ use App\Models\Berkas;
 use App\Models\Dosen;
 use App\Models\JenisLuaran;
 use App\Models\Luaran;
+use App\Models\Mitra;
 use App\Models\Proposal;
 use App\Models\ProposalAnggota;
 use App\Models\ProposalMitra;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -76,20 +78,47 @@ class ProposalBagianController extends Controller
         return back()->with('status', 'Anggota dihapus.');
     }
 
+    /**
+     * A partner from LPPM's register, or a new one that is proposed to LPPM
+     * and used on this proposal at once.
+     */
     public function tambahMitra(Request $request, Proposal $proposal): RedirectResponse
     {
         Gate::authorize('update', $proposal);
         abort_unless($proposal->periode->skema->jenis_kegiatan === JenisKegiatan::Pkm, 404);
 
-        $proposal->mitra()->create($request->validate([
-            'nama_mitra' => ['required', 'string', 'max:255'],
+        $data = $request->validate([
+            'mitra_id' => ['nullable', 'integer'],
+            'nama_mitra' => ['required_without:mitra_id', 'nullable', 'string', 'max:255'],
+            'bidang' => ['required_without:mitra_id', 'nullable', 'string', 'max:255'],
             'jenis_mitra' => ['required', 'string', 'max:40'],
             'alamat' => ['nullable', 'string', 'max:255'],
             'kontak' => ['nullable', 'string', 'max:255'],
             'dana_pendamping' => ['nullable', 'integer', 'min:0'],
-        ]));
+        ], [], ['nama_mitra' => 'nama mitra', 'bidang' => 'bidang mitra']);
 
-        return back()->with('status', 'Mitra ditambahkan.');
+        if (filled($data['mitra_id'] ?? null)) {
+            $mitra = Mitra::bisaDipilih($request->user())->findOrFail($data['mitra_id']);
+        } else {
+            $mitra = Mitra::usulkan(['nama' => $data['nama_mitra'], 'bidang' => $data['bidang'], 'alamat' => $data['alamat'] ?? null,
+                'kontak' => $data['kontak'] ?? null], $request->user(), false);
+        }
+        if ($proposal->mitra()->where('mitra_id', $mitra->id)->exists()) {
+            throw ValidationException::withMessages(['mitra_id' => "{$mitra->nama} sudah tercantum sebagai mitra."]);
+        }
+
+        $proposal->mitra()->create([
+            'mitra_id' => $mitra->id,
+            'nama_mitra' => $mitra->nama,
+            'jenis_mitra' => $data['jenis_mitra'],
+            'alamat' => $mitra->alamat,
+            'kontak' => $mitra->kontak,
+            'dana_pendamping' => $data['dana_pendamping'] ?? 0,
+        ]);
+
+        return back()->with('status', $mitra->status === Mitra::USULAN
+            ? 'Mitra ditambahkan. Mitra baru ini juga diusulkan ke LPPM untuk masuk data master.'
+            : 'Mitra ditambahkan.');
     }
 
     public function hapusMitra(Proposal $proposal, ProposalMitra $mitra): RedirectResponse

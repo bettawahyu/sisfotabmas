@@ -22,9 +22,10 @@
                             <p class="text-gray-600">Capaian {{ $l->persentase_capaian }}%</p>
                         </div>
                         <p class="mt-2 whitespace-pre-line text-gray-700">{{ $l->ringkasan }}</p>
+                        @include('pelaksanaan.partials.dampak-pkm', ['laporan' => $l])
                         <p class="mt-2">
                             @foreach ($l->berkas as $berkas)
-                                <a class="me-3 text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$l->proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : 'Laporan akhir' }}</a>
+                                <a class="me-3 text-indigo-700 underline" href="{{ route('pelaksanaan.berkas', [$l->proposal, $berkas]) }}">{{ $berkas->kategori === Berkas::LAPORAN_KEUANGAN ? 'Laporan keuangan 100%' : $berkas->namaKategori() }}</a>
                             @endforeach
                         </p>
                         <form method="POST" action="{{ route('verifikasi.laporan', $l) }}" class="mt-3 flex flex-wrap gap-3">

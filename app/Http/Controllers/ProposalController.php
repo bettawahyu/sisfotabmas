@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\TipeAnggota;
 use App\Models\BidangFokus;
 use App\Models\JenisLuaran;
+use App\Models\Mitra;
 use App\Models\Penilaian;
 use App\Models\PeriodeHibah;
 use App\Models\Proposal;
@@ -93,6 +94,7 @@ class ProposalController extends Controller
             'kekurangan' => Gate::allows('update', $proposal) ? $alur->kekurangan($proposal) : [],
             'bidangFokus' => $this->bidangFokus($proposal->periode),
             'cabangIlmu' => $this->cabangIlmu(),
+            'pilihanMitra' => Mitra::bisaDipilih($request->user())->orderBy('nama')->get(['id', 'nama', 'bidang', 'status']),
             'jenisLuaran' => JenisLuaran::aktif()->untukKegiatan($proposal->periode->skema->jenis_kegiatan)->berurutan()->get(),
             // Report templates belong on the report pages, not next to the substance upload.
             'templat' => TemplateDokumen::berlakuUntuk($proposal->periode->skema_id, $proposal->periode->tahun_anggaran)
