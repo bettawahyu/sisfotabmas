@@ -7,6 +7,14 @@
     $adaPelaksanaan = $dosenNav !== null && \App\Models\Proposal::dalamPelaksanaan()->timDosen($dosenNav)->exists();
     $adminLppm = $pengguna->hasRole(Role::ADMIN_LPPM);
 
+    // A route is a name or [name, parameter]; a pattern "name:jenis" also checks the jenis parameter.
+    $tautanNav = fn (string|array $rute) => route(...(array) $rute);
+    $aktifNav = fn (array $pola) => collect($pola)->contains(function (string $p) {
+        [$nama, $jenis] = array_pad(explode(':', $p, 2), 2, null);
+
+        return request()->routeIs($nama) && ($jenis === null || request()->route('jenis') === $jenis);
+    });
+
     // Sidebar sections: heading => [[label, route, active route patterns, feather icon], ...].
     // An entry keyed by a name is a collapsible group: name => [feather icon, [links...]].
     $menu = array_filter([
@@ -21,6 +29,8 @@
             ['Proposal', 'proposal.index', ['proposal.*', 'undangan.*'], 'file-text'],
             $adaPelaksanaan ? ['Pelaksanaan', 'pelaksanaan.index', ['pelaksanaan.*'], 'activity'] : null,
             ['Publikasi & KI', 'karya.publikasi.index', ['karya.*'], 'book-open'],
+            ['Riwayat Penelitian', ['riwayat.index', 'penelitian'], ['riwayat.*:penelitian'], 'search'],
+            ['Riwayat PkM', ['riwayat.index', 'pkm'], ['riwayat.*:pkm'], 'heart'],
             ['Profil Dosen', 'profil-dosen.edit', ['profil-dosen.*'], 'award'],
         ])),
         'Reviewer' => $pengguna->hasRole(Role::REVIEWER) ? [
@@ -29,6 +39,7 @@
         'Pimpinan Unit' => $pengguna->hasRole(Role::PIMPINAN_UNIT) ? [
             ['Pengesahan', 'pengesahan.index', ['pengesahan.*'], 'pen-tool'],
             $adminLppm || $pengguna->hasRole(Role::OPERATOR) ? null : ['Publikasi & KI Dosen', 'karya-dosen.index', ['karya-dosen.*'], 'shield'],
+            $adminLppm || $pengguna->hasRole(Role::OPERATOR) ? null : ['Riwayat Dosen', ['riwayat-dosen.index', 'penelitian'], ['riwayat-dosen.*'], 'archive'],
         ] : [],
         'Keuangan' => $pengguna->hasRole(Role::KEUANGAN) && ! $adminLppm ? [
             ['Pencairan', 'pencairan.index', ['pencairan.*'], 'dollar-sign'],
@@ -37,6 +48,8 @@
             ['Pemantauan', 'pemantauan.index', ['pemantauan.*'], 'monitor'],
             ['Verifikasi', 'verifikasi.index', ['verifikasi.*'], 'clipboard'],
             ['Publikasi & KI Dosen', 'karya-dosen.index', ['karya-dosen.*'], 'shield'],
+            ['Riwayat Dosen', ['riwayat-dosen.index', 'penelitian'], ['riwayat-dosen.*'], 'archive'],
+            ['Mitra', 'mitra.index', ['mitra.*'], 'briefcase'],
         ] : [],
         'Admin LPPM' => $adminLppm ? [
             ['Ringkasan Admin', 'admin.dashboard', ['admin.dashboard'], 'grid'],
@@ -59,9 +72,11 @@
             'Laporan & Luaran' => ['clipboard', [
                 ['Verifikasi Laporan', 'verifikasi.index', ['verifikasi.*'], 'clipboard'],
                 ['Publikasi & KI Dosen', 'karya-dosen.index', ['karya-dosen.*'], 'shield'],
+                ['Riwayat Dosen', ['riwayat-dosen.index', 'penelitian'], ['riwayat-dosen.*'], 'archive'],
             ]],
             'Pengaturan LPPM' => ['sliders', [
                 ['Unit Pimpinan', 'admin.pimpinan-unit.index', ['admin.pimpinan-unit.*'], 'briefcase'],
+                ['Mitra', 'mitra.index', ['mitra.*'], 'users'],
                 ['Kelola Pengumuman', 'kelola.pengumuman.index', ['kelola.pengumuman.*'], 'edit'],
             ]],
         ] : [],
@@ -111,7 +126,7 @@
                     @continue(empty($isi))
                     @if (is_string($kunci))
                         @php([$ikonGrup, $tautan] = $isi)
-                        @php($grupAktif = collect($tautan)->contains(fn ($t) => request()->routeIs(...$t[2])))
+                        @php($grupAktif = collect($tautan)->contains(fn ($t) => $aktifNav($t[2])))
                         <li x-data="{ buka: @js($grupAktif) }">
                             {{-- On a collapsed sidebar the group icon widens it again to show the links. --}}
                             <button type="button" @click="if (sidebarCiut()) { aturSidebar(false); buka = true } else { buka = ! buka }"
@@ -123,7 +138,7 @@
                             <ul x-show="buka" class="sidebar-sub mt-1 space-y-1 ps-4" @unless ($grupAktif) style="display: none;" @endunless>
                                 @foreach ($tautan as [$label, $rute, $pola, $ikon])
                                     <li>
-                                        <x-nav-link :href="route($rute)" :active="request()->routeIs(...$pola)" :ikon="$ikon">{{ $label }}</x-nav-link>
+                                        <x-nav-link :href="$tautanNav($rute)" :active="$aktifNav($pola)" :ikon="$ikon">{{ $label }}</x-nav-link>
                                     </li>
                                 @endforeach
                             </ul>
@@ -131,7 +146,7 @@
                     @else
                         @php([$label, $rute, $pola, $ikon] = $isi)
                         <li>
-                            <x-nav-link :href="route($rute)" :active="request()->routeIs(...$pola)" :ikon="$ikon">{{ $label }}</x-nav-link>
+                            <x-nav-link :href="$tautanNav($rute)" :active="$aktifNav($pola)" :ikon="$ikon">{{ $label }}</x-nav-link>
                         </li>
                     @endif
                 @endforeach
