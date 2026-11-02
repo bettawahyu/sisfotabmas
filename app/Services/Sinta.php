@@ -2,21 +2,23 @@
 
 namespace App\Services;
 
-use DOMDocument;
-use DOMXPath;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
- * Reads a lecturer's metrics from their public SINTA profile page. SINTA has no
- * open API, so this parses the page; the Google Scholar figures come from the
- * same page, so Scholar itself is never visited.
+ * A lecturer's metrics from the official SINTA API (manual V3): log in with the
+ * campus account, then read the author's profile by SINTA ID. The API is only
+ * used once the SINTA team has issued the account and registered the server's
+ * IP; until SINTA_API_* is filled in, syncing stays off.
  */
 class Sinta
 {
-    /** Columns of the Scopus / GScholar / WoS table that SINTA shows, in order. */
-    private const KOLOM = ['scopus', 'scholar', 'wos'];
+    private const CACHE_TOKEN = 'sinta-api-token';
 
     public static function urlProfil(string $sintaId): string
     {
@@ -37,99 +39,154 @@ class Sinta
     }
 
     /**
-     * The metrics stored on the lecturer, fetched from SINTA.
+     * Whether the SINTA team's account is filled in, so syncing can be offered.
+     */
+    public static function aktif(): bool
+    {
+        $api = config('services.sinta.api');
+
+        return filled($api['uniq']) && filled($api['username']) && filled($api['password']);
+    }
+
+    /**
+     * The metrics stored on the lecturer, read from the author's SINTA profile.
      *
      * @return array{skor_sinta: float|null, h_index_scopus: int|null, h_index_scholar: int|null, sitasi_scopus: int|null, sitasi_scholar: int|null}
      *
-     * @throws RuntimeException when SINTA cannot be reached or the page is not a profile
+     * @throws RuntimeException when the API is off, cannot be reached or does not know the author
      */
     public function ambilMetrik(string $sintaId): array
     {
-        try {
-            $respons = Http::timeout(20)->withUserAgent(config('app.name').' (sinkron profil SINTA)')->get(self::urlProfil($sintaId));
-        } catch (ConnectionException $e) {
-            throw new RuntimeException('SINTA tidak dapat dihubungi.', previous: $e);
+        if (! self::aktif()) {
+            throw new RuntimeException('Koneksi API SINTA belum diaktifkan.');
         }
 
-        if ($respons->status() === 404) {
-            throw new RuntimeException('Profil SINTA dengan ID ini tidak ditemukan.');
-        }
-        if (! $respons->successful()) {
-            throw new RuntimeException("SINTA menjawab dengan kode {$respons->status()}.");
+        $profil = $this->kirim("/author/profile/id/{$sintaId}");
+        $metrik = self::petakan($profil->json() ?? []);
+
+        if (array_filter($metrik, fn ($n) => $n !== null) === []) {
+            // The manual shows no response fields, so log what came back to fix the mapping.
+            Log::warning('Jawaban API SINTA tanpa metrik yang dikenali', ['sinta_id' => $sintaId, 'kunci' => array_keys(Arr::dot($profil->json() ?? []))]);
+
+            throw new RuntimeException('Jawaban API SINTA tidak berisi skor atau h-index yang dikenali.');
         }
 
-        return $this->bacaProfil($respons->body());
+        return $metrik;
     }
 
     /**
-     * @return array{skor_sinta: float|null, h_index_scopus: int|null, h_index_scholar: int|null, sitasi_scopus: int|null, sitasi_scholar: int|null}
+     * Finds the figures in an author response. The manual names the endpoints
+     * but not the fields, so keys are matched by what they contain, such as
+     * "scopus" with "h index", whatever their exact spelling or nesting.
      *
-     * @throws RuntimeException when the page has neither the score nor the metrics table
+     * @param  array<mixed>  $jawaban
+     * @return array{skor_sinta: float|null, h_index_scopus: int|null, h_index_scholar: int|null, sitasi_scopus: int|null, sitasi_scholar: int|null}
      */
-    public function bacaProfil(string $html): array
+    public static function petakan(array $jawaban): array
     {
-        $dom = new DOMDocument;
-        @$dom->loadHTML('<?xml encoding="UTF-8">'.$html, LIBXML_NONET);
-        $xpath = new DOMXPath($dom);
+        $nilai = [];
+        foreach (Arr::dot($jawaban) as $kunci => $isi) {
+            if (is_numeric($isi)) {
+                $nilai[strtolower(preg_replace('/[^a-z0-9]/i', '', (string) $kunci))] = $isi;
+            }
+        }
 
-        // The first score is "SINTA Score Overall"; the others are 3-year and affiliation scores.
-        $skor = $xpath->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' stat-profile ')]//*[contains(concat(' ', normalize-space(@class), ' '), ' pr-num ')]");
-
-        // Columns are found by their headings, falling back to SINTA's usual order.
-        $statTable = "//table[contains(concat(' ', normalize-space(@class), ' '), ' stat-table ')]";
-        $kolom = self::KOLOM;
-        $judul = $xpath->query($statTable.'//thead//th');
-        if ($judul->length > 1) {
-            $dariJudul = [];
-            foreach ($judul as $i => $th) {
-                $teks = strtolower($th->textContent);
-                $nama = str_contains($teks, 'scopus') ? 'scopus' : (str_contains($teks, 'scholar') ? 'scholar' : (str_contains($teks, 'wos') ? 'wos' : null));
-                if ($nama !== null) {
-                    $dariJudul[$i - 1] = $nama;
+        $cari = function (array $harus, array $salahSatu = [], array $bukan = []) use ($nilai) {
+            foreach ($nilai as $kunci => $isi) {
+                $cocok = collect($harus)->every(fn ($k) => str_contains($kunci, $k))
+                    && ($salahSatu === [] || collect($salahSatu)->contains(fn ($k) => str_contains($kunci, $k)))
+                    && ! collect($bukan)->contains(fn ($k) => str_contains($kunci, $k));
+                if ($cocok) {
+                    return $isi;
                 }
             }
-            if (in_array('scopus', $dariJudul, true) && in_array('scholar', $dariJudul, true)) {
-                $kolom = $dariJudul;
-            }
-        }
 
-        $tabel = [];
-        foreach ($xpath->query($statTable.'//tbody/tr') as $tr) {
-            $sel = $xpath->query('./td', $tr);
-            if ($sel->length < 3) {
-                continue;
-            }
-            $label = strtolower(preg_replace('/[^a-z0-9]/i', '', $sel->item(0)->textContent));
-            foreach ($kolom as $i => $nama) {
-                $tabel[$label][$nama] = $sel->item($i + 1) ? self::bilangan($sel->item($i + 1)->textContent) : null;
-            }
-        }
+            return null;
+        };
 
-        if ($skor->length === 0 && $tabel === []) {
-            throw new RuntimeException('Data profil tidak ditemukan di halaman SINTA. Periksa ID SINTA Anda; bila sudah benar, tampilan SINTA mungkin berubah.');
-        }
-
-        $nilaiSkor = $skor->length > 0 ? self::bilangan($skor->item(0)->textContent, desimal: true) : null;
+        $scholar = ['google', 'scholar', 'gs'];
+        $skor = $cari(['score'], ['overall', 'all', 'total'], ['3y', '3yr', '3year', 'affil'])
+            ?? $cari(['sinta', 'score'], [], ['3y', '3yr', '3year', 'affil']);
 
         return [
-            'skor_sinta' => $nilaiSkor,
-            'h_index_scopus' => $tabel['hindex']['scopus'] ?? null,
-            'h_index_scholar' => $tabel['hindex']['scholar'] ?? null,
-            'sitasi_scopus' => $tabel['citation']['scopus'] ?? $tabel['citations']['scopus'] ?? null,
-            'sitasi_scholar' => $tabel['citation']['scholar'] ?? $tabel['citations']['scholar'] ?? null,
+            'skor_sinta' => $skor === null ? null : round((float) $skor, 2),
+            'h_index_scopus' => self::bulat($cari(['scopus', 'hindex'])),
+            'h_index_scholar' => self::bulat($cari(['hindex'], $scholar, ['scopus', 'wos'])),
+            'sitasi_scopus' => self::bulat($cari(['scopus'], ['citation', 'cited', 'sitasi'], ['document', 'doc'])),
+            'sitasi_scholar' => self::bulat($cari([], array_merge(...array_map(fn ($s) => [$s.'citation', $s.'cited', $s.'sitasi', 'citation'.$s, 'cited'.$s], $scholar)), ['document', 'doc'])),
         ];
     }
 
-    /**
-     * A number as SINTA prints it, such as "1,234" or "-" for none.
-     */
-    private static function bilangan(string $teks, bool $desimal = false): int|float|null
+    private static function bulat(mixed $isi): ?int
     {
-        $teks = str_replace(',', '', trim($teks));
-        if (! is_numeric($teks)) {
-            return null;
+        return $isi === null ? null : (int) $isi;
+    }
+
+    /**
+     * POSTs to /v3/{env}/{uniq}{path} with the token, logging in again once if it expired.
+     */
+    private function kirim(string $path, array $isi = []): Response
+    {
+        $api = config('services.sinta.api');
+        $url = rtrim($api['url'], '/')."/v3/{$api['env']}/{$api['uniq']}{$path}";
+
+        for ($ulang = 0; $ulang < 2; $ulang++) {
+            try {
+                $respons = Http::timeout(20)->acceptJson()->withToken($this->token($ulang > 0))->post($url, $isi);
+            } catch (ConnectionException $e) {
+                throw new RuntimeException('API SINTA tidak dapat dihubungi.', previous: $e);
+            }
+            if ($respons->status() !== 401) {
+                break;
+            }
         }
 
-        return $desimal ? round((float) $teks, 2) : (int) $teks;
+        return match (true) {
+            $respons->successful() => $respons,
+            $respons->status() === 404 => throw new RuntimeException('Profil SINTA dengan ID ini tidak ditemukan.'),
+            $respons->status() === 403 => throw new RuntimeException('API SINTA menolak akses; pastikan IP server sudah didaftarkan ke tim SINTA.'),
+            $respons->status() === 429 => throw new RuntimeException('Kuota harian API SINTA sudah habis.'),
+            default => throw new RuntimeException("API SINTA menjawab dengan kode {$respons->status()}."),
+        };
+    }
+
+    private function token(bool $baru = false): string
+    {
+        if ($baru) {
+            Cache::forget(self::CACHE_TOKEN);
+        }
+
+        return Cache::remember(self::CACHE_TOKEN, now()->addMinutes(50), function () {
+            $api = config('services.sinta.api');
+            try {
+                $respons = Http::timeout(20)->acceptJson()->post(rtrim($api['url'], '/').'/consumer/login', [
+                    'username' => $api['username'],
+                    'password' => $api['password'],
+                ]);
+            } catch (ConnectionException $e) {
+                throw new RuntimeException('API SINTA tidak dapat dihubungi.', previous: $e);
+            }
+
+            $token = $respons->successful() ? self::tokenDari($respons->json() ?? []) : null;
+            if ($token === null) {
+                throw new RuntimeException('Login ke API SINTA gagal; periksa akun API di pengaturan server.');
+            }
+
+            return $token;
+        });
+    }
+
+    /**
+     * The token from the login answer, wherever it sits ("token", "data.token", "access_token", ...).
+     */
+    private static function tokenDari(array $jawaban): ?string
+    {
+        foreach (Arr::dot($jawaban) as $kunci => $isi) {
+            if (is_string($isi) && $isi !== '' && str_contains(strtolower((string) $kunci), 'token')) {
+                return $isi;
+            }
+        }
+
+        return null;
     }
 }

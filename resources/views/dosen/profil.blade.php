@@ -15,7 +15,7 @@
                     <x-kartu judul="Metrik SINTA" ikon="bar-chart-2">
                         @if ($dosen?->sinta_id)
                             <p class="mb-4 text-sm text-gray-600">
-                                Diambil dari <a href="{{ \App\Services\Sinta::urlProfil($dosen->sinta_id) }}" target="_blank" rel="noopener" class="text-indigo-700 hover:underline">profil SINTA Anda</a>, termasuk h-index dan sitasi Google Scholar yang tercatat di SINTA.
+                                Dari <a href="{{ \App\Services\Sinta::urlProfil($dosen->sinta_id) }}" target="_blank" rel="noopener" class="text-indigo-700 hover:underline">profil SINTA Anda</a>, termasuk h-index dan sitasi Google Scholar yang tercatat di SINTA.
                                 @if ($dosen->sinkron_terakhir_at)
                                     Terakhir diperbarui {{ $dosen->sinkron_terakhir_at->translatedFormat('d F Y H:i') }}.
                                 @endif
@@ -35,7 +35,9 @@
                                 @endforeach
                             </dl>
                             <div class="mt-4">
-                                @if ($berikutnya = $dosen->sinkronSintaBerikutnya())
+                                @if (! \App\Services\Sinta::aktif())
+                                    <p class="text-sm text-gray-600">Sinkron dari SINTA belum aktif; kampus masih menunggu akses API dari SINTA.</p>
+                                @elseif ($berikutnya = $dosen->sinkronSintaBerikutnya())
                                     <p class="text-sm text-gray-600">Sinkron berikutnya tersedia mulai {{ $berikutnya->translatedFormat('d F Y') }}.</p>
                                 @else
                                     <form method="POST" action="{{ route('profil-dosen.sinkron-sinta') }}">
