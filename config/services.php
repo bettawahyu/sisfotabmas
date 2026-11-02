@@ -29,7 +29,16 @@ return [
     ],
 
     'sinta' => [
+        // Public site, for links to a lecturer's profile.
         'url' => env('SINTA_URL', 'https://sinta.kemdiktisaintek.go.id'),
+        // Official API account issued by the SINTA team; syncing is off until it is filled in.
+        'api' => [
+            'url' => env('SINTA_API_URL', 'http://apisinta.kemdikbud.go.id'),
+            'env' => env('SINTA_API_ENV', 'prod'),
+            'uniq' => env('SINTA_API_UNIQ'),
+            'username' => env('SINTA_API_USERNAME'),
+            'password' => env('SINTA_API_PASSWORD'),
+        ],
     ],
 
     'slack' => [

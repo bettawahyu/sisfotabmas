@@ -108,7 +108,7 @@ class ProfilDosenController extends Controller
     }
 
     /**
-     * Copies the score, h-index and citations from the lecturer's SINTA profile.
+     * Copies the score, h-index and citations from the lecturer's SINTA profile, through the SINTA API.
      * Lecturers sync their own profile, at most once per Dosen::JEDA_SINKRON_SINTA days;
      * a failed sync keeps the figures already stored.
      */
@@ -117,6 +117,9 @@ class ProfilDosenController extends Controller
         $dosen = $request->user()->dosen;
         $kembali = redirect()->route('profil-dosen.edit');
 
+        if (! Sinta::aktif()) {
+            return $kembali->with('gagal', 'Sinkron SINTA belum aktif; kampus masih menunggu akses API dari SINTA.');
+        }
         if ($dosen?->sinta_id === null) {
             return $kembali->with('gagal', 'Isi dan simpan ID SINTA terlebih dahulu.');
         }
