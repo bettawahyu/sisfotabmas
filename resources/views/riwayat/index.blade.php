@@ -11,7 +11,10 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ AlurRiwayat::LABEL[$jenis] }}</h2>
-            <x-tombol-tautan :href="route('riwayat.create', $jenis)" ikon="plus">Catat {{ $jenis === 'pkm' ? 'PkM' : 'penelitian' }}</x-tombol-tautan>
+            <div class="flex flex-wrap gap-2">
+                <x-tombol-tautan :href="route('riwayat.ekspor', $jenis)" varian="kedua" ikon="download">Unduh Excel</x-tombol-tautan>
+                <x-tombol-tautan :href="route('riwayat.create', $jenis)" ikon="plus">Catat {{ $jenis === 'pkm' ? 'PkM' : 'penelitian' }}</x-tombol-tautan>
+            </div>
         </div>
     </x-slot>
 

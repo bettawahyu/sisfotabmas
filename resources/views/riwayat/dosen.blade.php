@@ -14,9 +14,13 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Riwayat Penelitian &amp; PkM Dosen</h2>
-            @if ($petugas)
-                <x-tombol-tautan :href="route('riwayat.create', $jenis)" ikon="plus">Catat untuk dosen</x-tombol-tautan>
-            @endif
+            <div class="flex flex-wrap gap-2">
+                <x-tombol-tautan :href="route('riwayat-dosen.ekspor', [$jenis, ...request()->query()])" varian="kedua" ikon="download">Unduh Excel</x-tombol-tautan>
+                @if ($petugas)
+                    <x-tombol-tautan :href="route('riwayat-impor.create', $jenis)" varian="kedua" ikon="upload">Impor Excel</x-tombol-tautan>
+                    <x-tombol-tautan :href="route('riwayat.create', $jenis)" ikon="plus">Catat untuk dosen</x-tombol-tautan>
+                @endif
+            </div>
         </div>
     </x-slot>
 

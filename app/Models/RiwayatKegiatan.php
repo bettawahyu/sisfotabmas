@@ -250,4 +250,18 @@ class RiwayatKegiatan extends Model
     {
         return self::STATUS_VERIFIKASI[$this->status_verifikasi] ?? $this->status_verifikasi;
     }
+
+    /**
+     * Whether the final report file is in; records imported from Excel come
+     * without one and are completed later through the form.
+     */
+    public function laporanTerunggah(): bool
+    {
+        return $this->berkas->contains('kategori', self::BERKAS_LAPORAN);
+    }
+
+    public function namaStatusLaporan(): string
+    {
+        return $this->laporanTerunggah() ? 'Sudah unggah' : 'Belum unggah';
+    }
 }

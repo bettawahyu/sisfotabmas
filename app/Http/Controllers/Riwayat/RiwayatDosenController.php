@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\RiwayatKegiatan;
 use App\Services\AlurRiwayat;
 use App\Services\DataDosen;
+use App\Services\EksporRiwayat;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Every lecturer's research and community service records for operators,
@@ -23,6 +25,36 @@ class RiwayatDosenController extends Controller
     {
         $user = $request->user();
         $petugas = AlurRiwayat::petugasLppm($user);
+        [$filter, $query] = $this->saring($request, $jenis);
+
+        return view('riwayat.dosen', [
+            'jenis' => $jenis,
+            'riwayat' => $query->paginate(25)->withQueryString(),
+            'filter' => $filter,
+            'prodi' => $data->prodi($user),
+            'lihatSemua' => DataDosen::bolehLihatSemua($user),
+            'petugas' => $petugas,
+        ]);
+    }
+
+    /**
+     * The same list as the page, with its filters, as an Excel file.
+     */
+    public function ekspor(Request $request, string $jenis, EksporRiwayat $ekspor): StreamedResponse
+    {
+        [, $query] = $this->saring($request, $jenis);
+
+        return $ekspor->unduh($ekspor->baris($query->get(), AlurRiwayat::JENIS[$jenis]), "riwayat-{$jenis}-dosen");
+    }
+
+    /**
+     * The filters from the query string and the records they select.
+     *
+     * @return array{array<string, mixed>, Builder<RiwayatKegiatan>}
+     */
+    private function saring(Request $request, string $jenis): array
+    {
+        $user = $request->user();
         $filter = $request->validate([
             'status' => ['nullable', Rule::in([...array_keys(RiwayatKegiatan::STATUS_VERIFIKASI), 'semua'])],
             'kegiatan' => ['nullable', Rule::in(array_keys(RiwayatKegiatan::STATUS_KEGIATAN))],
@@ -32,9 +64,9 @@ class RiwayatDosenController extends Controller
             'prodi_id' => ['nullable', 'integer'],
         ]);
         // Verifiers land on what waits for them.
-        $filter['status'] ??= $petugas ? RiwayatKegiatan::MENUNGGU : 'semua';
+        $filter['status'] ??= AlurRiwayat::petugasLppm($user) ? RiwayatKegiatan::MENUNGGU : 'semua';
 
-        $riwayat = RiwayatKegiatan::jenis(AlurRiwayat::JENIS[$jenis])
+        $query = RiwayatKegiatan::jenis(AlurRiwayat::JENIS[$jenis])
             ->when(! DataDosen::bolehLihatSemua($user), fn (Builder $q) => $q->dalamUnit($user))
             ->when($filter['status'] !== 'semua', fn (Builder $q) => $q->where('status_verifikasi', $filter['status']))
             ->when($filter['kegiatan'] ?? null, fn (Builder $q, $status) => $q->where('status_kegiatan', $status))
@@ -47,18 +79,10 @@ class RiwayatDosenController extends Controller
             ->when($filter['cari'] ?? null, fn (Builder $q, $cari) => $q->where(fn (Builder $w) => $w->where('judul', 'like', "%{$cari}%")
                 ->orWhereHas('anggota', fn (Builder $a) => $a->where('nama', 'like', "%{$cari}%"))))
             ->when($filter['prodi_id'] ?? null, fn (Builder $q, $prodi) => $q->whereHas('anggota.dosen', fn (Builder $d) => $d->where('prodi_id', $prodi)))
-            ->with(['anggota', 'mitra', 'kabupatenKota.provinsi', 'berkas', 'penginput', 'verifikatorLppm', 'publikasi', 'hki', 'paten'])
-            ->orderByDesc('tahun_mulai')->latest('updated_at')
-            ->paginate(25)->withQueryString();
+            ->with(['anggota.dosen', 'mitra', 'kabupatenKota.provinsi', 'berkas', 'penginput', 'verifikatorLppm', 'publikasi', 'hki', 'paten'])
+            ->orderByDesc('tahun_mulai')->latest('updated_at');
 
-        return view('riwayat.dosen', [
-            'jenis' => $jenis,
-            'riwayat' => $riwayat,
-            'filter' => $filter,
-            'prodi' => $data->prodi($user),
-            'lihatSemua' => DataDosen::bolehLihatSemua($user),
-            'petugas' => $petugas,
-        ]);
+        return [$filter, $query];
     }
 
     public function verifikasi(Request $request, string $jenis, RiwayatKegiatan $riwayat, AlurRiwayat $alur): RedirectResponse

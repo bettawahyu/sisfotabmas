@@ -37,6 +37,9 @@
             @endforeach
         </p>
     @endif
+    @if ($r->status_kegiatan === RiwayatKegiatan::SELESAI && ! $r->laporanTerunggah())
+        <p class="text-amber-700"><x-ikon nama="alert-triangle" class="inline h-4 w-4" /> Laporan akhir belum diunggah.</p>
+    @endif
     @if ($r->status_verifikasi === RiwayatKegiatan::DITOLAK && $r->catatan_verifikasi)
         <p class="text-red-700">Alasan ditolak: {{ $r->catatan_verifikasi }}</p>
     @endif

@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Riwayat;
 
 use App\Http\Controllers\Controller;
 use App\Services\AlurRiwayat;
+use App\Services\EksporRiwayat;
 use App\Services\RekapRiwayat;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * The research and community service summary for LPPM, operators and the
@@ -20,6 +22,31 @@ class RekapRiwayatController extends Controller
 
     public function index(Request $request, string $jenis, RekapRiwayat $rekap): View
     {
+        $filter = $this->saring($request);
+        $user = $request->user();
+
+        return view('riwayat.rekap', [
+            'jenis' => $jenis,
+            'filter' => $filter,
+            'prodi' => $rekap->prodi($user),
+            'lihatSemua' => RekapRiwayat::bolehLihatSemua($user),
+        ] + $rekap->hitung($user, AlurRiwayat::JENIS[$jenis], $filter));
+    }
+
+    public function ekspor(Request $request, string $jenis, RekapRiwayat $rekap, EksporRiwayat $ekspor): StreamedResponse
+    {
+        $filter = $this->saring($request);
+        $kegiatan = AlurRiwayat::JENIS[$jenis];
+        $hasil = $rekap->hitung($request->user(), $kegiatan, $filter);
+
+        return $ekspor->unduh($ekspor->rekap($hasil, $kegiatan), "rekap-{$jenis}-{$filter['tahun_dari']}-{$filter['tahun_sampai']}");
+    }
+
+    /**
+     * @return array{tahun_dari: int, tahun_sampai: int, prodi_id?: int|string|null, sumber_dana?: string|null}
+     */
+    private function saring(Request $request): array
+    {
         $filter = $request->validate([
             'tahun_dari' => ['nullable', 'integer', 'between:1950,2100'],
             'tahun_sampai' => ['nullable', 'integer', 'between:1950,2100'],
@@ -31,13 +58,7 @@ class RekapRiwayatController extends Controller
         if ($filter['tahun_dari'] > $filter['tahun_sampai']) {
             [$filter['tahun_dari'], $filter['tahun_sampai']] = [$filter['tahun_sampai'], $filter['tahun_dari']];
         }
-        $user = $request->user();
 
-        return view('riwayat.rekap', [
-            'jenis' => $jenis,
-            'filter' => $filter,
-            'prodi' => $rekap->prodi($user),
-            'lihatSemua' => RekapRiwayat::bolehLihatSemua($user),
-        ] + $rekap->hitung($user, AlurRiwayat::JENIS[$jenis], $filter));
+        return $filter;
     }
 }
